@@ -14,6 +14,30 @@ export const BODY = {
   legLength: 7,
 } as const;
 
+/** Tilt-to-move: sidestepping, and how it affects the bot's aim. */
+export const MOVE = {
+  maxSpeed: 1.2, // m/s at full tilt
+  maxOffset: 1.5, // m either side of the start position
+  opponentDistance: 10, // m, sets how far the opponent appears to slide
+  dodgeSpeed: 0.3, // m/s; moving at least this fast counts as dodging
+  dodgeFactor: 0.6, // bot hit chance is multiplied by this while you dodge
+} as const;
+
+const RAD = 180 / Math.PI;
+
+/**
+ * Where the opponent appears in aim units, after the player's sidestep.
+ * Stepping right makes him appear further left, and vice versa.
+ */
+export function apparentTarget(s: DuelState): Vec2 {
+  return { x: s.target.x - Math.atan2(s.player.x, MOVE.opponentDistance) * RAD, y: s.target.y };
+}
+
+/** How far (aim units) something at `distance` meters appears to shift from the player's sidestep. */
+export function parallax(s: DuelState, distance: number): number {
+  return -Math.atan2(s.player.x, distance) * RAD;
+}
+
 export const DEFAULT_CONFIG: DuelConfig = {
   drawDelayMin: 2000,
   drawDelayMax: 5000,
@@ -65,7 +89,8 @@ export function createDuel(config: DuelConfig, seed: number, now: number): DuelS
     drawSignalAt: null,
     drawnAt: null,
     endedAt: null,
-    player: { hp: MAX_HP, rounds: CYLINDER, shots: 0, hits: 0, headshots: 0 },
+    lastTickAt: now,
+    player: { hp: MAX_HP, rounds: CYLINDER, shots: 0, hits: 0, headshots: 0, x: 0, lean: 0, vx: 0 },
     bot: { hp: MAX_HP, rounds: CYLINDER, shots: 0, hits: 0, headshots: 0, nextFireAt: null, reloadUntil: null },
     holes: [],
   };
@@ -119,8 +144,9 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
       s.player.rounds--;
       s.player.shots++;
       {
-        const zone = hitTest(s.target, action.aim);
-        s.holes.push({ x: action.aim.x, y: action.aim.y, zone });
+        const t = apparentTarget(s);
+        const zone = hitTest(t, action.aim);
+        s.holes.push({ x: action.aim.x - t.x, y: action.aim.y - t.y, zone });
         if (zone) {
           s.player.hits++;
           if (zone === 'head') s.player.headshots++;
@@ -138,7 +164,20 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
       }
       break;
 
-    case 'tick':
+    case 'lean':
+      s.player.lean = Math.max(-1, Math.min(1, action.value));
+      break;
+
+    case 'tick': {
+      const dt = Math.min(0.05, Math.max(0, (now - s.lastTickAt) / 1000));
+      s.lastTickAt = now;
+      if (s.phase === 'aim') {
+        const oldX = s.player.x;
+        s.player.x = Math.max(-MOVE.maxOffset, Math.min(MOVE.maxOffset, oldX + s.player.lean * MOVE.maxSpeed * dt));
+        s.player.vx = dt > 0 ? (s.player.x - oldX) / dt : 0;
+      } else {
+        s.player.vx = 0;
+      }
       if (s.phase === 'ready' && s.drawSignalAt != null && now >= s.drawSignalAt) {
         s.phase = 'draw';
         fx.push({ type: 'draw' });
@@ -154,7 +193,10 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
           s.bot.rounds--;
           s.bot.shots++;
           let zone: HitZone = null;
-          if (between(s, 0, 1) < bot.hitChance) zone = between(s, 0, 1) < bot.headshotShare ? 'head' : 'torso';
+          // A player who is sidestepping is harder to hit.
+          const dodging = Math.abs(s.player.vx) >= MOVE.dodgeSpeed;
+          const chance = bot.hitChance * (dodging ? MOVE.dodgeFactor : 1);
+          if (between(s, 0, 1) < chance) zone = between(s, 0, 1) < bot.headshotShare ? 'head' : 'torso';
           if (zone) {
             s.bot.hits++;
             if (zone === 'head') s.bot.headshots++;
@@ -171,6 +213,7 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
         }
       }
       break;
+    }
   }
   return { state: s, effects: fx };
 }

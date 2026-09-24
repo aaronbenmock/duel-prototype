@@ -52,6 +52,8 @@ export class SettingsView {
           </div>
           <p class="help">Easy: hits 25% of shots. Normal: 36%. Hard: 40% and fires faster. Headshots are rare at every level.</p>
         </div>
+        <label class="toggle"><input type="checkbox" id="st-tilt"> Tilt to move (sidestep)</label>
+        <p class="help">Tip the phone sideways, like canting a revolver, to step left or right. Moving makes the bot miss more.</p>
         <label class="toggle"><input type="checkbox" id="st-sound"> Sound</label>
         <label class="toggle"><input type="checkbox" id="st-readout-on"> Show detection readout during duels</label>
       </div>
@@ -87,6 +89,11 @@ export class SettingsView {
     const sound = this.el.querySelector<HTMLInputElement>('#st-sound')!;
     sound.addEventListener('change', () => {
       this.values.sound = sound.checked;
+      this.onChange({ ...this.values });
+    });
+    const tilt = this.el.querySelector<HTMLInputElement>('#st-tilt')!;
+    tilt.addEventListener('change', () => {
+      this.values.tiltMove = tilt.checked;
       this.onChange({ ...this.values });
     });
     const readoutOn = this.el.querySelector<HTMLInputElement>('#st-readout-on')!;
@@ -130,6 +137,7 @@ export class SettingsView {
       b.classList.toggle('on', b.dataset.bot === this.values.bot),
     );
     this.el.querySelector<HTMLInputElement>('#st-sound')!.checked = this.values.sound;
+    this.el.querySelector<HTMLInputElement>('#st-tilt')!.checked = this.values.tiltMove;
     this.el.querySelector<HTMLInputElement>('#st-readout-on')!.checked = this.values.showReadout;
   }
 

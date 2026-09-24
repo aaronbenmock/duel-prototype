@@ -1,4 +1,4 @@
-# Duel Prototype
+# Quick Draw
 
 A motion-controlled quick-draw duel for your phone. Holster the phone at your hip, wait for the DRAW sound, raise it, aim and tap to shoot. You play solo against a simple bot.
 
@@ -16,6 +16,7 @@ This is a beta for testing one question: is drawing and aiming a phone like a re
 
 - **Lock portrait:** swipe down from the top-right corner to open Control Center and turn on **Portrait Orientation Lock** (the lock with a circular arrow). If the phone goes sideways, the game covers the screen and asks you to rotate back.
 - **Silent mode:** you can leave it on. The game asks Safari to play sound even when the ringer is on silent, and this was confirmed working on an iPhone during testing. If you ever hear no beep after tapping Enable Motion, turn silent mode off and raise the volume.
+- **Vibration:** Android phones vibrate on DRAW, hits and shots. iPhone Safari has no real vibration for websites; the game tries an experimental light haptic tap instead, which may or may not be felt.
 - **Volume:** turn it up. The DRAW sound is your only cue, because you can't see the screen while the phone is holstered.
 
 ## If motion access was denied
@@ -37,8 +38,9 @@ If that doesn't work, go to Settings, then Apps, then Safari, then **Clear Histo
 2. Wait for the loud **DRAW** sound. Moving before it is a foul.
 3. Raise the phone upright, screen facing you. The crosshair appears.
 4. Turn the phone to aim. Tap anywhere to shoot. Head = 100 damage (instant win), body = 40. Both you and the bot have 100 health.
-5. After six shots, flick the phone down and up to reload, or tap **Reload**.
-6. On the results screen, the buttons wake up after one second so a late tap can't skip the results. **Again** starts the next round.
+5. Tip the phone sideways (like canting a revolver) to sidestep left or right, up to about 1.5 m each way. This doesn't move your aim. While you're moving, the bot misses more often.
+6. After six shots, flick the phone down and up to reload, or tap **Reload**.
+7. On the results screen, the buttons wake up after one second so a late tap can't skip the results. **Again** starts the next round.
 
 ## Settings
 
@@ -54,6 +56,7 @@ Open **Settings** from the top-right of the start screen, or the top-right of th
 | Draw sensitivity | Higher = the draw counts earlier as you raise the phone (faster draw times). Lower = you must be closer to upright and level. | 5 |
 | Reload flick sensitivity | Higher = a gentler down-and-up flick reloads. Lower = needs a sharper flick. | 5 |
 | Bot difficulty | Easy: hits 25% of shots, slower; kills an idle player in about 20 s. Normal: 36%; about 11 s. Hard: 40%, fires faster; about 8 s. | Normal |
+| Tilt to move (sidestep) | Tip the phone sideways past a small dead zone (12 degrees) to step left or right; full speed at 35 degrees. Moving cuts the bot's hit chance by 40%. | On |
 | Sound | Turns all game sounds on or off. | On |
 | Show detection readout during duels | A small line at the top of the duel screen showing the game state and whether holster, draw and reload are detected. | On |
 

@@ -5,7 +5,7 @@ import type { BotConfig, DuelConfig } from '../game/types';
 import type { AimConfig } from '../input/aim';
 import { DEFAULT_GESTURES, type GestureConfig } from '../input/gestures';
 
-export const APP_VERSION = '0.3.1';
+export const APP_VERSION = '0.4.0';
 const STORAGE_KEY = 'duel-settings-v1';
 
 export type BotDifficulty = 'easy' | 'normal' | 'hard';
@@ -26,6 +26,8 @@ export interface Settings {
   sound: boolean;
   /** Show the detection readout at the top of the duel screen. */
   showReadout: boolean;
+  /** Tilt the phone sideways to sidestep. */
+  tiltMove: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -39,6 +41,7 @@ export const DEFAULT_SETTINGS: Settings = {
   bot: 'normal',
   sound: true,
   showReadout: true,
+  tiltMove: true,
 };
 
 export function loadSettings(): Settings {

@@ -161,3 +161,19 @@ button.link {
 .muted { color: var(--muted); }
 .gear { position: absolute; top: max(12px, env(safe-area-inset-top)); right: 12px; width: auto; padding: 8px 12px; font-size: 0.9rem; margin: 0; }
 .screen { position: relative; display: flow-root; }
+
+/* ---- Hand and gun (placeholder viewmodel) ---- */
+.vm-wrap {
+  position: absolute; right: 0; bottom: 3%;
+  width: min(56vw, 280px);
+  transform-origin: 60% 100%;
+  pointer-events: none;
+  animation: vm-raise 0.25s ease-out;
+}
+.vm { width: 100%; height: auto; display: block; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); }
+.vm-kick { transform-origin: 50% 90%; }
+.vm-kick.kick { animation: vm-kick 0.18s ease-out; }
+.vm-kick.reloading { animation: vm-reload 0.45s ease-in-out; }
+@keyframes vm-raise { from { translate: 0 60%; } to { translate: 0 0; } }
+@keyframes vm-kick { 0% { transform: translateY(0) rotate(0); } 30% { transform: translateY(-6%) rotate(-7deg); } 100% { transform: none; } }
+@keyframes vm-reload { 0% { transform: none; } 45% { transform: translateY(35%) rotate(20deg); } 100% { transform: none; } }

@@ -2,7 +2,7 @@
 import type { AudioEngine } from '../audio/audio';
 import type { MotionSensors } from '../input/motion';
 import { barrelInEarthFrame, upInPhoneFrame } from '../input/quat';
-import { canVibrate, vibrate, type ScreenAwake } from '../platform/platform';
+import { vibrate, vibrationMode, type ScreenAwake } from '../platform/platform';
 
 const f = (n: number | null | undefined, d = 1) => (n == null || Number.isNaN(n) ? '--' : n.toFixed(d));
 
@@ -17,8 +17,8 @@ function poseLabel(up: [number, number, number]): string {
 
 export function mountSensorCheck(root: HTMLElement, sensors: MotionSensors, audio: AudioEngine, awake: ScreenAwake) {
   root.innerHTML = `
-    <h1>DUEL PROTOTYPE</h1>
-    <p class="sub">Milestone 1: sensor and sound check</p>
+    <h1>QUICK DRAW</h1>
+    <p class="sub">Sensor and sound check</p>
     <button id="enable">Enable Motion</button>
     <button id="beep" class="secondary hidden">Play test beep again</button>
 
@@ -27,7 +27,7 @@ export function mountSensorCheck(root: HTMLElement, sensors: MotionSensors, audi
       <span class="k">Audio</span><span class="v" id="aud">not started</span>
       <span class="k">Silent-mode audio</span><span class="v" id="sess">--</span>
       <span class="k">Screen awake</span><span class="v" id="wake">--</span>
-      <span class="k">Vibration</span><span class="v">${canVibrate ? 'supported' : 'not supported'}</span>
+      <span class="k">Vibration</span><span class="v">${vibrationMode === 'vibrate' ? 'supported' : vibrationMode === 'ios-haptic' ? 'iPhone haptic (experimental)' : 'not supported'}</span>
       <span class="k">Secure (HTTPS)</span><span class="v ${window.isSecureContext ? 'ok' : 'err'}">${window.isSecureContext ? 'yes' : 'NO'}</span>
     </div></div>
 

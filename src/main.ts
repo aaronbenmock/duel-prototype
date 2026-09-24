@@ -90,6 +90,7 @@ function play(e: Effect) {
       break;
     case 'shot':
       audio.shot();
+      game.kick();
       if (e.zone === 'head') audio.headshot();
       else if (e.zone === 'torso') audio.hit();
       else audio.miss();
@@ -101,6 +102,7 @@ function play(e: Effect) {
       break;
     case 'reload':
       audio.reload();
+      game.reloadAnim();
       break;
     case 'botShot':
       audio.botShot();
@@ -153,9 +155,12 @@ sensors.onOrientation((s) => {
       break;
     case 'aim': {
       aim.update(s.q, s.t);
+      // Tilt-to-move: sideways tilt becomes a sidestep (skip if unchanged).
+      const lean = settings.tiltMove ? gestures.leanValue() : 0;
+      if (Math.abs(lean - duel.player.lean) > 0.01) dispatch({ type: 'lean', now: s.t, value: lean });
       const flag = aim.lastWasSpike ? 'S' : aim.settling ? 'C' : '';
       if (aimLog.length < LOG_MAX) {
-        aimLog.push([Math.round(s.t - logStart), n1(s.alpha), n1(s.beta), n1(s.gamma), n1(aim.raw.x), n1(aim.raw.y), n1(aim.current.x), n1(aim.current.y), flag].map(String).join(','));
+        aimLog.push([Math.round(s.t - logStart), n1(s.alpha), n1(s.beta), n1(s.gamma), n1(aim.raw.x), n1(aim.raw.y), n1(aim.current.x), n1(aim.current.y), flag, n1(gestures.roll), duel?.player.x.toFixed(2) ?? ''].map(String).join(','));
       }
       break;
     }
@@ -199,7 +204,7 @@ game.onCopyLog = async () => {
     `# result=${s?.result} target=${s ? n1(s.target.x) + ',' + n1(s.target.y) : ''} spikes=${aim.spikes}`,
     `# settings: ${Object.entries(settings).map(([k, v]) => `${k}=${v}`).join(' ')}`,
     '# flags: C=re-centering during draw, S=glitch ignored, F=tap (aim used)',
-    'ms,alpha,beta,gamma,rawX,rawY,x,y,flag',
+    'ms,alpha,beta,gamma,rawX,rawY,x,y,flag,tilt,stepX',
   ];
   try {
     await navigator.clipboard.writeText(header.concat(aimLog).join('\n'));
@@ -282,6 +287,7 @@ start.onSensorCheck = () => {
 // ---- Drawing ----
 
 const yesNo = (b: boolean) => (b ? 'YES' : 'no');
+const moveLabel = (v: number) => (v === 0 ? 'still' : `${v > 0 ? 'right' : 'left'} ${Math.round(Math.abs(v) * 100)}%`);
 
 /** What the detectors currently see. */
 function readoutRows(): ReadoutRow[] {
@@ -293,6 +299,7 @@ function readoutRows(): ReadoutRow[] {
     ['Holster', yesNo(gestures.holstered), gestures.holstered],
     ['Draw (aim pose)', yesNo(gestures.aimPose), gestures.aimPose],
     ['Reload flick', flickAgo < 1500 ? 'DETECTED' : 'no', flickAgo < 1500],
+    ['Sideways tilt / move', `${gestures.roll.toFixed(0)}° / ${settings.tiltMove ? moveLabel(gestures.leanValue()) : 'off'}`, gestures.leanValue() !== 0],
     ['Phone top down / up', (gestures.upY >= 0 ? 'up ' : 'down ') + Math.abs(gestures.upY).toFixed(2)],
     ['Sensor updates / sec', motionOn || hz ? String(hz) : 'motion not enabled'],
   ];
@@ -303,7 +310,7 @@ function frame() {
   if (duel && settings.showReadout) {
     const r = readoutRows();
     game.setReadout(
-      `${r[0][1]} | holster ${r[1][1]} | draw ${r[2][1]} | flick ${r[3][1] === 'no' ? 'no' : 'YES'} | ${r[5][1]} Hz`,
+      `${r[0][1]} | holster ${r[1][1]} | draw ${r[2][1]} | flick ${r[3][1] === 'no' ? 'no' : 'YES'} | step ${duel.player.x.toFixed(1)}m | ${r[6][1]} Hz`,
     );
   } else {
     game.setReadout(null);

@@ -37,8 +37,49 @@ export class ScreenAwake {
 
 export const canVibrate = typeof navigator.vibrate === 'function';
 
+/**
+ * iPhone Safari has no vibration API. Experimental workaround: iOS 18+ plays a
+ * light haptic tap when a native "switch" checkbox is toggled, including from
+ * code. It may not fire outside a tap, so it is a bonus, not a guarantee.
+ */
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+let hapticLabel: HTMLLabelElement | null = null;
+
+function iosTap() {
+  if (!hapticLabel) {
+    hapticLabel = document.createElement('label');
+    hapticLabel.setAttribute('aria-hidden', 'true');
+    hapticLabel.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;pointer-events:none';
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.setAttribute('switch', '');
+    input.tabIndex = -1;
+    hapticLabel.appendChild(input);
+    document.body.appendChild(hapticLabel);
+  }
+  hapticLabel.click();
+}
+
+export const vibrationMode: 'vibrate' | 'ios-haptic' | 'none' = canVibrate ? 'vibrate' : isIOS ? 'ios-haptic' : 'none';
+
+/** Vibrates on Android. On iPhone, plays one light haptic tap per pulse in the pattern (experimental). */
 export function vibrate(pattern: number | number[]) {
-  if (canVibrate) navigator.vibrate(pattern);
+  if (canVibrate) {
+    navigator.vibrate(pattern);
+    return;
+  }
+  if (!isIOS) return;
+  const pulses = Array.isArray(pattern) ? pattern.filter((_, i) => i % 2 === 0) : [pattern];
+  // Long pulses become a quick burst of taps so they're easier to feel.
+  let delay = 0;
+  for (const ms of pulses) {
+    const taps = Math.max(1, Math.min(4, Math.round(ms / 60)));
+    for (let i = 0; i < taps; i++) {
+      setTimeout(iosTap, delay);
+      delay += 70;
+    }
+    delay += 80;
+  }
 }
 
 /**

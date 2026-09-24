@@ -1,6 +1,6 @@
 // Draws the duel: a placeholder western scene (SVG), crosshair and HUD.
 // Reads game state; never changes it.
-import { BODY, CYLINDER, MAX_HP, drawTime } from '../game/duel';
+import { apparentTarget, BODY, CYLINDER, MAX_HP, drawTime, parallax } from '../game/duel';
 import type { DuelState, Vec2 } from '../game/types';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -34,6 +34,10 @@ export class GameView {
   private holes: SVGGElement;
   private cross: SVGGElement;
   private holeCount = -1;
+  /** Scene pieces that shift with the player's sidestep, with their distance in meters. */
+  private layers: { g: SVGGElement; dist: number }[] = [];
+  private prevAim: Vec2 | null = null;
+  private sway = { x: 0, y: 0 };
   private $: (sel: string) => HTMLElement;
   private shownResult: string | null = null;
   private unlockTimer: ReturnType<typeof setTimeout> | undefined;
@@ -42,6 +46,27 @@ export class GameView {
     this.el = document.createElement('div');
     this.el.className = 'game hidden';
     this.el.innerHTML = `
+      <div class="vm-wrap hidden" id="g-vm">
+        <div class="vm-kick" id="g-vmk">
+          <svg viewBox="0 0 200 240" class="vm">
+            <!-- Placeholder hand and revolver, seen from behind. Swap for final art later. -->
+            <rect x="89" y="8" width="10" height="12" rx="2" fill="#26262b"/>
+            <rect x="82" y="16" width="24" height="96" rx="5" fill="#3b3b42"/>
+            <rect x="86" y="18" width="6" height="92" rx="3" fill="#5c5c66"/>
+            <rect x="70" y="104" width="48" height="50" rx="12" fill="#4a4a53"/>
+            <line x1="82" y1="108" x2="82" y2="150" stroke="#34343b" stroke-width="3"/>
+            <line x1="94" y1="106" x2="94" y2="152" stroke="#34343b" stroke-width="3"/>
+            <line x1="106" y1="108" x2="106" y2="150" stroke="#34343b" stroke-width="3"/>
+            <rect x="78" y="150" width="32" height="26" rx="4" fill="#3b3b42"/>
+            <rect x="89" y="142" width="10" height="16" rx="2" fill="#26262b"/>
+            <ellipse cx="100" cy="212" rx="64" ry="44" fill="#8a5a34"/>
+            <rect x="52" y="160" width="30" height="62" rx="15" fill="#9c6a3e" transform="rotate(-18 67 190)"/>
+            <rect x="110" y="170" width="46" height="22" rx="11" fill="#9c6a3e"/>
+            <rect x="112" y="190" width="46" height="22" rx="11" fill="#94643a"/>
+            <rect x="36" y="226" width="128" height="20" fill="#6a3a24"/>
+          </svg>
+        </div>
+      </div>
       <div class="hud-top">
         <div class="hp"><span>YOU</span><div class="bar"><i id="g-php"></i></div></div>
         <div class="hp"><span>BOT</span><div class="bar"><i id="g-bhp"></i></div></div>
@@ -75,7 +100,8 @@ export class GameView {
     this.el.prepend(this.svgEl);
     this.buildScene();
     this.opponent = this.buildOpponent();
-    this.holes = svg('g', {}, this.svgEl);
+    // Bullet marks live inside the opponent group, so they move with him.
+    this.holes = svg('g', {}, this.opponent);
     this.cross = svg('g', { class: 'cross' }, this.svgEl);
     svg('circle', { r: 1.3, fill: 'none', stroke: '#fff', 'stroke-width': 0.18 }, this.cross);
     svg('circle', { r: 0.15, fill: '#ff3b30' }, this.cross);
@@ -127,13 +153,17 @@ export class GameView {
     svg('stop', { offset: 1, 'stop-color': '#f2b76b' }, grad);
     svg('rect', { x: -40, y: -80, width: 80, height: 80 + horizon, fill: 'url(#sky)' }, s);
     svg('circle', { cx: 12, cy: -16, r: 3, fill: '#ffe39a' }, s);
-    svg('polygon', { points: `-40,${horizon} -30,${horizon - 5} -22,${horizon - 5} -18,${horizon} -6,${horizon} -2,${horizon - 3} 6,${horizon - 3} 9,${horizon} 22,${horizon} 26,${horizon - 7} 34,${horizon - 7} 40,${horizon}`, fill: '#a0583a' }, s);
+    const far = svg('g', {}, s);
+    this.layers.push({ g: far, dist: 300 });
+    svg('polygon', { points: `-40,${horizon} -30,${horizon - 5} -22,${horizon - 5} -18,${horizon} -6,${horizon} -2,${horizon - 3} 6,${horizon - 3} 9,${horizon} 22,${horizon} 26,${horizon - 7} 34,${horizon - 7} 40,${horizon}`, fill: '#a0583a' }, far);
     svg('rect', { x: -40, y: horizon, width: 80, height: 80, fill: '#c89456' }, s);
-    // Cacti and a fence post, just for depth.
-    for (const [x, base, h] of [[-15, horizon + 6, 9], [16, horizon + 10, 12]]) {
-      svg('rect', { x: x - 0.8, y: base - h, width: 1.6, height: h, rx: 0.8, fill: '#4f7a3a' }, s);
-      svg('rect', { x: x - 3, y: base - h * 0.7, width: 1.2, height: h * 0.35, rx: 0.6, fill: '#4f7a3a' }, s);
-      svg('rect', { x: x + 1.8, y: base - h * 0.8, width: 1.2, height: h * 0.3, rx: 0.6, fill: '#4f7a3a' }, s);
+    // Cacti at different distances, so sidestepping shows depth (closer = shifts more).
+    for (const [x, base, h, dist] of [[-15, horizon + 6, 9, 8], [16, horizon + 10, 12, 5]]) {
+      const g = svg('g', {}, s);
+      this.layers.push({ g, dist });
+      svg('rect', { x: x - 0.8, y: base - h, width: 1.6, height: h, rx: 0.8, fill: '#4f7a3a' }, g);
+      svg('rect', { x: x - 3, y: base - h * 0.7, width: 1.2, height: h * 0.35, rx: 0.6, fill: '#4f7a3a' }, g);
+      svg('rect', { x: x + 1.8, y: base - h * 0.8, width: 1.2, height: h * 0.3, rx: 0.6, fill: '#4f7a3a' }, g);
     }
   }
 
@@ -162,6 +192,22 @@ export class GameView {
     if (text != null && el.textContent !== text) el.textContent = text;
   }
 
+  /** Gun kicks up on a shot. */
+  kick() {
+    this.restartAnim(this.$('g-vmk'), 'kick');
+  }
+
+  /** Gun dips down and back up on a reload. */
+  reloadAnim() {
+    this.restartAnim(this.$('g-vmk'), 'reloading');
+  }
+
+  private restartAnim(el: HTMLElement, cls: string) {
+    el.classList.remove('kick', 'reloading');
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }
+
   flash(kind: 'hurt' | 'muzzle') {
     const el = this.$('g-' + kind);
     el.classList.remove('on');
@@ -170,7 +216,10 @@ export class GameView {
   }
 
   render(s: DuelState, aim: Vec2, aimVisible: boolean) {
-    this.opponent.setAttribute('transform', `translate(${s.target.x} ${GameView.sy(s.target.y)})`);
+    const t = apparentTarget(s);
+    this.opponent.setAttribute('transform', `translate(${t.x} ${GameView.sy(t.y)})`);
+    for (const l of this.layers) l.g.setAttribute('transform', `translate(${parallax(s, l.dist)} 0)`);
+    this.renderViewmodel(s, aim, aimVisible);
     this.cross.style.display = aimVisible ? '' : 'none';
     this.cross.setAttribute('transform', `translate(${aim.x} ${GameView.sy(aim.y)})`);
     this.svgEl.classList.toggle('dim', s.phase === 'holster' || s.phase === 'ready');
@@ -212,6 +261,23 @@ export class GameView {
     this.$('g-reload').classList.toggle('hidden', !(s.phase === 'aim' || s.phase === 'draw') || s.player.rounds === CYLINDER);
 
     this.renderResult(s);
+  }
+
+  /** Hand and gun: raised while aiming, lags slightly behind aim movement, tilts with sidestep. */
+  private renderViewmodel(s: DuelState, aim: Vec2, visible: boolean) {
+    const wrap = this.$('g-vm');
+    wrap.classList.toggle('hidden', !visible);
+    if (!visible) {
+      this.prevAim = null;
+      return;
+    }
+    const d = this.prevAim ? { x: aim.x - this.prevAim.x, y: aim.y - this.prevAim.y } : { x: 0, y: 0 };
+    this.prevAim = { ...aim };
+    // Ease toward a small offset opposite to the movement, then settle back.
+    this.sway.x += (Math.max(-30, Math.min(30, -d.x * 12)) - this.sway.x) * 0.2;
+    this.sway.y += (Math.max(-30, Math.min(30, d.y * 12)) - this.sway.y) * 0.2;
+    const tilt = s.player.lean * 6;
+    wrap.style.transform = `translate(${this.sway.x.toFixed(1)}px, ${this.sway.y.toFixed(1)}px) rotate(${(-14 + tilt).toFixed(1)}deg)`;
   }
 
   private renderResult(s: DuelState) {

@@ -1,4 +1,4 @@
-// Start screen: placeholder title, Enable Motion, Start Duel.
+// Start screen: title, Enable Motion, Start Duel.
 
 export class StartView {
   readonly el: HTMLElement;
@@ -14,8 +14,8 @@ export class StartView {
     this.el.className = 'screen';
     this.el.innerHTML = `
       <button class="secondary gear" id="s-settings" aria-label="Settings">&#9881; Settings</button>
-      <h1 class="title">DUEL PROTOTYPE</h1>
-      <p class="sub">Quick-draw beta. Placeholder title.</p>
+      <h1 class="title">QUICK DRAW</h1>
+      <p class="sub">Beta</p>
       <button id="s-enable">Enable Motion</button>
       <button id="s-start">Start Duel</button>
       <p class="status" id="s-status"></p>
@@ -26,6 +26,7 @@ export class StartView {
           <li>Don't move until the loud <b>DRAW</b> sound. Moving early is a foul.</li>
           <li>Raise the phone upright, screen facing you, like aiming a revolver.</li>
           <li>Turn the phone to move the crosshair. Tap anywhere to shoot. Head = 100 damage, body = 40.</li>
+          <li>Tip the phone sideways to sidestep left or right. A moving target is harder for the bot to hit.</li>
           <li>After six shots, flick the phone down and up (or tap <b>Reload</b>).</li>
           <li>Aim feel, detection and bot difficulty can be adjusted in <b>Settings</b>.</li>
         </ol>

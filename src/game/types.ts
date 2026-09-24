@@ -41,11 +41,21 @@ export interface Shooter {
   headshots: number;
 }
 
+export interface PlayerState extends Shooter {
+  /** Sideways position in meters (right is positive), from tilt-to-move. */
+  x: number;
+  /** Current movement input, -1 (full left) to 1 (full right). */
+  lean: number;
+  /** Actual sideways speed over the last tick, m/s. */
+  vx: number;
+}
+
 export interface BotState extends Shooter {
   nextFireAt: number | null;
   reloadUntil: number | null;
 }
 
+/** A bullet mark, stored relative to the opponent's torso center so it moves with him. */
 export interface BulletHole extends Vec2 {
   zone: HitZone;
 }
@@ -63,7 +73,8 @@ export interface DuelState {
   drawSignalAt: number | null;
   drawnAt: number | null;
   endedAt: number | null;
-  player: Shooter;
+  lastTickAt: number;
+  player: PlayerState;
   bot: BotState;
   holes: BulletHole[];
 }
@@ -74,6 +85,7 @@ export type Action =
   | { type: 'drawPose'; now: number }
   | { type: 'fire'; now: number; aim: Vec2 }
   | { type: 'reload'; now: number }
+  | { type: 'lean'; now: number; value: number }
   | { type: 'tick'; now: number };
 
 /** Things that happened during a step, for sound, vibration and flashes. */

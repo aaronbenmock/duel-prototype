@@ -19,6 +19,10 @@ export interface GestureConfig {
   reloadAccel: number;
   /** Reload flick: both directions must happen within this window (ms). */
   reloadWindowMs: number;
+  /** Tilt-to-move: tilting the phone sideways less than this (degrees) does nothing... */
+  leanDeadZone: number;
+  /** ...and this much tilt (degrees) is full speed. */
+  leanFull: number;
 }
 
 export const DEFAULT_GESTURES: GestureConfig = {
@@ -30,6 +34,8 @@ export const DEFAULT_GESTURES: GestureConfig = {
   aimMaxTilt: 40,
   reloadAccel: 10,
   reloadWindowMs: 400,
+  leanDeadZone: 12,
+  leanFull: 35,
 };
 
 export class GestureDetector {
@@ -37,6 +43,8 @@ export class GestureDetector {
   aimPose = false;
   /** How much the phone's top points up (+1) or down (-1). For the readout. */
   upY = 0;
+  /** Sideways tilt in degrees (top of phone toward the right is positive). Doesn't affect aim. */
+  roll = 0;
   /** Latest orientation quaternion, for use by the aim tracker. */
   q: Quat | null = null;
   private holsterSince: number | null = null;
@@ -60,6 +68,8 @@ export class GestureDetector {
     // up[1] is how much the phone's top edge points up (+1) or down (-1).
     const down = -up[1];
     this.upY = up[1];
+    // Rotation around the barrel axis: tipping the phone like canting a revolver.
+    this.roll = (Math.atan2(-up[0], up[1]) * 180) / Math.PI;
 
     if (!this.holstered) {
       if (down >= c.holsterDown && this.spin <= c.holsterMaxSpin) {
@@ -76,6 +86,13 @@ export class GestureDetector {
     const barrel = barrelInEarthFrame(s.q);
     const tilt = (Math.asin(Math.max(-1, Math.min(1, barrel[2]))) * 180) / Math.PI;
     this.aimPose = up[1] >= c.aimUpright && Math.abs(tilt) <= c.aimMaxTilt;
+  }
+
+  /** Movement input from sideways tilt: -1 (full left) to 1 (full right), 0 inside the dead zone. */
+  leanValue(): number {
+    const { leanDeadZone: dz, leanFull: full } = this.config;
+    const mag = Math.min(1, Math.max(0, (Math.abs(this.roll) - dz) / (full - dz)));
+    return Math.sign(this.roll) * mag;
   }
 
   /** Returns true when a reload flick (a sharp down-and-up jerk) is detected. */
