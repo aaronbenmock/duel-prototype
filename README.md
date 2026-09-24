@@ -55,7 +55,7 @@ Open **Settings** from the top-right of the start screen, or the top-right of th
 | Holster sensitivity | Higher = the phone counts as holstered sooner and at a looser angle, and a foul is more likely. Lower = you must hold it straighter and longer. | 5 |
 | Draw sensitivity | Higher = the draw counts earlier as you raise the phone (faster draw times). Lower = you must be closer to upright and level. | 5 |
 | Reload flick sensitivity | Higher = a gentler down-and-up flick reloads. Lower = needs a sharper flick. | 5 |
-| Bot difficulty | Easy: hits 25% of shots, slower; kills an idle player in about 20 s. Normal: 36%; about 11 s. Hard: 40%, fires faster; about 8 s. | Normal |
+| Bot difficulty (top of Settings) | Easy: hits 25% of shots, slower; kills an idle player in about 20 s; barely shuffles. Normal: 36%; about 11 s; wanders about 1 m either way. Hard: 40%, fires faster; about 8 s; wanders up to 1.5 m, faster. | Normal |
 | Tilt to move (sidestep) | Tip the phone sideways past a small dead zone (12 degrees) to step left or right; full speed at 35 degrees. Moving cuts the bot's hit chance by 40%. | On |
 | Sound | Turns all game sounds on or off. | On |
 | Show detection readout during duels | A small line at the top of the duel screen showing the game state and whether holster, draw and reload are detected. | On |

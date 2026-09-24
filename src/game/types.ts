@@ -24,6 +24,13 @@ export interface BotConfig {
   headshotShare: number;
   /** Seconds the bot needs to reload after six shots. */
   reloadTime: number;
+  /** How far (m) the bot wanders either side of its start spot. 0 = stands still. */
+  moveRange: number;
+  /** Walking speed, m/s. */
+  moveSpeed: number;
+  /** Seconds it pauses between moves (random in range). */
+  pauseMin: number;
+  pauseMax: number;
 }
 
 export interface DuelConfig {
@@ -53,6 +60,12 @@ export interface PlayerState extends Shooter {
 export interface BotState extends Shooter {
   nextFireAt: number | null;
   reloadUntil: number | null;
+  /** Sideways position (m) and where it's walking to. */
+  x: number;
+  destX: number;
+  vx: number;
+  /** When it starts its next move (null = walking now or not started). */
+  nextMoveAt: number | null;
 }
 
 /** A bullet mark, stored relative to the opponent's torso center so it moves with him. */

@@ -5,7 +5,7 @@ import type { BotConfig, DuelConfig } from '../game/types';
 import type { AimConfig } from '../input/aim';
 import { DEFAULT_GESTURES, type GestureConfig } from '../input/gestures';
 
-export const APP_VERSION = '0.4.0';
+export const APP_VERSION = '0.4.1';
 const STORAGE_KEY = 'duel-settings-v1';
 
 export type BotDifficulty = 'easy' | 'normal' | 'hard';
@@ -88,9 +88,16 @@ export function gestureConfig(s: Settings): GestureConfig {
 const BOTS: Record<BotDifficulty, BotConfig> = {
   // Median time for each bot to kill a player who never fires back (simulated):
   // easy about 20 s, normal about 11 s, hard about 8 s.
-  easy: { firstShotMin: 1.5, firstShotMax: 3, intervalMin: 1.2, intervalMax: 1.9, hitChance: 0.25, headshotShare: 0.05, reloadTime: 2.8 },
+  // Movement: easy barely shuffles, hard wanders further and faster (1 m is about 6 degrees of aim).
+  easy: {
+    firstShotMin: 1.5, firstShotMax: 3, intervalMin: 1.2, intervalMax: 1.9, hitChance: 0.25, headshotShare: 0.05, reloadTime: 2.8,
+    moveRange: 0.5, moveSpeed: 0.4, pauseMin: 1.5, pauseMax: 3,
+  },
   normal: DEFAULT_CONFIG.bot,
-  hard: { firstShotMin: 1, firstShotMax: 2, intervalMin: 0.9, intervalMax: 1.4, hitChance: 0.4, headshotShare: 0.08, reloadTime: 2 },
+  hard: {
+    firstShotMin: 1, firstShotMax: 2, intervalMin: 0.9, intervalMax: 1.4, hitChance: 0.4, headshotShare: 0.08, reloadTime: 2,
+    moveRange: 1.5, moveSpeed: 1.0, pauseMin: 0.6, pauseMax: 1.8,
+  },
 };
 
 export function duelConfig(s: Settings): DuelConfig {

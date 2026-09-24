@@ -217,7 +217,9 @@ export class GameView {
 
   render(s: DuelState, aim: Vec2, aimVisible: boolean) {
     const t = apparentTarget(s);
-    this.opponent.setAttribute('transform', `translate(${t.x} ${GameView.sy(t.y)})`);
+    // Small bob while the bot is walking.
+    const bob = s.bot.vx !== 0 ? Math.abs(Math.sin(performance.now() / 110)) * 0.35 : 0;
+    this.opponent.setAttribute('transform', `translate(${t.x} ${GameView.sy(t.y + bob)})`);
     for (const l of this.layers) l.g.setAttribute('transform', `translate(${parallax(s, l.dist)} 0)`);
     this.renderViewmodel(s, aim, aimVisible);
     this.cross.style.display = aimVisible ? '' : 'none';

@@ -43,15 +43,17 @@ export class SettingsView {
         <h1>Settings</h1>
         <button class="secondary small-btn" data-act="back">Back</button>
       </div>
-      <div class="panel"><h2>Live detection</h2><div class="grid" id="st-readout"></div></div>
-      <div class="panel" id="st-sliders"></div>
       <div class="panel">
         <div class="setting"><div class="row"><span>Bot difficulty</span></div>
           <div class="seg" id="st-bot">
             <button data-bot="easy">Easy</button><button data-bot="normal">Normal</button><button data-bot="hard">Hard</button>
           </div>
-          <p class="help">Easy: hits 25% of shots. Normal: 36%. Hard: 40% and fires faster. Headshots are rare at every level.</p>
+          <p class="help">Easy: hits 25% of shots. Normal: 36%. Hard: 40% and fires faster. Harder bots also move around more.</p>
         </div>
+      </div>
+      <div class="panel"><h2>Live detection</h2><div class="grid" id="st-readout"></div></div>
+      <div class="panel" id="st-sliders"></div>
+      <div class="panel">
         <label class="toggle"><input type="checkbox" id="st-tilt"> Tilt to move (sidestep)</label>
         <p class="help">Tip the phone sideways, like canting a revolver, to step left or right. Moving makes the bot miss more.</p>
         <label class="toggle"><input type="checkbox" id="st-sound"> Sound</label>

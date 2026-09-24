@@ -30,7 +30,7 @@ const RAD = 180 / Math.PI;
  * Stepping right makes him appear further left, and vice versa.
  */
 export function apparentTarget(s: DuelState): Vec2 {
-  return { x: s.target.x - Math.atan2(s.player.x, MOVE.opponentDistance) * RAD, y: s.target.y };
+  return { x: s.target.x + Math.atan2(s.bot.x - s.player.x, MOVE.opponentDistance) * RAD, y: s.target.y };
 }
 
 /** How far (aim units) something at `distance` meters appears to shift from the player's sidestep. */
@@ -49,6 +49,10 @@ export const DEFAULT_CONFIG: DuelConfig = {
     hitChance: 0.36,
     headshotShare: 0.08,
     reloadTime: 2.2,
+    moveRange: 1.0,
+    moveSpeed: 0.7,
+    pauseMin: 1.0,
+    pauseMax: 2.5,
   },
 };
 
@@ -91,7 +95,10 @@ export function createDuel(config: DuelConfig, seed: number, now: number): DuelS
     endedAt: null,
     lastTickAt: now,
     player: { hp: MAX_HP, rounds: CYLINDER, shots: 0, hits: 0, headshots: 0, x: 0, lean: 0, vx: 0 },
-    bot: { hp: MAX_HP, rounds: CYLINDER, shots: 0, hits: 0, headshots: 0, nextFireAt: null, reloadUntil: null },
+    bot: {
+      hp: MAX_HP, rounds: CYLINDER, shots: 0, hits: 0, headshots: 0,
+      nextFireAt: null, reloadUntil: null, x: 0, destX: 0, vx: 0, nextMoveAt: null,
+    },
     holes: [],
   };
   // Put the opponent somewhere off-center so the player has to aim.
@@ -182,6 +189,23 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
         s.phase = 'draw';
         fx.push({ type: 'draw' });
         s.bot.nextFireAt = s.drawSignalAt + between(s, bot.firstShotMin, bot.firstShotMax) * 1000;
+        s.bot.nextMoveAt = s.drawSignalAt + between(s, 0.3, 1.0) * 1000;
+      }
+      s.bot.vx = 0;
+      if ((s.phase === 'draw' || s.phase === 'aim') && bot.moveRange > 0) {
+        // Bot wanders: pause, pick a new spot, walk there, repeat.
+        if (s.bot.nextMoveAt != null && now >= s.bot.nextMoveAt) {
+          s.bot.nextMoveAt = null;
+          s.bot.destX = between(s, -bot.moveRange, bot.moveRange);
+        }
+        if (s.bot.nextMoveAt == null && s.bot.destX !== s.bot.x) {
+          const stepM = bot.moveSpeed * dt;
+          const gap = s.bot.destX - s.bot.x;
+          const oldX = s.bot.x;
+          s.bot.x = Math.abs(gap) <= stepM ? s.bot.destX : s.bot.x + Math.sign(gap) * stepM;
+          s.bot.vx = dt > 0 ? (s.bot.x - oldX) / dt : 0;
+          if (s.bot.x === s.bot.destX) s.bot.nextMoveAt = now + between(s, bot.pauseMin, bot.pauseMax) * 1000;
+        }
       }
       if (s.phase === 'draw' || s.phase === 'aim') {
         if (s.bot.reloadUntil != null && now >= s.bot.reloadUntil) {
