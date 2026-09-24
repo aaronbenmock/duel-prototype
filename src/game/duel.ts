@@ -20,11 +20,11 @@ export const DEFAULT_CONFIG: DuelConfig = {
   bot: {
     firstShotMin: 1,
     firstShotMax: 2.5,
-    intervalMin: 1.1,
-    intervalMax: 1.9,
-    hitChance: 0.3,
-    headshotShare: 0.1,
-    reloadTime: 2.5,
+    intervalMin: 0.9,
+    intervalMax: 1.5,
+    hitChance: 0.36,
+    headshotShare: 0.08,
+    reloadTime: 2.2,
   },
 };
 

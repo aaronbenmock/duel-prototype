@@ -50,7 +50,7 @@ export class SettingsView {
           <div class="seg" id="st-bot">
             <button data-bot="easy">Easy</button><button data-bot="normal">Normal</button><button data-bot="hard">Hard</button>
           </div>
-          <p class="help">Easy: 15% hit chance, slower shots. Normal: 30%. Hard: 45%, faster shots.</p>
+          <p class="help">Easy: hits 25% of shots. Normal: 36%. Hard: 40% and fires faster. Headshots are rare at every level.</p>
         </div>
         <label class="toggle"><input type="checkbox" id="st-sound"> Sound</label>
         <label class="toggle"><input type="checkbox" id="st-readout-on"> Show detection readout during duels</label>
