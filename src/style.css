@@ -68,7 +68,7 @@ button:disabled { opacity: 0.5; }
 .rotate-icon { font-size: 4rem; color: var(--accent); }
 
 /* ---- Start screen ---- */
-.title { font-size: 2.2rem; margin-top: 1.5rem; color: var(--accent); }
+.title { font-size: 2.2rem; margin-top: 3.4rem; color: var(--accent); }
 .status { min-height: 1.2em; font-size: 0.9rem; color: var(--muted); }
 .how ol { padding-left: 1.2rem; margin: 0; font-size: 0.9rem; line-height: 1.4; }
 .how li { margin: 0.35rem 0; }
@@ -127,3 +127,37 @@ body.in-game { overflow: hidden; touch-action: none; }
 .result .sub { text-align: center; }
 .result .grid { margin-bottom: 12px; font-size: 1rem; }
 .small-btn { font-size: 0.85rem; padding: 10px; }
+
+/* ---- Results lockout and links ---- */
+.result-links { display: flex; justify-content: space-between; margin: -4px -4px 0; }
+button.link {
+  width: auto; margin: 0; padding: 6px 8px;
+  background: none; border: 0; color: var(--muted);
+  font-size: 0.85rem; font-weight: 600; text-decoration: underline;
+}
+.result .panel button { transition: opacity 0.3s; }
+.result.locked .panel button { opacity: 0.3; pointer-events: none; }
+
+/* ---- In-duel readout ---- */
+.readout {
+  position: absolute; left: 14px; right: 14px;
+  top: calc(max(10px, env(safe-area-inset-top)) + 34px);
+  font-family: var(--mono); font-size: 0.72rem; color: var(--ink);
+  text-shadow: 0 1px 3px #000; pointer-events: none; white-space: pre;
+}
+
+/* ---- Settings ---- */
+.settings-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.settings-head .small-btn { width: auto; }
+.setting { margin: 4px 0 14px; }
+.setting .row { display: flex; justify-content: space-between; font-size: 0.95rem; }
+.setting input[type=range] { width: 100%; margin: 8px 0 2px; accent-color: var(--accent); height: 28px; }
+.help { margin: 0; font-size: 0.8rem; color: var(--muted); }
+.seg { display: flex; gap: 6px; margin: 8px 0 4px; }
+.seg button { margin: 0; padding: 10px; font-size: 0.95rem; background: var(--bg); color: var(--ink); border: 1px solid #5a4430; }
+.seg button.on { background: var(--accent); color: #1d130b; }
+.toggle { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 0.95rem; }
+.toggle input { width: 22px; height: 22px; accent-color: var(--accent); }
+.muted { color: var(--muted); }
+.gear { position: absolute; top: max(12px, env(safe-area-inset-top)); right: 12px; width: auto; padding: 8px 12px; font-size: 0.9rem; margin: 0; }
+.screen { position: relative; display: flow-root; }

@@ -1,7 +1,7 @@
 // Wires sensors, game rules, sound and screens together.
 import './style.css';
 import { AudioEngine } from './audio/audio';
-import { createDuel, DEFAULT_CONFIG, step } from './game/duel';
+import { createDuel, step } from './game/duel';
 import type { Action, DuelState, Effect } from './game/types';
 import { AimTracker } from './input/aim';
 import { GestureDetector } from './input/gestures';
@@ -9,19 +9,41 @@ import { MotionSensors } from './input/motion';
 import { installRotateOverlay, ScreenAwake, vibrate } from './platform/platform';
 import { GameView } from './render/gameView';
 import { mountSensorCheck } from './render/sensorCheck';
+import { SettingsView, type ReadoutRow } from './render/settingsView';
 import { StartView } from './render/startView';
+import {
+  aimConfig,
+  DEFAULT_SETTINGS,
+  duelConfig,
+  gestureConfig,
+  loadSettings,
+  saveSettings,
+  settingsText,
+  type Settings,
+} from './settings/settings';
 
 const sensors = new MotionSensors();
 const audio = new AudioEngine();
 const awake = new ScreenAwake();
 const gestures = new GestureDetector();
 const aim = new AimTracker();
+let settings: Settings = loadSettings();
+
+/** Pushes settings into the aim tracker, gesture detector and sound. */
+function applySettings(s: Settings) {
+  settings = s;
+  aim.config = aimConfig(s);
+  gestures.config = gestureConfig(s);
+  audio.enabled = s.sound;
+}
+applySettings(settings);
 
 const app = document.getElementById('app')!;
 installRotateOverlay();
 
 const start = new StartView(app);
 const game = new GameView(document.body);
+const settingsView = new SettingsView(app, settings);
 const sensorScreen = document.createElement('div');
 sensorScreen.className = 'hidden';
 app.appendChild(sensorScreen);
@@ -29,6 +51,8 @@ let sensorMounted = false;
 
 let duel: DuelState | null = null;
 let motionOn = false;
+let lastFlickAt = -Infinity;
+let settingsReturn: 'start' | 'game' = 'start';
 
 // Aim log: raw sensor angles and crosshair position for the current round,
 // so a tracking problem on the phone can be copied and diagnosed.
@@ -37,9 +61,10 @@ const LOG_MAX = 1500;
 let logStart = 0;
 const n1 = (v: number) => v.toFixed(1);
 
-function show(screen: 'start' | 'game' | 'sensors') {
+function show(screen: 'start' | 'game' | 'sensors' | 'settings') {
   start.show(screen === 'start');
   game.show(screen === 'game');
+  settingsView.show(screen === 'settings');
   sensorScreen.classList.toggle('hidden', screen !== 'sensors');
   document.body.classList.toggle('in-game', screen === 'game');
 }
@@ -102,7 +127,7 @@ function newRound() {
   aimLog.length = 0;
   gestures.reset();
   aim.unlock();
-  duel = createDuel(DEFAULT_CONFIG, (Math.random() * 2 ** 32) >>> 0, performance.now());
+  duel = createDuel(duelConfig(settings), (Math.random() * 2 ** 32) >>> 0, performance.now());
   show('game');
 }
 
@@ -139,6 +164,7 @@ sensors.onOrientation((s) => {
 
 sensors.onMotion((s) => {
   const flick = gestures.updateMotion(s);
+  if (flick) lastFlickAt = s.t;
   // The flick only reloads an empty gun, so an aiming jerk can't reload by accident.
   if (flick && duel?.phase === 'aim' && duel.player.rounds === 0) dispatch({ type: 'reload', now: s.t });
 });
@@ -152,9 +178,10 @@ setInterval(() => {
 // ---- Screen input ----
 
 game.onFire = (t) => {
-  // Use the aim from 80 ms before the tap, so the thumb press doesn't move the shot.
+  // Use the aim from slightly before the tap (the look-back setting), so the
+  // thumb press doesn't move the shot.
   if (duel?.phase === 'aim') {
-    const at = aim.at(t - 80);
+    const at = aim.at(t - settings.lookbackMs);
     if (aimLog.length < LOG_MAX) aimLog.push(`${Math.round(t - logStart)},,,,,,${n1(at.x)},${n1(at.y)},F`);
     dispatch({ type: 'fire', now: t, aim: at });
   }
@@ -169,7 +196,8 @@ game.onCopyLog = async () => {
   const header = [
     `# duel aim log ${new Date().toISOString()}`,
     `# ${navigator.userAgent}`,
-    `# result=${s?.result} target=${s ? n1(s.target.x) + ',' + n1(s.target.y) : ''} spikes=${aim.spikes} sens=${aim.config.sensX},${aim.config.sensY}`,
+    `# result=${s?.result} target=${s ? n1(s.target.x) + ',' + n1(s.target.y) : ''} spikes=${aim.spikes}`,
+    `# settings: ${Object.entries(settings).map(([k, v]) => `${k}=${v}`).join(' ')}`,
     '# flags: C=re-centering during draw, S=glitch ignored, F=tap (aim used)',
     'ms,alpha,beta,gamma,rawX,rawY,x,y,flag',
   ];
@@ -180,6 +208,7 @@ game.onCopyLog = async () => {
     return false;
   }
 };
+game.onSettings = () => openSettings('game');
 game.onMenu = () => {
   duel = null;
   show('start');
@@ -209,6 +238,34 @@ start.onStart = () => {
   if (motionOn) newRound();
   else enableMotion(newRound);
 };
+function openSettings(from: 'start' | 'game') {
+  settingsReturn = from;
+  show('settings');
+}
+start.onSettings = () => {
+  // The live readout needs sensors; this tap is a chance to ask for them.
+  if (!motionOn) enableMotion();
+  openSettings('start');
+};
+settingsView.onChange = (s) => {
+  applySettings(s);
+  saveSettings(s);
+};
+settingsView.onReset = () => {
+  applySettings({ ...DEFAULT_SETTINGS });
+  saveSettings(settings);
+  settingsView.setValues(settings);
+};
+settingsView.onCopy = async () => {
+  try {
+    await navigator.clipboard.writeText(settingsText(settings));
+    return true;
+  } catch {
+    return false;
+  }
+};
+settingsView.onBack = () => show(settingsReturn === 'game' && duel ? 'game' : 'start');
+
 start.onSensorCheck = () => {
   if (!sensorMounted) {
     mountSensorCheck(sensorScreen, sensors, audio, awake);
@@ -224,8 +281,34 @@ start.onSensorCheck = () => {
 
 // ---- Drawing ----
 
+const yesNo = (b: boolean) => (b ? 'YES' : 'no');
+
+/** What the detectors currently see. */
+function readoutRows(): ReadoutRow[] {
+  const now = performance.now();
+  const flickAgo = now - lastFlickAt;
+  const hz = sensors.orientationHz();
+  return [
+    ['Game state', duel ? duel.phase : 'not in a duel'],
+    ['Holster', yesNo(gestures.holstered), gestures.holstered],
+    ['Draw (aim pose)', yesNo(gestures.aimPose), gestures.aimPose],
+    ['Reload flick', flickAgo < 1500 ? 'DETECTED' : 'no', flickAgo < 1500],
+    ['Phone top down / up', (gestures.upY >= 0 ? 'up ' : 'down ') + Math.abs(gestures.upY).toFixed(2)],
+    ['Sensor updates / sec', motionOn || hz ? String(hz) : 'motion not enabled'],
+  ];
+}
+
 function frame() {
   if (duel) game.render(duel, aim.current, duel.phase === 'aim');
+  if (duel && settings.showReadout) {
+    const r = readoutRows();
+    game.setReadout(
+      `${r[0][1]} | holster ${r[1][1]} | draw ${r[2][1]} | flick ${r[3][1] === 'no' ? 'no' : 'YES'} | ${r[5][1]} Hz`,
+    );
+  } else {
+    game.setReadout(null);
+  }
+  if (!settingsView.el.classList.contains('hidden')) settingsView.setReadout(readoutRows());
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

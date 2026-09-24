@@ -1,0 +1,141 @@
+// Settings screen: sliders and toggles, a live detection readout,
+// Reset to defaults and Copy settings.
+import type { BotDifficulty, Settings } from '../settings/settings';
+
+type NumKey = 'aimSensX' | 'aimSensY' | 'smoothing' | 'lookbackMs' | 'holsterSens' | 'drawSens' | 'reloadSens';
+
+interface Slider {
+  key: NumKey;
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  fmt: (v: number) => string;
+  help: string;
+}
+
+const SLIDERS: Slider[] = [
+  { key: 'aimSensX', label: 'Aim sensitivity: left / right', min: 0.5, max: 2, step: 0.1, fmt: (v) => v.toFixed(1) + 'x', help: 'How far the crosshair moves when you turn the phone left or right.' },
+  { key: 'aimSensY', label: 'Aim sensitivity: up / down', min: 0.5, max: 2, step: 0.1, fmt: (v) => v.toFixed(1) + 'x', help: 'How far the crosshair moves when you tilt the phone up or down.' },
+  { key: 'smoothing', label: 'Smoothing', min: 0, max: 10, step: 1, fmt: String, help: 'Higher is steadier but lags behind your hand. 0 is the raw sensor.' },
+  { key: 'lookbackMs', label: 'Tap look-back', min: 0, max: 120, step: 10, fmt: (v) => v + ' ms', help: 'A shot uses where you were aiming this long before the tap, to cancel the thumb bump.' },
+  { key: 'holsterSens', label: 'Holster sensitivity', min: 1, max: 10, step: 1, fmt: String, help: 'Higher counts as holstered sooner and at a looser angle. Lower makes a foul less likely.' },
+  { key: 'drawSens', label: 'Draw sensitivity', min: 1, max: 10, step: 1, fmt: String, help: 'Higher counts the draw earlier in the raise (faster draw times).' },
+  { key: 'reloadSens', label: 'Reload flick sensitivity', min: 1, max: 10, step: 1, fmt: String, help: 'Higher lets a gentler down-up flick reload.' },
+];
+
+export type ReadoutRow = [label: string, value: string, ok?: boolean];
+
+export class SettingsView {
+  readonly el: HTMLElement;
+  onChange: (s: Settings) => void = () => {};
+  onReset: () => void = () => {};
+  onCopy: () => Promise<boolean> = async () => false;
+  onBack: () => void = () => {};
+  private values: Settings;
+
+  constructor(parent: HTMLElement, initial: Settings) {
+    this.values = { ...initial };
+    this.el = document.createElement('div');
+    this.el.className = 'screen settings hidden';
+    this.el.innerHTML = `
+      <div class="settings-head">
+        <h1>Settings</h1>
+        <button class="secondary small-btn" data-act="back">Back</button>
+      </div>
+      <div class="panel"><h2>Live detection</h2><div class="grid" id="st-readout"></div></div>
+      <div class="panel" id="st-sliders"></div>
+      <div class="panel">
+        <div class="setting"><div class="row"><span>Bot difficulty</span></div>
+          <div class="seg" id="st-bot">
+            <button data-bot="easy">Easy</button><button data-bot="normal">Normal</button><button data-bot="hard">Hard</button>
+          </div>
+          <p class="help">Easy: 15% hit chance, slower shots. Normal: 30%. Hard: 45%, faster shots.</p>
+        </div>
+        <label class="toggle"><input type="checkbox" id="st-sound"> Sound</label>
+        <label class="toggle"><input type="checkbox" id="st-readout-on"> Show detection readout during duels</label>
+      </div>
+      <button data-act="copy">Copy settings</button>
+      <button class="secondary" data-act="reset">Reset to defaults</button>
+      <button class="secondary" data-act="back">Back</button>`;
+    parent.appendChild(this.el);
+
+    const sliders = this.el.querySelector('#st-sliders')!;
+    for (const sl of SLIDERS) {
+      const div = document.createElement('div');
+      div.className = 'setting';
+      div.innerHTML = `
+        <div class="row"><span>${sl.label}</span><b id="st-v-${sl.key}"></b></div>
+        <input type="range" id="st-${sl.key}" min="${sl.min}" max="${sl.max}" step="${sl.step}">
+        <p class="help">${sl.help}</p>`;
+      sliders.appendChild(div);
+      const input = div.querySelector('input')!;
+      input.addEventListener('input', () => {
+        this.values[sl.key] = Number(input.value);
+        this.refresh();
+        this.onChange({ ...this.values });
+      });
+    }
+
+    this.el.querySelectorAll<HTMLButtonElement>('#st-bot button').forEach((b) =>
+      b.addEventListener('click', () => {
+        this.values.bot = b.dataset.bot as BotDifficulty;
+        this.refresh();
+        this.onChange({ ...this.values });
+      }),
+    );
+    const sound = this.el.querySelector<HTMLInputElement>('#st-sound')!;
+    sound.addEventListener('change', () => {
+      this.values.sound = sound.checked;
+      this.onChange({ ...this.values });
+    });
+    const readoutOn = this.el.querySelector<HTMLInputElement>('#st-readout-on')!;
+    readoutOn.addEventListener('change', () => {
+      this.values.showReadout = readoutOn.checked;
+      this.onChange({ ...this.values });
+    });
+
+    this.el.querySelectorAll<HTMLButtonElement>('[data-act]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const act = b.dataset.act;
+        if (act === 'back') this.onBack();
+        if (act === 'reset') this.onReset();
+        if (act === 'copy') {
+          void this.onCopy().then((ok) => {
+            b.textContent = ok ? 'Copied. Paste it to Claude.' : 'Copy failed';
+            setTimeout(() => (b.textContent = 'Copy settings'), 2500);
+          });
+        }
+      }),
+    );
+    this.refresh();
+  }
+
+  show(visible: boolean) {
+    this.el.classList.toggle('hidden', !visible);
+  }
+
+  setValues(s: Settings) {
+    this.values = { ...s };
+    this.refresh();
+  }
+
+  private refresh() {
+    for (const sl of SLIDERS) {
+      const v = this.values[sl.key];
+      this.el.querySelector<HTMLInputElement>('#st-' + sl.key)!.value = String(v);
+      this.el.querySelector('#st-v-' + sl.key)!.textContent = sl.fmt(v);
+    }
+    this.el.querySelectorAll<HTMLButtonElement>('#st-bot button').forEach((b) =>
+      b.classList.toggle('on', b.dataset.bot === this.values.bot),
+    );
+    this.el.querySelector<HTMLInputElement>('#st-sound')!.checked = this.values.sound;
+    this.el.querySelector<HTMLInputElement>('#st-readout-on')!.checked = this.values.showReadout;
+  }
+
+  setReadout(rows: ReadoutRow[]) {
+    this.el.querySelector('#st-readout')!.innerHTML = rows
+      .map(([k, v, ok]) => `<span class="k">${k}</span><span class="v${ok === true ? ' ok' : ok === false ? ' muted' : ''}">${v}</span>`)
+      .join('');
+  }
+}

@@ -5,6 +5,7 @@ export class StartView {
   onEnable: () => void = () => {};
   onStart: () => void = () => {};
   onSensorCheck: () => void = () => {};
+  onSettings: () => void = () => {};
   private enableBtn: HTMLButtonElement;
   private statusEl: HTMLElement;
 
@@ -12,6 +13,7 @@ export class StartView {
     this.el = document.createElement('div');
     this.el.className = 'screen';
     this.el.innerHTML = `
+      <button class="secondary gear" id="s-settings" aria-label="Settings">&#9881; Settings</button>
       <h1 class="title">DUEL PROTOTYPE</h1>
       <p class="sub">Quick-draw beta. Placeholder title.</p>
       <button id="s-enable">Enable Motion</button>
@@ -25,6 +27,7 @@ export class StartView {
           <li>Raise the phone upright, screen facing you, like aiming a revolver.</li>
           <li>Turn the phone to move the crosshair. Tap anywhere to shoot. Head = 100 damage, body = 40.</li>
           <li>After six shots, flick the phone down and up (or tap <b>Reload</b>).</li>
+          <li>Aim feel, detection and bot difficulty can be adjusted in <b>Settings</b>.</li>
         </ol>
       </div>
       <button class="secondary" id="s-sensors">Sensor check</button>`;
@@ -34,6 +37,7 @@ export class StartView {
     this.enableBtn.addEventListener('click', () => this.onEnable());
     this.el.querySelector('#s-start')!.addEventListener('click', () => this.onStart());
     this.el.querySelector('#s-sensors')!.addEventListener('click', () => this.onSensorCheck());
+    this.el.querySelector('#s-settings')!.addEventListener('click', () => this.onSettings());
   }
 
   show(visible: boolean) {

@@ -14,6 +14,9 @@ function svg<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string,
   return el;
 }
 
+/** How long the results buttons ignore taps after the round ends. */
+const RESULT_LOCK_MS = 1000;
+
 const fmtSec = (ms: number | null) => (ms == null ? '--' : (ms / 1000).toFixed(2) + ' s');
 
 export class GameView {
@@ -22,6 +25,7 @@ export class GameView {
   onReload: () => void = () => {};
   onAgain: () => void = () => {};
   onMenu: () => void = () => {};
+  onSettings: () => void = () => {};
   /** Returns true if the log was copied. */
   onCopyLog: () => Promise<boolean> = async () => false;
 
@@ -32,6 +36,7 @@ export class GameView {
   private holeCount = -1;
   private $: (sel: string) => HTMLElement;
   private shownResult: string | null = null;
+  private unlockTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(parent: HTMLElement) {
     this.el = document.createElement('div');
@@ -41,6 +46,7 @@ export class GameView {
         <div class="hp"><span>YOU</span><div class="bar"><i id="g-php"></i></div></div>
         <div class="hp"><span>BOT</span><div class="bar"><i id="g-bhp"></i></div></div>
       </div>
+      <div class="readout hidden" id="g-readout"></div>
       <div class="msg" id="g-msg"><div class="big" id="g-big"></div><div class="small" id="g-small"></div></div>
       <div class="hud-bottom">
         <div class="cyl" id="g-cyl"></div>
@@ -51,11 +57,14 @@ export class GameView {
       <div class="flash muzzle" id="g-muzzle"></div>
       <div class="result hidden" id="g-result">
         <div class="panel">
+          <div class="result-links">
+            <button class="link" id="r-menu">Menu</button>
+            <button class="link" id="r-settings">Settings</button>
+          </div>
           <h1 id="r-title"></h1>
           <p class="sub" id="r-note"></p>
           <div class="grid" id="r-stats"></div>
           <button id="r-again">Again</button>
-          <button class="secondary" id="r-menu">Menu</button>
           <button class="secondary small-btn" id="r-log">Copy aim log</button>
         </div>
       </div>`;
@@ -86,6 +95,7 @@ export class GameView {
     this.$('g-reload').addEventListener('click', () => this.onReload());
     this.$('r-again').addEventListener('click', () => this.onAgain());
     this.$('r-menu').addEventListener('click', () => this.onMenu());
+    this.$('r-settings').addEventListener('click', () => this.onSettings());
     this.$('r-log').addEventListener('click', () => {
       const btn = this.$('r-log');
       void this.onCopyLog().then((ok) => (btn.textContent = ok ? 'Aim log copied' : 'Copy failed'));
@@ -143,6 +153,13 @@ export class GameView {
     svg('rect', { x: -2.8, y: -headAbove - r + 0.1, width: 5.6, height: 0.5, rx: 0.2, fill: '#2b1d12' }, g);
     svg('rect', { x: -1.5, y: -headAbove - r - 1.7, width: 3, height: 1.9, rx: 0.4, fill: '#2b1d12' }, g);
     return g;
+  }
+
+  /** Small detection readout under the health bars; null hides it. */
+  setReadout(text: string | null) {
+    const el = this.$('g-readout');
+    el.classList.toggle('hidden', text == null);
+    if (text != null && el.textContent !== text) el.textContent = text;
   }
 
   flash(kind: 'hurt' | 'muzzle') {
@@ -204,6 +221,11 @@ export class GameView {
     this.shownResult = key;
     panel.classList.toggle('hidden', key == null);
     if (key == null) return;
+    // Ignore taps on the buttons for a moment, so a late "shoot" tap
+    // doesn't skip past the results.
+    panel.classList.add('locked');
+    clearTimeout(this.unlockTimer);
+    this.unlockTimer = setTimeout(() => panel.classList.remove('locked'), RESULT_LOCK_MS);
     this.$('r-log').textContent = 'Copy aim log';
 
     const titles = { victory: 'VICTORY', defeat: 'DEFEAT', foul: 'FOUL' } as const;

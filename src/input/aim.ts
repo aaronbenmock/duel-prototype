@@ -13,7 +13,7 @@ export interface AimConfig {
   beta: number;
 }
 
-export const DEFAULT_AIM: AimConfig = { sensX: 1, sensY: 1, minCutoff: 1.2, beta: 0.05 };
+export const DEFAULT_AIM: AimConfig = { sensX: 1, sensY: 1, minCutoff: 10 / 3, beta: 0.1 };
 
 /** Scene bounds in aim units; the crosshair is kept inside. */
 export const AIM_LIMIT = { x: 19, y: 30 };
@@ -77,11 +77,11 @@ function quatAngle(a: Quat, b: Quat): number {
 /** A jump bigger than this between two readings (under 60 ms apart) is treated as a sensor glitch. */
 const SPIKE_DEG = 25;
 /** After the draw, keep re-centering while the phone is still swinging faster than this (deg/s)... */
-const SETTLE_SPEED = 90;
+const SETTLE_SPEED = 40;
 /** ...and stop once it has stayed slower than that for this long (ms)... */
 const SETTLE_STILL_MS = 60;
 /** ...or after this long at most (ms). */
-const SETTLE_MAX_MS = 300;
+const SETTLE_MAX_MS = 400;
 
 export class AimTracker {
   private ref: { heading: number; elevation: number } | null = null;

@@ -35,6 +35,8 @@ export const DEFAULT_GESTURES: GestureConfig = {
 export class GestureDetector {
   holstered = false;
   aimPose = false;
+  /** How much the phone's top points up (+1) or down (-1). For the readout. */
+  upY = 0;
   /** Latest orientation quaternion, for use by the aim tracker. */
   q: Quat | null = null;
   private holsterSince: number | null = null;
@@ -57,6 +59,7 @@ export class GestureDetector {
     const up = upInPhoneFrame(s.q);
     // up[1] is how much the phone's top edge points up (+1) or down (-1).
     const down = -up[1];
+    this.upY = up[1];
 
     if (!this.holstered) {
       if (down >= c.holsterDown && this.spin <= c.holsterMaxSpin) {
