@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+     width="2400" height="1600" viewBox="0 0 2400 1600" version="1.1"
+     id="creature-refsheet-template" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYToxMGQ0MWUyZC1lZTI4LTQwODQtOWYyMi1iMzhjMGQ1ZGE0YmIAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaAd1xwl+pK7M3ag4pZ78VSwAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDpkMzRlYWQ4My1iNDllLTQ0M2MtOGIxYi1mMTQxZmM3NjJjYWZscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNoW8yfBOAmQJw9rnnETIKsYAAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggB61H0FU80LWFgC7tLyQAlXEfCXqr5De+4sqAX1QHpHukZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaBHx+4gYR1/ejYeZhIFiuTAAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRMAAAAAAAAAAAAAAAAZGhhc2hYIPbBlLg3iTdKoeIOrwE/zrIYolv10AjQ0J0m3egFCMxxZG5hbWVuanVtYmYgbWFuaWZlc3RqZXhjbHVzaW9uc4GiZXN0YXJ0GQGUZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjEwZDQxZTJkLWVlMjgtNDA4NC05ZjIyLWIzOGMwZDVkYTRiYi9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOjI5ODE1YzIyLTFjYWEtNGJkZC1hMjNjLTk2YzliMTY3ODA5OHJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCAHrUfQVTzQtYWALu0vJACVcR8JeqvkN77iyoBfVAeke6JjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggE5+2JP5vBc7jURg66yztmDL1CD46dkV3Z2oarQFh39yiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggZOmQzaYFxY8TIpNFBDnwAbj8aJyUiIBGPBqATYpdPdR0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQM2OfREgwtcT5foTXIg3McS7ZyrBCWNx18hMod5Fv6w37ogP8U8GRUDt+2Vhlm2XjpjXchHh3nwJYRih+FLBK70=</c2pa:manifest></metadata>
+  <title>Creature reference sheet template (Fast Hand / Quick Draw)</title>
+  <desc>Neutral working template. Duplicate per creature: art/creatures/&lt;creature-slug&gt;/creature_&lt;creature-slug&gt;_refsheet.svg. Not game art; never export this sheet into art/exports/.</desc>
+  <sodipodi:namedview id="namedview" pagecolor="#ffffff" bordercolor="#666666" borderopacity="1"
+     inkscape:pageopacity="0" inkscape:pagecheckerboard="true" inkscape:document-units="px"
+     inkscape:zoom="0.45" inkscape:cx="1200" inkscape:cy="800" inkscape:current-layer="art-front"/>
+  <defs>
+    <style>
+      .panel{fill:#f5f5f5;stroke:#9a9a9a;stroke-width:2}
+      .h{font-family:sans-serif;font-size:30px;font-weight:bold;fill:#333333}
+      .t{font-family:sans-serif;font-size:20px;fill:#555555}
+      .s{font-family:sans-serif;font-size:16px;fill:#777777}
+      .rule{stroke:#b5b5b5;stroke-width:1.5}
+      .guide{fill:none;stroke:#3d8bd9;stroke-width:2;stroke-dasharray:10 8}
+      .guidefill{fill:#3d8bd9;fill-opacity:0.06}
+      .gt{font-family:sans-serif;font-size:16px;fill:#3d8bd9}
+      .swatch{fill:#d9d9d9;stroke:#7a7a7a;stroke-width:2}
+    </style>
+  </defs>
+
+  <g inkscape:groupmode="layer" id="layer-frame" inkscape:label="TEMPLATE frame (locked)" sodipodi:insensitive="true">
+    <text class="h" x="40" y="62">CREATURE REFERENCE SHEET</text>
+    <text class="s" x="640" y="40">Name</text><line class="rule" x1="640" y1="92" x2="1010" y2="92"/>
+    <text class="s" x="1040" y="40">File slug</text><line class="rule" x1="1040" y1="92" x2="1370" y2="92"/>
+    <text class="s" x="1400" y="40">Version</text><line class="rule" x1="1400" y1="92" x2="1540" y2="92"/>
+    <text class="s" x="1570" y="40">Date</text><line class="rule" x1="1570" y1="92" x2="1760" y2="92"/>
+    <text class="s" x="1790" y="40">Artist</text><line class="rule" x1="1790" y1="92" x2="2060" y2="92"/>
+    <text class="s" x="40" y="100">Working template, not final art. Duplicate this file for each creature.</text>
+    <rect class="panel" x="40" y="130" width="740" height="980" rx="8"/>
+    <text class="h" x="60" y="172">1. FRONT VIEW</text>
+    <text class="s" x="60" y="198">Faces the player. Feet on the baseline, centred on the centre line.</text>
+    <rect class="panel" x="810" y="130" width="720" height="980" rx="8"/>
+    <text class="h" x="830" y="172">2. SIDE / THREE-QUARTER VIEW</text>
+    <text class="s" x="830" y="198">Same height and baseline as the front view.</text>
+    <rect class="panel" x="1560" y="130" width="800" height="640" rx="8"/>
+    <text class="h" x="1580" y="172">3. EXPRESSIONS</text>
+    <text class="s" x="1580" y="198">One head per cell. Same scale as the front view.</text>
+    <rect class="panel" x="1560" y="790" width="800" height="320" rx="8"/>
+    <text class="h" x="1580" y="832">4. COLOR SWATCHES</text>
+    <text class="s" x="1580" y="858">Recolor each square; write the hex code underneath.</text>
+    <rect class="panel" x="40" y="1130" width="2320" height="440" rx="8"/>
+    <text class="h" x="60" y="1172">5. EQUIPMENT AND ATTACHMENT NOTES</text>
+    <text class="s" x="60" y="1198">Where gear attaches, which layer it sits on, and what moves with what.</text>
+    <line class="rule" x1="60" y1="1030" x2="760" y2="1030"/><text class="s" x="64" y="1054">baseline (feet)</text>
+    <line class="rule" x1="410" y1="210" x2="410" y2="1030" stroke-dasharray="4 6"/>
+    <line class="rule" x1="830" y1="1030" x2="1510" y2="1030"/><text class="s" x="834" y="1054">baseline (feet)</text>
+    <line class="rule" x1="1170" y1="210" x2="1170" y2="1030" stroke-dasharray="4 6"/>
+    <rect x="1590" y="220" width="240" height="260" rx="6" fill="#ffffff" stroke="#b5b5b5" stroke-width="1.5"/><text class="t" x="1602" y="466">Neutral</text>
+    <rect x="1845" y="220" width="240" height="260" rx="6" fill="#ffffff" stroke="#b5b5b5" stroke-width="1.5"/><text class="t" x="1857" y="466">Ready (holstered)</text>
+    <rect x="2100" y="220" width="240" height="260" rx="6" fill="#ffffff" stroke="#b5b5b5" stroke-width="1.5"/><text class="t" x="2112" y="466">DRAW!</text>
+    <rect x="1590" y="495" width="240" height="260" rx="6" fill="#ffffff" stroke="#b5b5b5" stroke-width="1.5"/><text class="t" x="1602" y="741">Hit / splat</text>
+    <rect x="1845" y="495" width="240" height="260" rx="6" fill="#ffffff" stroke="#b5b5b5" stroke-width="1.5"/><text class="t" x="1857" y="741">Win</text>
+    <rect x="2100" y="495" width="240" height="260" rx="6" fill="#ffffff" stroke="#b5b5b5" stroke-width="1.5"/><text class="t" x="2112" y="741">Defeat / dizzy</text>
+    <text class="s" x="1590" y="945">Body base</text><text class="s" x="1590" y="967">#______</text>
+    <text class="s" x="1780" y="945">Body shadow</text><text class="s" x="1780" y="967">#______</text>
+    <text class="s" x="1970" y="945">Highlight</text><text class="s" x="1970" y="967">#______</text>
+    <text class="s" x="2160" y="945">Accent / belly</text><text class="s" x="2160" y="967">#______</text>
+    <text class="s" x="1590" y="1057">Weak spot</text><text class="s" x="1590" y="1079">#______</text>
+    <text class="s" x="1780" y="1057">Outline</text><text class="s" x="1780" y="1079">#______</text>
+    <text class="s" x="1970" y="1057">Weapon main</text><text class="s" x="1970" y="1079">#______</text>
+    <text class="s" x="2160" y="1057">Weapon accent</text><text class="s" x="2160" y="1079">#______</text>
+    <text class="t" x="70" y="1235" font-weight="bold">Attachment point</text>
+    <text class="t" x="420" y="1235" font-weight="bold">Where on the body</text>
+    <text class="t" x="820" y="1235" font-weight="bold">What attaches</text>
+    <text class="t" x="1220" y="1235" font-weight="bold">Own layer?</text>
+    <text class="t" x="1450" y="1235" font-weight="bold">Moves with</text>
+    <text class="t" x="1700" y="1235" font-weight="bold">Notes</text>
+    <line class="rule" x1="70" y1="1299" x2="2330" y2="1299"/><text class="t" x="70" y="1285">Weapon hand</text>
+    <line class="rule" x1="70" y1="1347" x2="2330" y2="1347"/><text class="t" x="70" y="1333">Head / hat</text>
+    <line class="rule" x1="70" y1="1395" x2="2330" y2="1395"/><text class="t" x="70" y="1381">Weak spot</text>
+    <line class="rule" x1="70" y1="1443" x2="2330" y2="1443"/><text class="t" x="70" y="1429">Back</text>
+    <line class="rule" x1="70" y1="1491" x2="2330" y2="1491"/><text class="t" x="70" y="1477">Belt / hip</text>
+    <line class="rule" x1="70" y1="1539" x2="2330" y2="1539"/><text class="t" x="70" y="1525">Other</text>
+  </g>
+  <g inkscape:groupmode="layer" id="layer-guides" inkscape:label="GUIDES hit zones (hide before export)" sodipodi:insensitive="true">
+    <rect class="guide guidefill" x="310.0" y="430.0" width="200" height="320"/>
+    <circle class="guide guidefill" cx="410" cy="350.0" r="64.0"/>
+    <text class="gt" x="486.0" y="355.0">weak-spot zone</text>
+    <text class="gt" x="522.0" y="590.0">body zone</text>
+    <rect class="guide guidefill" x="1070.0" y="430.0" width="200" height="320"/>
+    <circle class="guide guidefill" cx="1170" cy="350.0" r="64.0"/>
+    <text class="gt" x="60" y="1086">Blue dashed = current hit zones, 40 px = 1 game unit.</text>
+    <text class="gt" x="830" y="1086">Same heights as the front view.</text>
+  </g>
+  <g inkscape:groupmode="layer" id="art-front" inkscape:label="ART front view"/>
+  <g inkscape:groupmode="layer" id="art-side" inkscape:label="ART side or three-quarter view"/>
+  <g inkscape:groupmode="layer" id="art-expressions" inkscape:label="ART expressions"/>
+  <g inkscape:groupmode="layer" id="layer-swatches" inkscape:label="SWATCHES (recolor these)">
+    <rect class="swatch" id="swatch-1" x="1590" y="875" width="150" height="50" rx="4" inkscape:label="Body base"/>
+    <rect class="swatch" id="swatch-2" x="1780" y="875" width="150" height="50" rx="4" inkscape:label="Body shadow"/>
+    <rect class="swatch" id="swatch-3" x="1970" y="875" width="150" height="50" rx="4" inkscape:label="Highlight"/>
+    <rect class="swatch" id="swatch-4" x="2160" y="875" width="150" height="50" rx="4" inkscape:label="Accent / belly"/>
+    <rect class="swatch" id="swatch-5" x="1590" y="987" width="150" height="50" rx="4" inkscape:label="Weak spot"/>
+    <rect class="swatch" id="swatch-6" x="1780" y="987" width="150" height="50" rx="4" inkscape:label="Outline"/>
+    <rect class="swatch" id="swatch-7" x="1970" y="987" width="150" height="50" rx="4" inkscape:label="Weapon main"/>
+    <rect class="swatch" id="swatch-8" x="2160" y="987" width="150" height="50" rx="4" inkscape:label="Weapon accent"/>
+  </g>
+  <g inkscape:groupmode="layer" id="layer-notes" inkscape:label="NOTES (type here)"/>
+</svg>

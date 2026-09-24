@@ -2,6 +2,8 @@
 
 Status: parked on 2026-09-24. Next step is a concept sheet (Claude builds it in chat), when Aaron asks.
 
+Art workspace set up 2026-09-24: `art/` (Inkscape SVG masters, blank creature reference sheet, exports). How to use it: `art/README.md`. Working title under discussion: "Fast Hand".
+
 ## Goal
 Stand apart from realistic western shooters. Keep the duel's tension, drop realistic violence.
 
