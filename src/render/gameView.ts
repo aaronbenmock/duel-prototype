@@ -22,6 +22,8 @@ export class GameView {
   onReload: () => void = () => {};
   onAgain: () => void = () => {};
   onMenu: () => void = () => {};
+  /** Returns true if the log was copied. */
+  onCopyLog: () => Promise<boolean> = async () => false;
 
   private svgEl: SVGSVGElement;
   private opponent: SVGGElement;
@@ -54,6 +56,7 @@ export class GameView {
           <div class="grid" id="r-stats"></div>
           <button id="r-again">Again</button>
           <button class="secondary" id="r-menu">Menu</button>
+          <button class="secondary small-btn" id="r-log">Copy aim log</button>
         </div>
       </div>`;
     parent.appendChild(this.el);
@@ -83,6 +86,10 @@ export class GameView {
     this.$('g-reload').addEventListener('click', () => this.onReload());
     this.$('r-again').addEventListener('click', () => this.onAgain());
     this.$('r-menu').addEventListener('click', () => this.onMenu());
+    this.$('r-log').addEventListener('click', () => {
+      const btn = this.$('r-log');
+      void this.onCopyLog().then((ok) => (btn.textContent = ok ? 'Aim log copied' : 'Copy failed'));
+    });
 
     const resize = () => {
       const h = (VIEW_WIDTH * window.innerHeight) / Math.max(1, window.innerWidth);
@@ -197,6 +204,7 @@ export class GameView {
     this.shownResult = key;
     panel.classList.toggle('hidden', key == null);
     if (key == null) return;
+    this.$('r-log').textContent = 'Copy aim log';
 
     const titles = { victory: 'VICTORY', defeat: 'DEFEAT', foul: 'FOUL' } as const;
     const notes = {

@@ -126,3 +126,4 @@ body.in-game { overflow: hidden; touch-action: none; }
 .result h1 { font-size: 2.4rem; text-align: center; margin: 0.2rem 0; }
 .result .sub { text-align: center; }
 .result .grid { margin-bottom: 12px; font-size: 1rem; }
+.small-btn { font-size: 0.85rem; padding: 10px; }

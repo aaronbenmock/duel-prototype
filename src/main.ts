@@ -30,6 +30,13 @@ let sensorMounted = false;
 let duel: DuelState | null = null;
 let motionOn = false;
 
+// Aim log: raw sensor angles and crosshair position for the current round,
+// so a tracking problem on the phone can be copied and diagnosed.
+const aimLog: string[] = [];
+const LOG_MAX = 1500;
+let logStart = 0;
+const n1 = (v: number) => v.toFixed(1);
+
 function show(screen: 'start' | 'game' | 'sensors') {
   start.show(screen === 'start');
   game.show(screen === 'game');
@@ -92,6 +99,7 @@ function play(e: Effect) {
 }
 
 function newRound() {
+  aimLog.length = 0;
   gestures.reset();
   aim.unlock();
   duel = createDuel(DEFAULT_CONFIG, (Math.random() * 2 ** 32) >>> 0, performance.now());
@@ -114,12 +122,18 @@ sensors.onOrientation((s) => {
       if (gestures.aimPose) {
         // Lock the aiming reference at the moment of the draw.
         aim.lock(s.q, s.t);
+        logStart = s.t;
         dispatch({ type: 'drawPose', now: s.t });
       }
       break;
-    case 'aim':
+    case 'aim': {
       aim.update(s.q, s.t);
+      const flag = aim.lastWasSpike ? 'S' : aim.settling ? 'C' : '';
+      if (aimLog.length < LOG_MAX) {
+        aimLog.push([Math.round(s.t - logStart), n1(s.alpha), n1(s.beta), n1(s.gamma), n1(aim.raw.x), n1(aim.raw.y), n1(aim.current.x), n1(aim.current.y), flag].map(String).join(','));
+      }
       break;
+    }
   }
 });
 
@@ -139,12 +153,32 @@ setInterval(() => {
 
 game.onFire = (t) => {
   // Use the aim from 80 ms before the tap, so the thumb press doesn't move the shot.
-  if (duel?.phase === 'aim') dispatch({ type: 'fire', now: t, aim: aim.at(t - 80) });
+  if (duel?.phase === 'aim') {
+    const at = aim.at(t - 80);
+    if (aimLog.length < LOG_MAX) aimLog.push(`${Math.round(t - logStart)},,,,,,${n1(at.x)},${n1(at.y)},F`);
+    dispatch({ type: 'fire', now: t, aim: at });
+  }
 };
 game.onReload = () => dispatch({ type: 'reload', now: performance.now() });
 game.onAgain = () => {
   audio.unlock();
   newRound();
+};
+game.onCopyLog = async () => {
+  const s = duel;
+  const header = [
+    `# duel aim log ${new Date().toISOString()}`,
+    `# ${navigator.userAgent}`,
+    `# result=${s?.result} target=${s ? n1(s.target.x) + ',' + n1(s.target.y) : ''} spikes=${aim.spikes} sens=${aim.config.sensX},${aim.config.sensY}`,
+    '# flags: C=re-centering during draw, S=glitch ignored, F=tap (aim used)',
+    'ms,alpha,beta,gamma,rawX,rawY,x,y,flag',
+  ];
+  try {
+    await navigator.clipboard.writeText(header.concat(aimLog).join('\n'));
+    return true;
+  } catch {
+    return false;
+  }
 };
 game.onMenu = () => {
   duel = null;
