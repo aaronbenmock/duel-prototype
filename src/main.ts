@@ -12,6 +12,7 @@ import { mountSensorCheck } from './render/sensorCheck';
 import { SettingsView, type ReadoutRow } from './render/settingsView';
 import { StartView } from './render/startView';
 import {
+  APP_VERSION,
   aimConfig,
   DEFAULT_SETTINGS,
   duelConfig,
@@ -36,6 +37,7 @@ function applySettings(s: Settings) {
   gestures.config = gestureConfig(s);
   audio.enabled = s.sound;
   game.showZones = s.showHitZones;
+  game.showReloadButton = s.showReloadButton;
 }
 
 const app = document.getElementById('app')!;
@@ -159,6 +161,11 @@ sensors.onOrientation((s) => {
       break;
     case 'aim': {
       aim.update(s.q, s.t);
+      // Dipping the phone to point at the floor reloads (any time the gun isn't full).
+      if (aim.takeDip()) {
+        lastFlickAt = s.t;
+        dispatch({ type: 'reload', now: s.t });
+      }
       // Tilt-to-move: sideways tilt becomes a sidestep (skip if unchanged).
       // No stepping while aiming is paused: tilt readings are meaningless then.
       const lean = settings.tiltMove && !aim.suspended ? gestures.leanValue() : 0;
@@ -175,8 +182,8 @@ sensors.onOrientation((s) => {
 sensors.onMotion((s) => {
   const flick = gestures.updateMotion(s);
   if (flick) lastFlickAt = s.t;
-  // The flick only reloads an empty gun, so an aiming jerk can't reload by accident.
-  if (flick && duel?.phase === 'aim' && duel.player.rounds === 0) dispatch({ type: 'reload', now: s.t });
+  // A down-up flick also reloads, at any ammo count (an accidental reload does no harm).
+  if (flick && duel?.phase === 'aim') dispatch({ type: 'reload', now: s.t });
 });
 
 // Game clock. Runs on a timer (not animation frames) so DRAW fires on time
@@ -205,7 +212,7 @@ game.onAgain = () => {
 game.onCopyLog = async () => {
   const s = duel;
   const header = [
-    `# duel aim log ${new Date().toISOString()}`,
+    `# High Moon aim log, app ${APP_VERSION}, ${new Date().toISOString()}`,
     `# ${navigator.userAgent}`,
     `# result=${s?.result} target=${s ? n1(s.target.x) + ',' + n1(s.target.y) : ''} spikes=${aim.spikes} pauses=${aim.resumes}`,
     `# settings: ${Object.entries(settings).map(([k, v]) => `${k}=${v}`).join(' ')}`,
@@ -304,7 +311,7 @@ function readoutRows(): ReadoutRow[] {
     ['Game state', duel ? duel.phase : 'not in a duel'],
     ['Holster', yesNo(gestures.holstered), gestures.holstered],
     ['Draw (aim pose)', yesNo(gestures.aimPose), gestures.aimPose],
-    ['Reload flick', flickAgo < 1500 ? 'DETECTED' : 'no', flickAgo < 1500],
+    ['Reload (dip or flick)', flickAgo < 1500 ? 'DETECTED' : 'no', flickAgo < 1500],
     ['Sideways tilt / move', `${gestures.roll.toFixed(0)}° / ${settings.tiltMove ? moveLabel(gestures.leanValue()) : 'off'}`, gestures.leanValue() !== 0],
     ['Phone top down / up', (gestures.upY >= 0 ? 'up ' : 'down ') + Math.abs(gestures.upY).toFixed(2)],
     ['Sensor updates / sec', motionOn || hz ? String(hz) : 'motion not enabled'],
@@ -316,7 +323,7 @@ function frame() {
   if (duel && settings.showReadout) {
     const r = readoutRows();
     game.setReadout(
-      `${r[0][1]} | holster ${r[1][1]} | draw ${r[2][1]} | flick ${r[3][1] === 'no' ? 'no' : 'YES'} | step ${duel.player.x.toFixed(1)}m | ${r[6][1]} Hz`,
+      `${r[0][1]} | holster ${r[1][1]} | draw ${r[2][1]} | reload ${r[3][1] === 'no' ? 'no' : 'YES'} | step ${duel.player.x.toFixed(1)}m | ${r[6][1]} Hz`,
     );
   } else {
     game.setReadout(null);

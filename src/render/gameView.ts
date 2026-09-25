@@ -65,6 +65,8 @@ export class GameView {
   onCopyLog: () => Promise<boolean> = async () => false;
   /** Draw the hit-zone overlay on the opponent (testing aid). */
   showZones = false;
+  /** Show the on-screen Reload button (off by default; dip or flick the phone instead). */
+  showReloadButton = false;
 
   private svgEl: SVGSVGElement;
   private bgLayer: SVGGElement;
@@ -380,7 +382,7 @@ export class GameView {
       big = 'DRAW!';
     } else if (s.phase === 'aim' && s.player.rounds === 0) {
       big = 'RELOAD';
-      small = 'Flick the phone down and up, or tap Reload.';
+      small = 'Dip the phone to point at the floor, then raise it again.';
     }
     this.$('g-big').textContent = big;
     this.$('g-small').textContent = small;
@@ -388,7 +390,7 @@ export class GameView {
 
     const dt = drawTime(s);
     this.$('g-dtime').textContent = dt != null ? `Draw ${fmtSec(dt)}` : '';
-    this.$('g-reload').classList.toggle('hidden', !(s.phase === 'aim' || s.phase === 'draw') || s.player.rounds === CYLINDER);
+    this.$('g-reload').classList.toggle('hidden', !this.showReloadButton || !(s.phase === 'aim' || s.phase === 'draw') || s.player.rounds === CYLINDER);
 
     this.renderResult(s);
   }

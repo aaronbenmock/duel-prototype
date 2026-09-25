@@ -1,4 +1,5 @@
 // Start screen: title, Enable Motion, Start Duel.
+import { APP_VERSION } from '../settings/settings';
 
 export class StartView {
   readonly el: HTMLElement;
@@ -15,7 +16,7 @@ export class StartView {
     this.el.innerHTML = `
       <button class="secondary gear" id="s-settings" aria-label="Settings">&#9881; Settings</button>
       <h1 class="title">HIGH MOON</h1>
-      <p class="sub">Beta</p>
+      <p class="sub">Beta &middot; v${APP_VERSION}</p>
       <button id="s-enable">Enable Motion</button>
       <button id="s-start">Start Duel</button>
       <p class="status" id="s-status"></p>
@@ -27,7 +28,7 @@ export class StartView {
           <li>Raise the phone upright, screen facing you, like aiming a revolver.</li>
           <li>Turn the phone to move the crosshair. Tap anywhere to fire paint. Face = 50, body = 20, arms and legs = 10, tail = 5. The hat doesn't count.</li>
           <li>Tip the phone sideways to sidestep left or right. A moving target is harder for the bot to hit.</li>
-          <li>After six shots, flick the phone down and up (or tap <b>Reload</b>).</li>
+          <li>To reload, dip the phone to point at the floor, then raise it again. Works any time.</li>
           <li>Aim feel, detection and bot difficulty can be adjusted in <b>Settings</b>.</li>
         </ol>
       </div>

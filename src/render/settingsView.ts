@@ -21,7 +21,7 @@ const SLIDERS: Slider[] = [
   { key: 'lookbackMs', label: 'Tap look-back', min: 0, max: 120, step: 10, fmt: (v) => v + ' ms', help: 'A shot uses where you were aiming this long before the tap, to cancel the thumb bump.' },
   { key: 'holsterSens', label: 'Holster sensitivity', min: 1, max: 10, step: 1, fmt: String, help: 'Higher counts as holstered sooner and at a looser angle. Lower makes a foul less likely.' },
   { key: 'drawSens', label: 'Draw sensitivity', min: 1, max: 10, step: 1, fmt: String, help: 'Higher counts the draw earlier in the raise (faster draw times).' },
-  { key: 'reloadSens', label: 'Reload flick sensitivity', min: 1, max: 10, step: 1, fmt: String, help: 'Higher lets a gentler down-up flick reload.' },
+  { key: 'reloadSens', label: 'Reload flick sensitivity', min: 1, max: 10, step: 1, fmt: String, help: 'For the quick down-up flick. Higher lets a gentler flick reload. Dipping the phone to point at the floor always reloads.' },
 ];
 
 export type ReadoutRow = [label: string, value: string, ok?: boolean];
@@ -58,6 +58,7 @@ export class SettingsView {
         <p class="help">Tip the phone sideways, like canting a revolver, to step left or right. Moving makes the bot miss more.</p>
         <label class="toggle"><input type="checkbox" id="st-sound"> Sound</label>
         <label class="toggle"><input type="checkbox" id="st-readout-on"> Show detection readout during duels</label>
+        <label class="toggle"><input type="checkbox" id="st-reloadbtn"> Show Reload button</label>
         <label class="toggle"><input type="checkbox" id="st-zones"> Show hit areas (testing)</label>
         <p class="help">Tints the opponent: red face (50), yellow body (20), blue arms, ears and legs (10), green tail (5). The hat is a miss.</p>
       </div>
@@ -98,6 +99,11 @@ export class SettingsView {
     const tilt = this.el.querySelector<HTMLInputElement>('#st-tilt')!;
     tilt.addEventListener('change', () => {
       this.values.tiltMove = tilt.checked;
+      this.onChange({ ...this.values });
+    });
+    const reloadBtn = this.el.querySelector<HTMLInputElement>('#st-reloadbtn')!;
+    reloadBtn.addEventListener('change', () => {
+      this.values.showReloadButton = reloadBtn.checked;
       this.onChange({ ...this.values });
     });
     const zones = this.el.querySelector<HTMLInputElement>('#st-zones')!;
@@ -148,6 +154,7 @@ export class SettingsView {
     this.el.querySelector<HTMLInputElement>('#st-sound')!.checked = this.values.sound;
     this.el.querySelector<HTMLInputElement>('#st-tilt')!.checked = this.values.tiltMove;
     this.el.querySelector<HTMLInputElement>('#st-zones')!.checked = this.values.showHitZones;
+    this.el.querySelector<HTMLInputElement>('#st-reloadbtn')!.checked = this.values.showReloadButton;
     this.el.querySelector<HTMLInputElement>('#st-readout-on')!.checked = this.values.showReadout;
   }
 

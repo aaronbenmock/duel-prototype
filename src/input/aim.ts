@@ -91,6 +91,14 @@ const SETTLE_MAX_MS = 400;
 const PAUSE_POSE = { maxTilt: 65, minUp: 0.15 };
 const RESUME_POSE = { maxTilt: 55, minUp: 0.3 };
 
+/**
+ * The reload dip: the phone points at the floor, either with its back (barrel)
+ * or with its top edge (a twisting dip). Either one counts.
+ */
+function isDip(q: Quat): boolean {
+  return barrelAngles(q).elevation < -PAUSE_POSE.maxTilt || upInPhoneFrame(q)[1] < -0.5;
+}
+
 export class AimTracker {
   private ref: { heading: number; elevation: number } | null = null;
   private fx: OneEuro;
@@ -112,6 +120,10 @@ export class AimTracker {
   suspended = false;
   /** How many times aiming re-centered after a pause (for the aim log). */
   resumes = 0;
+  /** Set when the phone tips to point at the floor during a pause (the reload dip). */
+  private dipped = false;
+  /** Whether the current pause has already counted as a dip (one reload per dip). */
+  private dipCounted = false;
 
   constructor(public config: AimConfig = { ...DEFAULT_AIM }) {
     this.fx = new OneEuro(() => this.config);
@@ -155,6 +167,7 @@ export class AimTracker {
     this.ref = null;
     this.lastQ = null;
     this.suspended = false;
+    this.dipped = false;
   }
 
   /** Whether the phone is outside the aiming pose (with a gap between pause and resume limits). */
@@ -189,6 +202,11 @@ export class AimTracker {
     // throw the crosshair around. On return, re-center like a fresh draw.
     const out = this.outOfPose(q);
     if (this.suspended) {
+      // Pointing at the floor at any point during the pause is the reload dip.
+      if (!this.dipCounted && isDip(q)) {
+        this.dipped = true;
+        this.dipCounted = true;
+      }
       if (out) return;
       this.lock(q, t, false);
       this.resumes++;
@@ -196,6 +214,9 @@ export class AimTracker {
     }
     if (out) {
       this.suspended = true;
+      // Pointing at the floor (rather than the sky, or turned sideways) is the reload dip.
+      this.dipCounted = isDip(q);
+      this.dipped = this.dipCounted;
       return;
     }
 
@@ -233,6 +254,13 @@ export class AimTracker {
     this.current = { x: this.fx.filter(rawX, t), y: this.fy.filter(rawY, t) };
     this.history.push({ t, ...this.current });
     while (this.history.length > 2 && t - this.history[0].t > 1000) this.history.shift();
+  }
+
+  /** True once after the phone dips to point at the floor; used to trigger a reload. */
+  takeDip(): boolean {
+    const d = this.dipped;
+    this.dipped = false;
+    return d;
   }
 
   /** Aim position at time t (interpolated between samples). */

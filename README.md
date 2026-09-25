@@ -39,7 +39,7 @@ If that doesn't work, go to Settings, then Apps, then Safari, then **Clear Histo
 3. Raise the phone upright, screen facing you. The crosshair appears.
 4. Turn the phone to aim. Tap anywhere to fire paint. Only the visible alien counts: face = 50 (two face hits win), body = 20, arms, ears and legs = 10, tail = 5; the hat is a miss. Both you and the bot have 100 health.
 5. Tip the phone sideways (like canting a revolver) to sidestep left or right, up to about 1.5 m each way. This doesn't move your aim. While you're moving, the bot misses more often.
-6. After six shots, flick the phone down and up to reload, or tap **Reload**. While the phone is lowered, aiming pauses; when you raise it again the crosshair re-centers where you point.
+6. To reload (any time), dip the phone to point at the floor and raise it again; a quick down-up flick also works. While the phone is lowered, aiming pauses; when you raise it again the crosshair re-centers where you point. An on-screen Reload button can be turned on in Settings.
 7. On the results screen, the buttons wake up after one second so a late tap can't skip the results. **Again** starts the next round.
 
 ## Settings
@@ -54,7 +54,8 @@ Open **Settings** from the top-right of the start screen, or the top-right of th
 | Tap look-back | A shot uses where you were aiming this many milliseconds before your tap, to cancel the bump from your thumb. Higher protects more against the bump but shots taken while swinging land slightly behind the crosshair. | 30 ms |
 | Holster sensitivity | Higher = the phone counts as holstered sooner and at a looser angle, and a foul is more likely. Lower = you must hold it straighter and longer. | 5 |
 | Draw sensitivity | Higher = the draw counts earlier as you raise the phone (faster draw times). Lower = you must be closer to upright and level. | 5 |
-| Reload flick sensitivity | Higher = a gentler down-and-up flick reloads. Lower = needs a sharper flick. | 5 |
+| Reload flick sensitivity | For the quick down-up flick: higher = a gentler flick reloads. Dipping the phone to point at the floor always reloads. | 5 |
+| Show Reload button | Adds an on-screen Reload button as a backup. | Off |
 | Bot difficulty (top of Settings) | Easy: hits half its shots, slower; paints out an idle player in about 21 s; barely shuffles. Normal: hits 3 in 4; about 11 s; wanders about 1 m either way. Hard: fires fastest; about 8.5 s; wanders up to 1.5 m. Face hits are rare at every level. | Normal |
 | Tilt to move (sidestep) | Tip the phone sideways past a small dead zone (12 degrees) to step left or right; full speed at 35 degrees. Moving cuts the bot's hit chance by 40%. | On |
 | Sound | Turns all game sounds on or off. | On |

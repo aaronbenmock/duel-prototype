@@ -5,7 +5,7 @@ import type { BotConfig, DuelConfig } from '../game/types';
 import type { AimConfig } from '../input/aim';
 import { DEFAULT_GESTURES, type GestureConfig } from '../input/gestures';
 
-export const APP_VERSION = '0.5.2';
+export const APP_VERSION = '0.5.3';
 const STORAGE_KEY = 'duel-settings-v1';
 
 export type BotDifficulty = 'easy' | 'normal' | 'hard';
@@ -30,6 +30,8 @@ export interface Settings {
   tiltMove: boolean;
   /** Draw the opponent's hit areas on screen (testing aid). */
   showHitZones: boolean;
+  /** Show an on-screen Reload button as a backup to the dip/flick. */
+  showReloadButton: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -45,6 +47,7 @@ export const DEFAULT_SETTINGS: Settings = {
   showReadout: true,
   tiltMove: true,
   showHitZones: false,
+  showReloadButton: false,
 };
 
 export function loadSettings(): Settings {
