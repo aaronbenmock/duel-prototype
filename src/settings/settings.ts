@@ -5,7 +5,7 @@ import type { BotConfig, DuelConfig } from '../game/types';
 import type { AimConfig } from '../input/aim';
 import { DEFAULT_GESTURES, type GestureConfig } from '../input/gestures';
 
-export const APP_VERSION = '0.6.4';
+export const APP_VERSION = '0.6.5';
 const STORAGE_KEY = 'duel-settings-v1';
 
 export type BotDifficulty = 'easy' | 'normal' | 'hard';
@@ -92,20 +92,25 @@ export function gestureConfig(s: Settings): GestureConfig {
 }
 
 const BOTS: Record<BotDifficulty, BotConfig> = {
-  // Median time for each bot to paint out a player who never fires back (simulated with the v0.6
-  // star revolver: face 20, torso 9, limbs 5, tail 2): easy about 31 s, normal 17 s, hard 12 s.
-  // A typical player needs about 15 shots and 2 reloads (about 14 s) to win.
-  // Movement: easy barely shuffles, hard wanders further and faster (1 m is about 6 degrees of aim).
+  // Simulated (src/dev/sim.ts, v0.6.5), typical player with the star revolver:
+  //   bot's time to paint out a player who never fires back: easy 30 s, normal 16 s, hard 12 s;
+  //   player's time to win against the moving bot: easy 14 s, normal 15 s, hard 19 s
+  //   (v0.6.4 was about 13.5 s at every level: the old bot barely moved).
+  // Movement: strafe, dash, juke, plant to shoot; 1 m is about 5 degrees of aim at 12 m.
   easy: {
-    firstShotMin: 1.5, firstShotMax: 3, intervalMin: 0.9, intervalMax: 1.4, hitChance: 0.7, headshotShare: 0.03, reloadTime: 2.2,
-    moveRange: 0.5, moveSpeed: 0.4, pauseMin: 1.5, pauseMax: 3,
+    firstShotMin: 1.5, firstShotMax: 3, intervalMin: 0.9, intervalMax: 1.4, hitChance: 0.75, headshotShare: 0.03, reloadTime: 2.2,
+    movingHitFactor: 0.6, moveRange: 1.5, walkSpeed: 0.9, dashChance: 0.15, dashSpeed: 2.8, dashDistMin: 0.6, dashDistMax: 1.1,
+    jukeChance: 0.15, plantMin: 0.9, plantMax: 2.0, plantShotDelay: 0.45, reactMs: 1000, reactChance: 0,
   },
   normal: DEFAULT_CONFIG.bot,
   hard: {
-    firstShotMin: 1, firstShotMax: 2, intervalMin: 0.45, intervalMax: 0.7, hitChance: 0.9, headshotShare: 0.03, reloadTime: 1.2,
-    moveRange: 1.5, moveSpeed: 1.0, pauseMin: 0.6, pauseMax: 1.8,
+    firstShotMin: 1, firstShotMax: 2, intervalMin: 0.45, intervalMax: 0.7, hitChance: 0.95, headshotShare: 0.03, reloadTime: 1.2,
+    movingHitFactor: 0.7, moveRange: 3.0, walkSpeed: 1.9, dashChance: 0.55, dashSpeed: 4.6, dashDistMin: 1.2, dashDistMax: 2.0,
+    jukeChance: 0.4, plantMin: 0.3, plantMax: 0.8, plantShotDelay: 0.2, reactMs: 450, reactChance: 0.7,
   },
 };
+
+export { BOTS };
 
 export function duelConfig(s: Settings): DuelConfig {
   return { ...DEFAULT_CONFIG, bot: BOTS[s.bot] };

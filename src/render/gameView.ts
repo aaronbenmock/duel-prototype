@@ -98,6 +98,7 @@ export class GameView {
         <div class="hp"><span id="g-bname">OPPONENT</span><div class="bar"><i id="g-bhp"></i></div></div>
       </div>
       <div class="readout hidden" id="g-readout"></div>
+      <div class="need-flash" id="g-need"></div>
       <div class="msg" id="g-msg"><div class="big" id="g-big"></div><div class="small" id="g-small"></div></div>
       <div class="hud-bottom">
         <div class="cyl" id="g-cyl"></div>
@@ -248,6 +249,25 @@ export class GameView {
     this.$('r-logstatus').textContent = text;
   }
 
+  /** Tapped a gun that can't fire: flash the screen edge and pulse the prompt. */
+  needAction(text: 'RELOAD' | 'OVERHEATED') {
+    this.$('g-big').textContent = text;
+    this.restartClass(this.$('g-msg'), 'pulse');
+    this.restartClass(this.$('g-need'), 'on');
+    this.restartClass(this.$('g-cyl'), 'blink');
+  }
+
+  /** The last round just went: blink the ammo display. */
+  lastRound() {
+    this.restartClass(this.$('g-cyl'), 'blink');
+  }
+
+  private restartClass(el: HTMLElement, cls: string) {
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }
+
   /** Gun kicks up on a shot. */
   kick() {
     this.restartAnim(this.$('g-vmk'), 'kick');
@@ -385,7 +405,11 @@ export class GameView {
     const t = apparentTarget(s);
     // Small bob while the bot is walking.
     const bob = s.bot.vx !== 0 ? Math.abs(Math.sin(performance.now() / 110)) * 0.3 : 0;
-    this.opponent.setAttribute('transform', `translate(${t.x} ${GameView.sy(t.y + bob)})`);
+    // Leans into the move, most visibly on a dash (pivoting at the feet).
+    const c = CREATURES[s.creature];
+    const lean = Math.max(-9, Math.min(9, s.bot.vx * 2.5));
+    const feetY = (c.baselineY - c.torsoPx[1]) / c.pxPerUnit;
+    this.opponent.setAttribute('transform', `translate(${t.x} ${GameView.sy(t.y + bob)}) rotate(${lean.toFixed(1)} 0 ${feetY.toFixed(2)})`);
     this.bgLayer.setAttribute('transform', `translate(${parallax(s, BG.parallaxDist)} 0)`);
     this.zones.style.display = this.showZones ? '' : 'none';
     this.renderViewmodel(s, aim, aimVisible);

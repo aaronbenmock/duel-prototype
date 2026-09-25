@@ -110,6 +110,13 @@ body.in-game { overflow: hidden; touch-action: none; }
 .msg .big { font-size: 2.2rem; font-weight: 900; letter-spacing: 0.05em; }
 .msg .small { font-size: 1rem; margin-top: 10px; color: var(--ink); }
 .msg.alert .big { color: var(--accent); font-size: 3rem; }
+/* "Can't fire" prompt: pulse the message, flash the screen edge red, blink the ammo. */
+.msg.pulse .big { animation: need-pulse 0.45s ease-out; }
+@keyframes need-pulse { 0% { transform: scale(1.35); color: #ff5a4a; } 100% { transform: scale(1); } }
+.need-flash { position: absolute; inset: 0; pointer-events: none; opacity: 0; box-shadow: inset 0 0 60px 18px rgba(255, 60, 50, 0.85); }
+.need-flash.on { animation: flash 0.5s ease-out; }
+.cyl.blink { animation: ammo-blink 0.6s steps(2) 2; }
+@keyframes ammo-blink { 50% { filter: drop-shadow(0 0 6px #ff5a4a) brightness(1.6); } }
 .hud-bottom {
   position: absolute; left: 0; right: 0; bottom: 0;
   padding: 10px 14px max(14px, env(safe-area-inset-bottom));

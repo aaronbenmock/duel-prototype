@@ -1,6 +1,8 @@
 // The duel rules as a pure function: (state, action) -> (new state, effects).
+import { moveBot } from './bot';
 import { ALIENS, CREATURES, DEFAULT_CREATURE } from './creatures';
-import type { Action, DuelConfig, DuelState, Effect, HitZone, Loadout, Pellet, Vec2 } from './types';
+import { between } from './rng';
+import type { Action, DuelConfig, DuelState, EmptyReason, Effect, HitZone, Loadout, Pellet, Vec2 } from './types';
 import { DEFAULT_WEAPON, WEAPONS } from './weapons';
 
 export const MAX_HP = 100;
@@ -52,30 +54,25 @@ export const DEFAULT_CONFIG: DuelConfig = {
     firstShotMax: 2.5,
     intervalMin: 0.6,
     intervalMax: 0.95,
-    hitChance: 0.8,
+    hitChance: 0.9,
     headshotShare: 0.05,
     reloadTime: 1.5,
-    moveRange: 1.0,
-    moveSpeed: 0.7,
-    pauseMin: 1.0,
-    pauseMax: 2.5,
+    movingHitFactor: 0.6,
+    moveRange: 2.0,
+    walkSpeed: 1.5,
+    dashChance: 0.45,
+    dashSpeed: 3.8,
+    dashDistMin: 0.8,
+    dashDistMax: 1.5,
+    jukeChance: 0.25,
+    plantMin: 0.4,
+    plantMax: 1.1,
+    plantShotDelay: 0.3,
+    reactMs: 700,
+    reactChance: 0.5,
   },
 };
 
-/** Small seeded random generator (mulberry32). Returns [0..1) and the next state. */
-function rand(seed: number): [number, number] {
-  const next = (seed + 0x6d2b79f5) >>> 0;
-  let t = next;
-  t = Math.imul(t ^ (t >>> 15), t | 1);
-  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-  return [((t ^ (t >>> 14)) >>> 0) / 4294967296, next];
-}
-
-function between(s: DuelState, min: number, max: number): number {
-  const [r, next] = rand(s.rng);
-  s.rng = next;
-  return min + r * (max - min);
-}
 
 /**
  * Which zone of the opponent a shot at `aim` lands on. Only visible parts of
@@ -113,7 +110,8 @@ export function createDuel(config: DuelConfig, seed: number, now: number, loadou
     },
     bot: {
       hp: MAX_HP, rounds: WEAPONS[DEFAULT_WEAPON].capacity, shots: 0, hits: 0, headshots: 0,
-      weapon: DEFAULT_WEAPON, nextFireAt: null, reloadUntil: null, x: 0, destX: 0, vx: 0, nextMoveAt: null,
+      weapon: DEFAULT_WEAPON, nextFireAt: null, reloadUntil: null, x: 0, destX: 0, vx: 0,
+      mode: 'plant', nextMoveAt: null, jukeAt: null, onTargetMs: 0,
     },
     holes: [],
   };
@@ -165,13 +163,17 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
 
     case 'fire':
       if (s.phase !== 'aim') break;
-      // Empty, mid-reload, overheated or venting, or too soon after the last shot: the trigger just clicks.
-      if (
-        (gun.heat ? s.player.overheated || s.player.venting : s.player.rounds === 0 || s.player.reloadNextAt != null) ||
-        (s.player.lastShotAt != null && now - s.player.lastShotAt < gun.cooldownMs)
-      ) {
-        fx.push({ type: 'empty' });
-        break;
+      {
+        // Empty, mid-reload, overheated or venting, or too soon after the last shot: the trigger just clicks.
+        const p = s.player;
+        const reason: EmptyReason | null = gun.heat
+          ? p.venting ? 'venting' : p.overheated ? 'overheated' : null
+          : p.reloadNextAt != null ? 'reloading' : p.rounds === 0 ? 'empty' : null;
+        const tooSoon = p.lastShotAt != null && now - p.lastShotAt < gun.cooldownMs;
+        if (reason || tooSoon) {
+          fx.push({ type: 'empty', reason: reason ?? 'cooldown' });
+          break;
+        }
       }
       if (gun.heat) {
         s.player.heat += gun.heat.perShot;
@@ -206,7 +208,7 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
           if (pellets.some((p) => p.zone === 'face')) s.player.headshots++;
           s.bot.hp = Math.max(0, s.bot.hp - damage);
         }
-        fx.push({ type: 'shot', zone, aim: action.aim, damage, pellets });
+        fx.push({ type: 'shot', zone, aim: action.aim, damage, pellets, last: !gun.heat && s.player.rounds === 0 });
       }
       if (s.bot.hp <= 0) end(s, 'victory', now, fx);
       break;
@@ -248,20 +250,9 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
         s.bot.nextMoveAt = s.drawSignalAt + between(s, 0.3, 1.0) * 1000;
       }
       s.bot.vx = 0;
-      if ((s.phase === 'draw' || s.phase === 'aim') && bot.moveRange > 0) {
-        // Bot wanders: pause, pick a new spot, walk there, repeat.
-        if (s.bot.nextMoveAt != null && now >= s.bot.nextMoveAt) {
-          s.bot.nextMoveAt = null;
-          s.bot.destX = between(s, -bot.moveRange, bot.moveRange);
-        }
-        if (s.bot.nextMoveAt == null && s.bot.destX !== s.bot.x) {
-          const stepM = bot.moveSpeed * dt;
-          const gap = s.bot.destX - s.bot.x;
-          const oldX = s.bot.x;
-          s.bot.x = Math.abs(gap) <= stepM ? s.bot.destX : s.bot.x + Math.sign(gap) * stepM;
-          s.bot.vx = dt > 0 ? (s.bot.x - oldX) / dt : 0;
-          if (s.bot.x === s.bot.destX) s.bot.nextMoveAt = now + between(s, bot.pauseMin, bot.pauseMax) * 1000;
-        }
+      if (s.phase === 'draw' || s.phase === 'aim') {
+        const onTarget = action.aim != null && hitTest(s.creature, apparentTarget(s), action.aim) != null;
+        moveBot(s, now, dt, onTarget, MOVE.opponentDistance);
       }
       // Heat guns: vent, overheat cool-down, or normal cooling after a pause in firing.
       if (gun.heat) {
@@ -296,13 +287,15 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
           s.bot.reloadUntil = null;
           s.bot.nextFireAt = now + between(s, bot.intervalMin, bot.intervalMax) * 1000;
         }
-        if (s.bot.nextFireAt != null && now >= s.bot.nextFireAt && s.bot.rounds > 0) {
+        // It doesn't fire mid-dash; the shot waits until the dash ends.
+        if (s.bot.nextFireAt != null && now >= s.bot.nextFireAt && s.bot.rounds > 0 && s.bot.mode !== 'dash') {
           s.bot.rounds--;
           s.bot.shots++;
           let zone: HitZone = null;
           // A player who is sidestepping is harder to hit.
           const dodging = Math.abs(s.player.vx) >= MOVE.dodgeSpeed;
-          const chance = bot.hitChance * (dodging ? MOVE.dodgeFactor : 1);
+          // ...and a bot on the move is less accurate than a planted one.
+          const chance = bot.hitChance * (dodging ? MOVE.dodgeFactor : 1) * (s.bot.mode === 'plant' ? 1 : bot.movingHitFactor);
           if (between(s, 0, 1) < chance) {
             const r = between(s, 0, 1);
             if (r < bot.headshotShare) zone = 'face';

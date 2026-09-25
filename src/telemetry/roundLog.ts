@@ -39,7 +39,8 @@ export interface RoundLog {
   errors: string[];
 }
 
-export const AIM_COLS = 'ms,alpha,beta,gamma,rawX,rawY,x,y,flag,tilt,stepX';
+/** botX: bot's sideways position (m); botMode: p planted, w walking, d dashing. */
+export const AIM_COLS = 'ms,alpha,beta,gamma,rawX,rawY,x,y,flag,tilt,stepX,botX,botMode';
 /** Aim rows kept per round: about 100 s at 60 updates a second. */
 const AIM_MAX = 6000;
 const r2 = (v: number) => Math.round(v * 100) / 100;
@@ -47,11 +48,13 @@ const r2 = (v: number) => Math.round(v * 100) / 100;
 function effectEvent(e: Effect): (string | number | null)[] {
   switch (e.type) {
     case 'shot':
-      return ['shot', e.zone, r2(e.aim.x), r2(e.aim.y), e.damage];
+      return ['shot', e.zone, r2(e.aim.x), r2(e.aim.y), e.damage, e.last ? 'last' : null];
     case 'botShot':
       return ['botShot', e.zone];
     case 'reloadStart':
       return ['reloadStart', e.missing];
+    case 'empty':
+      return ['empty', e.reason];
     default:
       return [e.type];
   }

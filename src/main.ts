@@ -62,6 +62,14 @@ let sensorMounted = false;
 let duel: DuelState | null = null;
 let motionOn = false;
 let lastFlickAt = -Infinity;
+/** One lowering of the phone often counts as both a dip and a flick; only the first one reloads. */
+let lastReloadGestureAt = -Infinity;
+const RELOAD_GESTURE_GAP_MS = 700;
+function reloadGesture(t: number, source: 'dip' | 'flick') {
+  if (t - lastReloadGestureAt < RELOAD_GESTURE_GAP_MS) return;
+  lastReloadGestureAt = t;
+  dispatch({ type: 'reload', now: t }, source);
+}
 let settingsReturn: 'start' | 'game' = 'start';
 
 // Test log for the current round (events, raw aim samples, errors); saved on the
@@ -150,6 +158,10 @@ function play(e: Effect) {
       else if (WEAPONS[weapon].heat) audio.zap();
       else audio.shot();
       game.kick();
+      if (e.last) {
+        audio.lastRound();
+        game.lastRound();
+      }
       game.playerShot(e.zone, e.aim, e.damage, weapon, e.pellets);
       if (e.zone === 'face') audio.headshot();
       else if (e.zone) audio.hit();
@@ -158,7 +170,10 @@ function play(e: Effect) {
       break;
     }
     case 'empty':
+      // Tapping a gun that can't fire: a dry click, and for an empty or overheated gun a clear prompt.
       audio.empty();
+      if (e.reason === 'empty') game.needAction('RELOAD');
+      if (e.reason === 'overheated') game.needAction('OVERHEATED');
       break;
     case 'reloadStart':
       audio.reloadOpen();
@@ -262,14 +277,14 @@ sensors.onOrientation((s) => {
       // Dipping the phone to point at the floor reloads (any time the gun isn't full).
       if (aim.takeDip()) {
         lastFlickAt = s.t;
-        dispatch({ type: 'reload', now: s.t }, 'dip');
+        reloadGesture(s.t, 'dip');
       }
       // Tilt-to-move: sideways tilt becomes a sidestep (skip if unchanged).
       // No stepping while aiming is paused: tilt readings are meaningless then.
       const lean = settings.tiltMove && !aim.suspended ? gestures.leanValue() : 0;
       if (Math.abs(lean - duel.player.lean) > 0.01) dispatch({ type: 'lean', now: s.t, value: lean });
       const flag = aim.suspended ? 'P' : aim.lastWasSpike ? 'S' : aim.settling ? 'C' : '';
-      recorder.aimRow([recorder.ms(s.t), n1(s.alpha), n1(s.beta), n1(s.gamma), n1(aim.raw.x), n1(aim.raw.y), n1(aim.current.x), n1(aim.current.y), flag, n1(gestures.roll), duel.player.x.toFixed(2)].map(String).join(','));
+      recorder.aimRow([recorder.ms(s.t), n1(s.alpha), n1(s.beta), n1(s.gamma), n1(aim.raw.x), n1(aim.raw.y), n1(aim.current.x), n1(aim.current.y), flag, n1(gestures.roll), duel.player.x.toFixed(2), duel.bot.x.toFixed(2), duel.bot.mode[0]].map(String).join(','));
       break;
     }
   }
@@ -279,13 +294,14 @@ sensors.onMotion((s) => {
   const flick = gestures.updateMotion(s);
   if (flick) lastFlickAt = s.t;
   // A down-up flick also reloads, at any ammo count (an accidental reload does no harm).
-  if (flick && duel?.phase === 'aim') dispatch({ type: 'reload', now: s.t }, 'flick');
+  if (flick && duel?.phase === 'aim') reloadGesture(s.t, 'flick');
 });
 
 // Game clock. Runs on a timer (not animation frames) so DRAW fires on time
 // even if the browser slows down drawing.
 setInterval(() => {
-  if (duel && duel.phase !== 'over') dispatch({ type: 'tick', now: performance.now() });
+  // The crosshair position goes along so the bot can react to being aimed at.
+  if (duel && duel.phase !== 'over') dispatch({ type: 'tick', now: performance.now(), aim: duel.phase === 'aim' && !aim.suspended ? aim.current : undefined });
 }, 10);
 
 // ---- Screen input ----

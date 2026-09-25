@@ -24,13 +24,27 @@ export interface BotConfig {
   headshotShare: number;
   /** Seconds the bot needs to reload after six shots. */
   reloadTime: number;
-  /** How far (m) the bot wanders either side of its start spot. 0 = stands still. */
+  /** Chance a shot hits is multiplied by this while the bot itself is moving. */
+  movingHitFactor: number;
+  /** How far (m) the bot moves either side of its start spot. 0 = stands still. */
   moveRange: number;
   /** Walking speed, m/s. */
-  moveSpeed: number;
-  /** Seconds it pauses between moves (random in range). */
-  pauseMin: number;
-  pauseMax: number;
+  walkSpeed: number;
+  /** Share of moves that are dashes: short fast bursts. */
+  dashChance: number;
+  dashSpeed: number;
+  dashDistMin: number;
+  dashDistMax: number;
+  /** Share of walks that turn back part-way (a juke). */
+  jukeChance: number;
+  /** Seconds it stands still between moves (random in range). */
+  plantMin: number;
+  plantMax: number;
+  /** A planted bot fires this many seconds after stopping (if its next shot wasn't due sooner). */
+  plantShotDelay: number;
+  /** If your crosshair stays on a planted bot this long (ms), it may dash away (this chance). 0 = never. */
+  reactMs: number;
+  reactChance: number;
 }
 
 /** What the player picked before the duel. */
@@ -81,12 +95,18 @@ export interface BotState extends Shooter {
   weapon: string;
   nextFireAt: number | null;
   reloadUntil: number | null;
-  /** Sideways position (m) and where it's walking to. */
+  /** Sideways position (m) and where it's heading. */
   x: number;
   destX: number;
   vx: number;
-  /** When it starts its next move (null = walking now or not started). */
+  /** Standing still (and likely to shoot), walking, or dashing. */
+  mode: 'plant' | 'walk' | 'dash';
+  /** When it starts its next move (while planted). */
   nextMoveAt: number | null;
+  /** When a walk turns back (juke), if it will. */
+  jukeAt: number | null;
+  /** How long the player's crosshair has been on it (ms). */
+  onTargetMs: number;
 }
 
 /** A paint mark, stored relative to the opponent's torso reference so it moves with him. */
@@ -126,19 +146,24 @@ export type Action =
   | { type: 'fire'; now: number; aim: Vec2 }
   | { type: 'reload'; now: number }
   | { type: 'lean'; now: number; value: number }
-  | { type: 'tick'; now: number };
+  /** `aim`: where the crosshair is while aiming (the bot reacts to being aimed at). */
+  | { type: 'tick'; now: number; aim?: Vec2 };
 
 /** Where one paint blob of a shot landed (aim units) and what it hit. */
 export interface Pellet extends Vec2 {
   zone: HitZone;
 }
 
+export type EmptyReason = 'empty' | 'reloading' | 'overheated' | 'venting' | 'cooldown';
+
 /** Things that happened during a step, for sound, vibration and flashes. */
 export type Effect =
   | { type: 'ready' }
   | { type: 'draw' }
-  | { type: 'shot'; zone: HitZone; aim: Vec2; damage: number; pellets: Pellet[] }
-  | { type: 'empty' }
+  /** `last`: that was the last round before a reload is needed. */
+  | { type: 'shot'; zone: HitZone; aim: Vec2; damage: number; pellets: Pellet[]; last: boolean }
+  /** The trigger clicked without firing, and why. */
+  | { type: 'empty'; reason: EmptyReason }
   | { type: 'reloadStart'; missing: number }
   | { type: 'reloadRound' }
   | { type: 'reloadDone' }

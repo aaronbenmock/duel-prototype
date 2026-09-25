@@ -151,6 +151,12 @@ export class AudioEngine {
     this.tone(1320, 0.12, { type: 'sine', gain: 0.35, delay: 0.08 });
   }
 
+  /** Last round fired: a hollow ring after the shot, so you know to reload. */
+  lastRound() {
+    this.tone(1320, 0.35, { type: 'triangle', gain: 0.35, delay: 0.12 });
+    this.tone(990, 0.4, { type: 'sine', gain: 0.3, delay: 0.2 });
+  }
+
   /** Scattergun blast: deeper and longer than the revolver, then a pump. */
   blast() {
     this.noise(0.32, { filter: 'lowpass', freq: 1800, sweepTo: 180, gain: 1 });

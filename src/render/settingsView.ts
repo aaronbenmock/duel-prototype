@@ -48,7 +48,7 @@ export class SettingsView {
           <div class="seg" id="st-bot">
             <button data-bot="easy">Easy</button><button data-bot="normal">Normal</button><button data-bot="hard">Hard</button>
           </div>
-          <p class="help">Easy: slower and reloads slowly. Normal: steady. Hard: fires fastest and reloads quickly. Harder bots also move around more. Face hits are rare at every level.</p>
+          <p class="help">The bot strafes, dashes and plants to shoot (it's most accurate standing still). Easy: slow and steady. Normal: dashes often and may dodge if you hold your aim on it. Hard: fast, dashes a lot, fires quickest. Face hits are rare at every level.</p>
         </div>
       </div>
       <div class="panel"><h2>Live detection</h2><div class="grid" id="st-readout"></div></div>
