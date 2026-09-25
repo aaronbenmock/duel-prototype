@@ -6,6 +6,7 @@ export const DESERT_SAGE: CreatureZones = {
   slug: 'desert-sage',
   canvas: 1024,
   grid: 128,
+  pxPerUnit: 78.00,
   torsoPx: [512, 600],
   baselineY: 944,
   rows: [

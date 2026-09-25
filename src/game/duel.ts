@@ -1,11 +1,11 @@
 // The duel rules as a pure function: (state, action) -> (new state, effects).
-import { CREATURES, DEFAULT_CREATURE } from './creatures';
-import type { Action, DuelConfig, DuelState, Effect, HitZone, Vec2 } from './types';
+import { ALIENS, CREATURES, DEFAULT_CREATURE } from './creatures';
+import type { Action, DuelConfig, DuelState, Effect, HitZone, Loadout, Vec2 } from './types';
 import { DEFAULT_WEAPON, WEAPONS } from './weapons';
 
 export const MAX_HP = 100;
 
-/** Sprite pixels per aim unit (degree): sets how big the opponent looks and how big its zones are. */
+/** Reference scale (sage): sprite pixels per aim unit (degree). Each creature's own scale is in its zone map. */
 export const SPRITE_PX_PER_UNIT = 78;
 /** Where the opponent stands: torso reference height (aim units) puts its feet on the street. */
 export const OPPONENT_Y = -1.6;
@@ -80,15 +80,17 @@ function between(s: DuelState, min: number, max: number): number {
  */
 export function hitTest(creature: string, target: Vec2, aim: Vec2): HitZone {
   const c = CREATURES[creature];
-  const px = c.torsoPx[0] + (aim.x - target.x) * SPRITE_PX_PER_UNIT;
-  const py = c.torsoPx[1] - (aim.y - target.y) * SPRITE_PX_PER_UNIT;
+  const px = c.torsoPx[0] + (aim.x - target.x) * c.pxPerUnit;
+  const py = c.torsoPx[1] - (aim.y - target.y) * c.pxPerUnit;
   if (px < 0 || py < 0 || px >= c.canvas || py >= c.canvas) return null;
   const cell = c.canvas / c.grid;
   const code = Number(c.rows[Math.floor(py / cell)][Math.floor(px / cell)]);
   return ZONE_CODES[code] ?? null;
 }
 
-export function createDuel(config: DuelConfig, seed: number, now: number): DuelState {
+export const DEFAULT_LOADOUT: Loadout = { creature: DEFAULT_CREATURE, weapon: DEFAULT_WEAPON };
+
+export function createDuel(config: DuelConfig, seed: number, now: number, loadout: Loadout = DEFAULT_LOADOUT): DuelState {
   const s: DuelState = {
     phase: 'holster',
     result: null,
@@ -103,8 +105,8 @@ export function createDuel(config: DuelConfig, seed: number, now: number): DuelS
     endedAt: null,
     lastTickAt: now,
     player: {
-      hp: MAX_HP, rounds: WEAPONS[DEFAULT_WEAPON].capacity, shots: 0, hits: 0, headshots: 0,
-      weapon: DEFAULT_WEAPON, reloadNextAt: null, x: 0, lean: 0, vx: 0,
+      hp: MAX_HP, rounds: WEAPONS[loadout.weapon].capacity, shots: 0, hits: 0, headshots: 0,
+      weapon: loadout.weapon, creature: loadout.creature, reloadNextAt: null, x: 0, lean: 0, vx: 0,
     },
     bot: {
       hp: MAX_HP, rounds: WEAPONS[DEFAULT_WEAPON].capacity, shots: 0, hits: 0, headshots: 0,
@@ -112,6 +114,9 @@ export function createDuel(config: DuelConfig, seed: number, now: number): DuelS
     },
     holes: [],
   };
+  // The opponent is a different alien from the player's, picked at random.
+  const others = ALIENS.map((a) => a.id).filter((id) => id !== loadout.creature);
+  s.creature = others[Math.floor(between(s, 0, others.length))] ?? DEFAULT_CREATURE;
   // Put the opponent somewhere off-center on the street so the player has to aim.
   s.target = { x: between(s, -OPPONENT_SPAWN_X, OPPONENT_SPAWN_X), y: OPPONENT_Y };
   return s;

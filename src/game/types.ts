@@ -33,6 +33,12 @@ export interface BotConfig {
   pauseMax: number;
 }
 
+/** What the player picked before the duel. */
+export interface Loadout {
+  creature: string;
+  weapon: string;
+}
+
 export interface DuelConfig {
   /** Milliseconds between READY and DRAW (random in range). */
   drawDelayMin: number;
@@ -52,6 +58,8 @@ export interface Shooter {
 export interface PlayerState extends Shooter {
   /** Gun id (see weapons.ts). */
   weapon: string;
+  /** The player's alien (looks only; shows as the hand holding the gun). */
+  creature: string;
   /** While reloading: when the next round goes in. null = not reloading. */
   reloadNextAt: number | null;
   /** Sideways position in meters (right is positive), from tilt-to-move. */

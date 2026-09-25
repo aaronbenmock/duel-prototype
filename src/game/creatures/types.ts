@@ -5,7 +5,9 @@ export interface CreatureZones {
   canvas: number;
   /** The map is grid x grid cells covering the canvas. */
   grid: number;
-  /** Canvas pixel that sits at the game's target position (torso reference). */
+  /** Sprite pixels per aim unit: set so every creature has the same hittable area. */
+  pxPerUnit: number;
+  /** Canvas pixel that sits at the game's target position (torso reference); puts every creature's feet on the same street line. */
   torsoPx: [number, number];
   /** Canvas y of the soles of the feet. */
   baselineY: number;

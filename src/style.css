@@ -211,3 +211,18 @@ button.link {
   animation: blink 0.5s steps(2, start) infinite;
 }
 @keyframes blink { to { opacity: 0.5; } }
+
+/* ---- Alien and gun picker (start screen) ---- */
+.picker h2 { margin-top: 4px; }
+.picks { display: flex; gap: 8px; margin-bottom: 10px; }
+.pick {
+  flex: 0 1 calc((100% - 16px) / 3); margin: 0; padding: 0 0 6px; position: relative; overflow: hidden;
+  background: var(--bg); color: var(--ink); border: 2px solid var(--line); border-radius: 10px;
+  font-size: 0.85rem; font-weight: 700;
+}
+.pick.on { border-color: var(--accent); background: var(--bg-dusk); }
+.pick .face { display: block; width: 100%; aspect-ratio: 1; overflow: hidden; position: relative; }
+.pick .face img { position: absolute; width: 230%; left: -65%; top: -8%; pointer-events: none; }
+.pick .gun { display: block; width: 100%; aspect-ratio: 2; overflow: hidden; position: relative; }
+.pick .gun img { position: absolute; width: 100%; left: 0; top: -25%; pointer-events: none; }
+.pick .note { display: block; font-size: 0.7rem; font-weight: 500; color: var(--muted); }

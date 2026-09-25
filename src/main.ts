@@ -2,7 +2,7 @@
 import './style.css';
 import { AudioEngine } from './audio/audio';
 import { createDuel, step } from './game/duel';
-import type { Action, DuelState, Effect } from './game/types';
+import type { Action, DuelState, Effect, Loadout } from './game/types';
 import { AimTracker } from './input/aim';
 import { GestureDetector } from './input/gestures';
 import { MotionSensors } from './input/motion';
@@ -12,6 +12,7 @@ import { mountSensorCheck } from './render/sensorCheck';
 import { SettingsView, type ReadoutRow } from './render/settingsView';
 import { StartView } from './render/startView';
 import { mountLogsPanel } from './render/logsPanel';
+import { loadLoadout, saveLoadout } from './settings/loadout';
 import { logFileName, RoundRecorder, type RoundLog } from './telemetry/roundLog';
 import { shareJson } from './telemetry/share';
 import { deviceId, flush, getKey, getLabel, onStatus, randomId, saveRound, status } from './telemetry/upload';
@@ -33,6 +34,7 @@ const awake = new ScreenAwake();
 const gestures = new GestureDetector();
 const aim = new AimTracker();
 let settings: Settings = loadSettings();
+let loadout: Loadout = loadLoadout();
 
 /** Pushes settings into the aim tracker, gesture detector and sound. */
 function applySettings(s: Settings) {
@@ -47,7 +49,7 @@ function applySettings(s: Settings) {
 const app = document.getElementById('app')!;
 installRotateOverlay();
 
-const start = new StartView(app);
+const start = new StartView(app, loadout);
 const game = new GameView(document.body);
 const settingsView = new SettingsView(app, settings);
 applySettings(settings);
@@ -144,7 +146,7 @@ function play(e: Effect) {
     case 'shot':
       audio.shot();
       game.kick();
-      game.playerShot(e.zone, e.aim, e.damage);
+      game.playerShot(e.zone, e.aim, e.damage, duel?.player.weapon ?? loadout.weapon);
       if (e.zone === 'face') audio.headshot();
       else if (e.zone) audio.hit();
       else audio.miss();
@@ -196,7 +198,7 @@ function newRound() {
   aim.unlock();
   const seed = (Math.random() * 2 ** 32) >>> 0;
   const now = performance.now();
-  duel = createDuel(duelConfig(settings), seed, now);
+  duel = createDuel(duelConfig(settings), seed, now, loadout);
   recorder.start(now, {
     v: 1,
     id: randomId(),
@@ -211,7 +213,7 @@ function newRound() {
     },
     settings: { ...settings },
     seed,
-    loadout: { alien: 'desert-sage', gun: duel.player.weapon },
+    loadout: { alien: duel.player.creature, gun: duel.player.weapon },
     opponent: { creature: duel.creature, gun: duel.bot.weapon, bot: settings.bot },
   });
   recorder.event(now, 'target', n1(duel.target.x), n1(duel.target.y));
@@ -321,6 +323,10 @@ function enableMotion(then?: () => void) {
   });
 }
 
+start.onPick = (l) => {
+  loadout = l;
+  saveLoadout(l);
+};
 start.onEnable = () => {
   enableMotion();
   audio.beep();

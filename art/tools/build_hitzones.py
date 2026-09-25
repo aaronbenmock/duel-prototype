@@ -1,8 +1,12 @@
-r"""Build the hit-zone map for a creature sprite.
+r"""Build the hit-zone map for each creature sprite.
 
 Only visible (opaque) pixels can be hit. Each opaque pixel is labelled with a
 zone by simple region rules measured on the 1024 x 1024 sprite canvas, then the
 canvas is reduced to a GRID x GRID map that the game rules use for hit tests.
+
+Aliens are looks only, so they must be equally easy to hit. Every creature is
+drawn at a scale (pixels per aim unit) that gives it the same hittable area as
+the reference creature (sage), with its feet on the same street line.
 
 Outputs:
   src/game/creatures/<slug>.ts            zone map + placement constants
@@ -12,6 +16,7 @@ Usage (Inkscape's Python has Pillow):
   "C:\Program Files\Inkscape\bin\python.exe" art\tools\build_hitzones.py
 """
 
+from math import sqrt
 from pathlib import Path
 from PIL import Image
 
@@ -23,11 +28,20 @@ CELL = 1024 // GRID
 NONE, FACE, TORSO, LIMB, TAIL, HAT = 0, 1, 2, 3, 4, 5
 COLORS = {FACE: (255, 60, 60), TORSO: (255, 170, 0), LIMB: (60, 140, 255), TAIL: (40, 220, 120), HAT: (160, 160, 160)}
 
+# Reference size: sage at 78 sprite px per aim unit, torso reference at (512, 600), soles at y = 944.
+REF_PX_PER_UNIT = 78
+BASELINE_Y = 944
+FEET_BELOW_TORSO = (BASELINE_Y - 600) / REF_PX_PER_UNIT  # aim units
+
+
+def in_ellipse(x, y, cx, cy, rx, ry):
+    return ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1
+
 
 def sage_zone(x: int, y: int) -> int:
     """Region rules for creature_desert-sage_front (measured on the 1024 canvas)."""
     # Face: ellipse from under the hat brim to the chin.
-    if ((x - 512) / 168) ** 2 + ((y - 352) / 125) ** 2 <= 1:
+    if in_ellipse(x, y, 512, 352, 168, 125):
         return FACE
     if y < 305:
         return HAT  # hat and brim; cosmetic, never hittable
@@ -42,34 +56,65 @@ def sage_zone(x: int, y: int) -> int:
     return LIMB  # arms, hands, holster
 
 
+def blue_zone(x: int, y: int) -> int:
+    """creature_desert-blue_front: three eyes, floppy ears, no tail (the lasso counts as body/leg)."""
+    if in_ellipse(x, y, 512, 352, 172, 114):
+        return FACE
+    if y < 300:
+        return HAT
+    if y < 445:
+        return LIMB  # ears
+    if 335 <= x <= 690 and y <= 775:
+        return TORSO
+    return LIMB  # arms, hands, legs, boots
+
+
+def gold_zone(x: int, y: int) -> int:
+    """creature_desert-gold_front: frilly gills, fringed chaps, tail on the right."""
+    if in_ellipse(x, y, 510, 342, 178, 118):
+        return FACE
+    if y < 290:
+        return HAT
+    if y < 445:
+        return LIMB  # gills
+    if x >= 780 or (x >= 700 and y >= 760):
+        return TAIL
+    if 330 <= x <= 700 and y <= 790:
+        return TORSO
+    return LIMB  # arms, hands, legs, boots
+
+
 CREATURES = [
-    {
-        "slug": "desert-sage",
-        "sprite": "art/exports/creatures/creature_desert-sage_front.png",
-        "zone": sage_zone,
-        # Placement on the canvas: torso reference point and sole baseline.
-        "torso_px": (512, 600),
-        "baseline_y": 944,
-    },
+    {"slug": "desert-sage", "sprite": "art/exports/creatures/creature_desert-sage_front.png", "zone": sage_zone},
+    {"slug": "desert-blue", "sprite": "art/exports/creatures/creature_desert-blue_front.png", "zone": blue_zone},
+    {"slug": "desert-gold", "sprite": "art/exports/creatures/creature_desert-gold_front.png", "zone": gold_zone},
 ]
 
 
-def build(c: dict) -> None:
+def label(c: dict):
+    """Zone per opaque pixel, plus pixel counts per zone."""
     im = Image.open(ROOT / c["sprite"]).convert("RGBA")
-    alpha = im.getchannel("A")
-    a = alpha.load()
-    counts = [[{} for _ in range(GRID)] for _ in range(GRID)]
-    overlay = Image.new("RGBA", im.size, (0, 0, 0, 0))
-    o = overlay.load()
+    a = im.getchannel("A").load()
+    zones = {}
+    counts = {z: 0 for z in COLORS}
     for y in range(1024):
         for x in range(1024):
-            if a[x, y] < 128:
-                continue
-            z = c["zone"](x, y)
-            cell = counts[y // CELL][x // CELL]
-            cell[z] = cell.get(z, 0) + 1
-            r, g, b = COLORS[z]
-            o[x, y] = (r, g, b, 110)
+            if a[x, y] >= 128:
+                z = c["zone"](x, y)
+                zones[(x, y)] = z
+                counts[z] += 1
+    return zones, counts
+
+
+def write(c: dict, zones: dict, ppu: float) -> None:
+    counts = [[{} for _ in range(GRID)] for _ in range(GRID)]
+    overlay = Image.new("RGBA", (1024, 1024), (0, 0, 0, 0))
+    o = overlay.load()
+    for (x, y), z in zones.items():
+        cell = counts[y // CELL][x // CELL]
+        cell[z] = cell.get(z, 0) + 1
+        r, g, b = COLORS[z]
+        o[x, y] = (r, g, b, 110)
     rows = []
     for gy in range(GRID):
         row = []
@@ -79,6 +124,8 @@ def build(c: dict) -> None:
             # A cell is hittable when at least a quarter of it is visible.
             row.append(str(max(cell, key=cell.get)) if opaque >= CELL * CELL // 4 else "0")
         rows.append("".join(row))
+    # Torso reference placed so the feet land on the same street line as the reference creature.
+    torso_y = round(BASELINE_Y - FEET_BELOW_TORSO * ppu)
     slug = c["slug"]
     ts = ROOT / "src/game/creatures" / f"{slug}.ts"
     ts.write_text(
@@ -88,8 +135,9 @@ def build(c: dict) -> None:
         f"export const {slug.replace('-', '_').upper()}: CreatureZones = {{\n"
         f"  slug: '{slug}',\n"
         f"  canvas: 1024,\n  grid: {GRID},\n"
-        f"  torsoPx: [{c['torso_px'][0]}, {c['torso_px'][1]}],\n"
-        f"  baselineY: {c['baseline_y']},\n"
+        f"  pxPerUnit: {ppu:.2f},\n"
+        f"  torsoPx: [512, {torso_y}],\n"
+        f"  baselineY: {BASELINE_Y},\n"
         "  rows: [\n" + "".join(f"    '{r}',\n" for r in rows) + "  ],\n};\n",
         encoding="utf-8",
     )
@@ -99,5 +147,12 @@ def build(c: dict) -> None:
 
 
 if __name__ == "__main__":
-    for creature in CREATURES:
-        build(creature)
+    labelled = [(c, *label(c)) for c in CREATURES]
+    ref = labelled[0][2]
+    hittable = lambda n: n[FACE] + n[TORSO] + n[LIMB] + n[TAIL]
+    print(f"{'creature':14} {'px/unit':>8} {'hittable':>9} {'face':>6} {'torso':>6} {'limb':>6} {'tail':>6}   (areas in square aim units)")
+    for c, zones, n in labelled:
+        ppu = REF_PX_PER_UNIT * sqrt(hittable(n) / hittable(ref))
+        u = lambda z: n[z] / ppu ** 2
+        print(f"{c['slug']:14} {ppu:8.2f} {hittable(n) / ppu ** 2:9.1f} {u(FACE):6.1f} {u(TORSO):6.1f} {u(LIMB):6.1f} {u(TAIL):6.1f}")
+        write(c, zones, ppu)

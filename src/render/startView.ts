@@ -1,5 +1,9 @@
-// Start screen: title, Enable Motion, Start Duel.
+// Start screen: title, alien and gun picker, Enable Motion, Start Duel.
+import { ALIENS } from '../game/creatures';
+import type { Loadout } from '../game/types';
+import { WEAPONS } from '../game/weapons';
 import { APP_VERSION } from '../settings/settings';
+import { CREATURE_ART, GUN_ART } from './art';
 
 export class StartView {
   readonly el: HTMLElement;
@@ -7,16 +11,30 @@ export class StartView {
   onStart: () => void = () => {};
   onSensorCheck: () => void = () => {};
   onSettings: () => void = () => {};
+  onPick: (l: Loadout) => void = () => {};
+  private loadout: Loadout;
   private enableBtn: HTMLButtonElement;
   private statusEl: HTMLElement;
 
-  constructor(parent: HTMLElement) {
+  constructor(parent: HTMLElement, loadout: Loadout) {
+    this.loadout = { ...loadout };
     this.el = document.createElement('div');
     this.el.className = 'screen';
     this.el.innerHTML = `
       <button class="secondary gear" id="s-settings" aria-label="Settings">&#9881; Settings</button>
       <h1 class="title">HIGH MOON</h1>
       <p class="sub">Beta &middot; v${APP_VERSION}</p>
+      <div class="panel picker">
+        <h2>Your alien</h2>
+        <div class="picks" id="s-aliens">${ALIENS.map((a) => `
+          <button class="pick" data-alien="${a.id}"><span class="face"><img src="${CREATURE_ART[a.id].url}" alt=""></span>${a.name}</button>`).join('')}
+        </div>
+        <h2>Your gun</h2>
+        <div class="picks" id="s-guns">${Object.values(WEAPONS).filter((w) => GUN_ART[w.id]).map((w) => `
+          <button class="pick" data-gun="${w.id}"><span class="gun"><img src="${GUN_ART[w.id].side}" alt=""></span>${w.name}<span class="note">${w.blurb}</span></button>`).join('')}
+        </div>
+        <p class="help">Aliens are looks only: every alien is just as easy to hit. Your opponent is a different alien each round.</p>
+      </div>
       <button id="s-enable">Enable Motion</button>
       <button id="s-start">Start Duel</button>
       <p class="status" id="s-status"></p>
@@ -40,6 +58,21 @@ export class StartView {
     this.el.querySelector('#s-start')!.addEventListener('click', () => this.onStart());
     this.el.querySelector('#s-sensors')!.addEventListener('click', () => this.onSensorCheck());
     this.el.querySelector('#s-settings')!.addEventListener('click', () => this.onSettings());
+    this.el.querySelectorAll<HTMLButtonElement>('.pick').forEach((b) =>
+      b.addEventListener('click', () => {
+        if (b.dataset.alien) this.loadout.creature = b.dataset.alien;
+        if (b.dataset.gun) this.loadout.weapon = b.dataset.gun;
+        this.refreshPicks();
+        this.onPick({ ...this.loadout });
+      }),
+    );
+    this.refreshPicks();
+  }
+
+  private refreshPicks() {
+    this.el.querySelectorAll<HTMLButtonElement>('.pick').forEach((b) =>
+      b.classList.toggle('on', b.dataset.alien === this.loadout.creature || b.dataset.gun === this.loadout.weapon),
+    );
   }
 
   show(visible: boolean) {

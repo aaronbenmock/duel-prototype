@@ -1,16 +1,14 @@
 // Draws the duel: background, opponent creature, crosshair, hand-and-gun view,
 // paint effects and HUD. Reads game state; never changes it.
 import bgUrl from '../../art/exports/backgrounds/bg_alien-frontier.webp';
-import sageUrl from '../../art/exports/creatures/creature_desert-sage_front.webp';
-import sageZonesUrl from '../../art/exports/creatures/creature_desert-sage_front_hitzones.webp';
 import fxImpactUrl from '../../art/exports/effects/fx_paint-yellow_impact.webp';
 import fxMuzzleUrl from '../../art/exports/effects/fx_paint-yellow_muzzle-burst.webp';
 import fxProjectileUrl from '../../art/exports/effects/fx_paint-yellow_projectile.webp';
 import fxSplatAUrl from '../../art/exports/effects/fx_paint-yellow_splat-a.webp';
 import fxSplatBUrl from '../../art/exports/effects/fx_paint-yellow_splat-b.webp';
-import gunUrl from '../../art/exports/weapons/weapon_star-revolver_sage_pov.webp';
-import { CREATURES } from '../game/creatures';
-import { apparentTarget, drawTime, MAX_HP, OPPONENT_Y, parallax, SPRITE_PX_PER_UNIT } from '../game/duel';
+import { alienName, CREATURES } from '../game/creatures';
+import { apparentTarget, drawTime, MAX_HP, OPPONENT_Y, parallax } from '../game/duel';
+import { CREATURE_ART, GUN_ART } from './art';
 import { WEAPONS } from '../game/weapons';
 import type { DuelState, HitZone, Vec2 } from '../game/types';
 
@@ -19,12 +17,6 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 const VIEW_WIDTH = 40;
 /** Background image size and where its street (the opponent's feet) sits, as a fraction of its height. */
 const BG = { w: 1290, h: 2796, streetFrac: 0.54, parallaxDist: 40 };
-/** Sprite art for each creature slug. */
-const SPRITES: Record<string, { url: string; zonesUrl: string; name: string; handPx: [number, number] }> = {
-  'desert-sage': { url: sageUrl, zonesUrl: sageZonesUrl, name: 'SAGE', handPx: [300, 700] },
-};
-/** Where the paint leaves the gun, as a fraction of the gun image (from the art manifest). */
-const MUZZLE = { x: 0.47, y: 0.13 };
 /** Player paint flight time (ms); splats appear when it lands. */
 const FLIGHT_MS = 110;
 /** Bot paint flight time toward the camera (ms). */
@@ -87,6 +79,7 @@ export class GameView {
   private gun: HTMLImageElement;
   private splatKey = '';
   private creature = '';
+  private gunKey = '';
   private $: (sel: string) => HTMLElement;
   private shownResult: string | null = null;
   private unlockTimer: ReturnType<typeof setTimeout> | undefined;
@@ -132,7 +125,7 @@ export class GameView {
     this.$ = (id: string) => this.el.querySelector<HTMLElement>('#' + id)!;
     this.fxScene = this.$('g-fx-scene');
     this.fxScreen = this.$('g-fx-screen');
-    this.gun = img(gunUrl, 'vm', this.$('g-vmk'));
+    this.gun = img('', 'vm', this.$('g-vmk'));
 
     // ---- Scene (SVG in aim units: 1 unit = 1 degree, y up = negative SVG y) ----
     this.svgEl = svg('svg', { class: 'scene', preserveAspectRatio: 'xMidYMid slice' });
@@ -149,7 +142,7 @@ export class GameView {
     this.bgImage = svg('image', { href: bgUrl, preserveAspectRatio: 'none' }, this.bgLayer);
 
     this.opponent = svg('g', {}, this.svgEl);
-    this.shadow = svg('ellipse', { rx: 205 / SPRITE_PX_PER_UNIT, ry: 35 / SPRITE_PX_PER_UNIT, fill: 'rgba(40, 10, 50, 0.35)' }, this.opponent);
+    this.shadow = svg('ellipse', { fill: 'rgba(40, 10, 50, 0.35)' }, this.opponent);
     this.sprite = svg('image', {}, this.opponent);
     this.splats = svg('g', { mask: 'url(#creature-mask)' }, this.opponent);
     this.zones = svg('image', { opacity: 0.9 }, this.opponent);
@@ -204,7 +197,7 @@ export class GameView {
     const w = Math.max(VIEW_WIDTH + 6, (viewH * BG.w) / BG.h);
     const h = (w * BG.h) / BG.w;
     const c = Object.values(CREATURES)[0];
-    const feetSvgY = GameView.sy(OPPONENT_Y) + (c.baselineY - c.torsoPx[1]) / SPRITE_PX_PER_UNIT;
+    const feetSvgY = GameView.sy(OPPONENT_Y) + (c.baselineY - c.torsoPx[1]) / c.pxPerUnit;
     let top = feetSvgY - BG.streetFrac * h;
     // Never leave a gap at the top or bottom of the screen.
     top = Math.min(-viewH / 2, Math.max(viewH / 2 - h, top));
@@ -216,18 +209,31 @@ export class GameView {
     if (slug === this.creature) return;
     this.creature = slug;
     const c = CREATURES[slug];
-    const art = SPRITES[slug];
-    const size = c.canvas / SPRITE_PX_PER_UNIT;
-    const box = { x: -c.torsoPx[0] / SPRITE_PX_PER_UNIT, y: -c.torsoPx[1] / SPRITE_PX_PER_UNIT, width: size, height: size };
+    const art = CREATURE_ART[slug];
+    const k = c.pxPerUnit;
+    const size = c.canvas / k;
+    const box = { x: -c.torsoPx[0] / k, y: -c.torsoPx[1] / k, width: size, height: size };
     for (const el of [this.sprite, this.maskImage, this.zones]) {
       for (const [k, v] of Object.entries(box)) el.setAttribute(k, String(v));
     }
     this.sprite.setAttribute('href', art.url);
-    this.botReloadTag.setAttribute('y', String((75 - c.torsoPx[1]) / SPRITE_PX_PER_UNIT));
+    this.botReloadTag.setAttribute('y', String((75 - c.torsoPx[1]) / k));
     this.maskImage.setAttribute('href', art.url);
     this.zones.setAttribute('href', art.zonesUrl);
-    this.shadow.setAttribute('cy', String((c.baselineY - c.torsoPx[1]) / SPRITE_PX_PER_UNIT - 0.1));
-    this.$('g-bname').textContent = art.name;
+    this.shadow.setAttribute('cy', String((c.baselineY - c.torsoPx[1]) / k - 0.1));
+    this.shadow.setAttribute('rx', String(205 / k));
+    this.shadow.setAttribute('ry', String(35 / k));
+    this.$('g-bname').textContent = alienName(slug).toUpperCase();
+  }
+
+  /** The player's hand-and-gun image, for their alien and gun. */
+  private setGun(creature: string, weapon: string) {
+    const key = creature + '|' + weapon;
+    if (key === this.gunKey) return;
+    this.gunKey = key;
+    const art = GUN_ART[weapon];
+    this.gun.src = art.pov[creature] ?? Object.values(art.pov)[0];
+    this.$('g-vm').className = 'vm-wrap ' + art.cls + (this.$('g-vm').classList.contains('hidden') ? ' hidden' : '');
   }
 
   /** Small detection readout under the health bars; null hides it. */
@@ -308,9 +314,10 @@ export class GameView {
   }
 
   /** Your shot: paint bursts from the muzzle, flies to the crosshair point and splats. */
-  playerShot(zone: HitZone, aim: Vec2, damage: number) {
+  playerShot(zone: HitZone, aim: Vec2, damage: number, weapon: string) {
     const r = this.gun.getBoundingClientRect();
-    const from = { x: r.left + MUZZLE.x * r.width, y: r.top + MUZZLE.y * r.height };
+    const muzzle = GUN_ART[weapon].muzzle;
+    const from = { x: r.left + muzzle.x * r.width, y: r.top + muzzle.y * r.height };
     const to = this.aimToScreen(aim);
     const angle = (Math.atan2(to.y - from.y, to.x - from.x) * 180) / Math.PI;
     const w = window.innerWidth;
@@ -337,11 +344,11 @@ export class GameView {
   /** The bot's shot: teal paint flies from its hand toward you; a hit splats the screen. */
   botShot(s: DuelState, zone: HitZone) {
     const c = CREATURES[s.creature];
-    const art = SPRITES[s.creature];
+    const art = CREATURE_ART[s.creature];
     const t = apparentTarget(s);
     const from = this.aimToScreen({
-      x: t.x + (art.handPx[0] - c.torsoPx[0]) / SPRITE_PX_PER_UNIT,
-      y: t.y - (art.handPx[1] - c.torsoPx[1]) / SPRITE_PX_PER_UNIT,
+      x: t.x + (art.handPx[0] - c.torsoPx[0]) / c.pxPerUnit,
+      y: t.y - (art.handPx[1] - c.torsoPx[1]) / c.pxPerUnit,
     });
     const W = window.innerWidth;
     const H = window.innerHeight;
@@ -369,6 +376,7 @@ export class GameView {
 
   render(s: DuelState, aim: Vec2, aimVisible: boolean) {
     this.setCreature(s.creature);
+    this.setGun(s.player.creature, s.player.weapon);
     const t = apparentTarget(s);
     // Small bob while the bot is walking.
     const bob = s.bot.vx !== 0 ? Math.abs(Math.sin(performance.now() / 110)) * 0.3 : 0;
@@ -433,7 +441,7 @@ export class GameView {
     this.splats.replaceChildren();
     landed.forEach((h, i) => {
       // Splat size in sprite pixels, so it scales with the creature.
-      const size = (h.zone === 'face' ? 218 : h.zone === 'torso' ? 180 : 140) / SPRITE_PX_PER_UNIT;
+      const size = (h.zone === 'face' ? 218 : h.zone === 'torso' ? 180 : 140) / CREATURES[s.creature].pxPerUnit;
       const rot = (i * 137 + Math.round(h.x * 50)) % 360;
       const g = svg('g', { transform: `translate(${h.x} ${GameView.sy(h.y)}) rotate(${rot})` }, this.splats);
       svg('image', { href: i % 2 ? fxSplatBUrl : fxSplatAUrl, x: -size / 2, y: -size / 2, width: size, height: size }, g);
@@ -471,8 +479,7 @@ export class GameView {
     this.unlockTimer = setTimeout(() => panel.classList.remove('locked'), RESULT_LOCK_MS);
     this.$('r-flag').textContent = 'Something felt off';
 
-    const name = SPRITES[s.creature]?.name ?? 'OPPONENT';
-    const cap = name.charAt(0) + name.slice(1).toLowerCase();
+    const cap = alienName(s.creature);
     const titles = { victory: "YOU PAINTED 'EM!", defeat: 'YOU GOT PAINTED!', foul: 'FOUL' } as const;
     const notes = {
       victory: `${cap} is covered in paint.`,
