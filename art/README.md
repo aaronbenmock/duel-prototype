@@ -1,4 +1,6 @@
-# Art workspace (Fast Hand / Quick Draw)
+# Art workspace (High Moon)
+
+**For artists: start with [ARTIST-GUIDE.md](ARTIST-GUIDE.md)** (plain-English sizes, formats and delivery). This file is the technical pipeline.
 
 Everything visual for the game starts here. Editable masters are SVG files made in Inkscape. The game only ever uses the exported files in `exports/`.
 

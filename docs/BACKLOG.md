@@ -19,6 +19,10 @@ Not scheduled. Add a date and who asked for each idea.
 - More aliens (blue, gold, violet) and guns (scattergun, raygun); character/gun picker.
 - Opponent draw and fire pose, hit reactions, defeat pose (needs new art).
 
+- Update `art/creatures/_template/creature_TEMPLATE_refsheet.svg`: its blue hit-zone guides come from the
+  old rectangle/circle hit boxes. Hit areas are now generated from each sprite (art/tools/build_hitzones.py);
+  the template should show the 1024 canvas, the foot line at y = 944 and the sage alien's size instead.
+
 ## Bigger steps
 - Milestone 4: head-to-head (needs Aaron's OK to relax "no backend").
 - Check the "High Moon" name before any public launch.
