@@ -94,7 +94,7 @@ function play(e: Effect) {
     case 'shot':
       audio.shot();
       game.kick();
-      game.playerShot(e.zone, e.aim);
+      game.playerShot(e.zone, e.aim, e.damage);
       if (e.zone === 'face') audio.headshot();
       else if (e.zone) audio.hit();
       else audio.miss();
@@ -103,9 +103,18 @@ function play(e: Effect) {
     case 'empty':
       audio.empty();
       break;
-    case 'reload':
-      audio.reload();
+    case 'reloadStart':
+      audio.reloadOpen();
       game.reloadAnim();
+      break;
+    case 'reloadRound':
+      audio.reloadRound();
+      break;
+    case 'reloadDone':
+      audio.reloadClose();
+      break;
+    case 'botReload':
+      audio.botReload();
       break;
     case 'botShot':
       audio.botShot();

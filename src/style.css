@@ -197,3 +197,11 @@ button.link {
 }
 .dmg.crit { font-size: 1.6rem; color: #fff36b; }
 .dmg.miss { color: #ddd; font-size: 0.9rem; }
+
+/* Opponent reload tag (SVG text in aim units) */
+.bot-reload {
+  fill: #b4f6f8; font-weight: 900; letter-spacing: 0.05px;
+  paint-order: stroke; stroke: #1b1530; stroke-width: 0.5px;
+  animation: blink 0.5s steps(2, start) infinite;
+}
+@keyframes blink { to { opacity: 0.5; } }

@@ -10,7 +10,8 @@ import fxSplatAUrl from '../../art/exports/effects/fx_paint-yellow_splat-a.webp'
 import fxSplatBUrl from '../../art/exports/effects/fx_paint-yellow_splat-b.webp';
 import gunUrl from '../../art/exports/weapons/weapon_star-revolver_sage_pov.webp';
 import { CREATURES } from '../game/creatures';
-import { apparentTarget, CYLINDER, DAMAGE, drawTime, MAX_HP, OPPONENT_Y, parallax, SPRITE_PX_PER_UNIT } from '../game/duel';
+import { apparentTarget, drawTime, MAX_HP, OPPONENT_Y, parallax, SPRITE_PX_PER_UNIT } from '../game/duel';
+import { WEAPONS } from '../game/weapons';
 import type { DuelState, HitZone, Vec2 } from '../game/types';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -78,6 +79,8 @@ export class GameView {
   private splats: SVGGElement;
   private shadow: SVGEllipseElement;
   private cross: SVGGElement;
+  private botReloadTag: SVGTextElement;
+  private cylSize = 0;
   private fxScene: HTMLElement;
   private fxScreen: HTMLElement;
   private gun: HTMLImageElement;
@@ -145,6 +148,9 @@ export class GameView {
     this.sprite = svg('image', {}, this.opponent);
     this.splats = svg('g', { mask: 'url(#creature-mask)' }, this.opponent);
     this.zones = svg('image', { opacity: 0.9 }, this.opponent);
+    // "RELOADING" tag over the opponent's hat while it reloads (animations later).
+    this.botReloadTag = svg('text', { class: 'bot-reload', 'text-anchor': 'middle', 'font-size': 1.3 }, this.opponent);
+    this.botReloadTag.textContent = 'RELOADING';
 
     this.cross = svg('g', { class: 'cross' }, this.svgEl);
     for (const [color, width] of [['rgba(0,0,0,0.55)', 0.42], ['#fff', 0.18]] as const) {
@@ -154,9 +160,6 @@ export class GameView {
       }
     }
     svg('circle', { r: 0.18, fill: '#ffd23f', stroke: '#000', 'stroke-width': 0.06 }, this.cross);
-
-    const cyl = this.$('g-cyl');
-    for (let i = 0; i < CYLINDER; i++) cyl.appendChild(document.createElement('i'));
 
     // Tap anywhere (except buttons) to shoot. pointerdown fires the instant the finger lands.
     this.el.addEventListener('pointerdown', (e) => {
@@ -212,6 +215,7 @@ export class GameView {
       for (const [k, v] of Object.entries(box)) el.setAttribute(k, String(v));
     }
     this.sprite.setAttribute('href', art.url);
+    this.botReloadTag.setAttribute('y', String((75 - c.torsoPx[1]) / SPRITE_PX_PER_UNIT));
     this.maskImage.setAttribute('href', art.url);
     this.zones.setAttribute('href', art.zonesUrl);
     this.shadow.setAttribute('cy', String((c.baselineY - c.torsoPx[1]) / SPRITE_PX_PER_UNIT - 0.1));
@@ -291,7 +295,7 @@ export class GameView {
   }
 
   /** Your shot: paint bursts from the muzzle, flies to the crosshair point and splats. */
-  playerShot(zone: HitZone, aim: Vec2) {
+  playerShot(zone: HitZone, aim: Vec2, damage: number) {
     const r = this.gun.getBoundingClientRect();
     const from = { x: r.left + MUZZLE.x * r.width, y: r.top + MUZZLE.y * r.height };
     const to = this.aimToScreen(aim);
@@ -313,7 +317,7 @@ export class GameView {
       { opacity: 1, transform: 'scale(1)', offset: 0.35 },
       { opacity: 0, transform: 'scale(1.15)' },
     ], 380, { delay: FLIGHT_MS });
-    if (zone) this.floatText(`${ZONE_LABEL[zone]} ${DAMAGE[zone]}`, to, zone === 'face' ? 'crit' : '', FLIGHT_MS);
+    if (zone) this.floatText(`${ZONE_LABEL[zone]} ${damage}`, to, zone === 'face' ? 'crit' : '', FLIGHT_MS);
     else this.floatText('MISS', to, 'miss', FLIGHT_MS);
   }
 
@@ -367,8 +371,17 @@ export class GameView {
     (this.$('g-php') as HTMLElement).style.width = (s.player.hp / MAX_HP) * 100 + '%';
     (this.$('g-bhp') as HTMLElement).style.width = (s.bot.hp / MAX_HP) * 100 + '%';
 
-    const cyl = this.$('g-cyl').children;
+    // Ammo dots, one per round of the current gun; they refill one by one while reloading.
+    const gun = WEAPONS[s.player.weapon];
+    const cylEl = this.$('g-cyl');
+    if (this.cylSize !== gun.capacity) {
+      this.cylSize = gun.capacity;
+      cylEl.replaceChildren(...Array.from({ length: gun.capacity }, () => document.createElement('i')));
+    }
+    const cyl = cylEl.children;
     for (let i = 0; i < cyl.length; i++) cyl[i].classList.toggle('spent', i >= s.player.rounds);
+    const reloading = s.player.reloadNextAt != null;
+    this.botReloadTag.style.display = s.bot.reloadUntil != null && (s.phase === 'draw' || s.phase === 'aim') ? '' : 'none';
 
     let big = '';
     let small = '';
@@ -380,6 +393,8 @@ export class GameView {
       small = 'Hold still. Draw when you hear the DRAW sound.';
     } else if (s.phase === 'draw') {
       big = 'DRAW!';
+    } else if (s.phase === 'aim' && reloading) {
+      small = 'Reloading...';
     } else if (s.phase === 'aim' && s.player.rounds === 0) {
       big = 'RELOAD';
       small = 'Dip the phone to point at the floor, then raise it again.';
@@ -390,7 +405,7 @@ export class GameView {
 
     const dt = drawTime(s);
     this.$('g-dtime').textContent = dt != null ? `Draw ${fmtSec(dt)}` : '';
-    this.$('g-reload').classList.toggle('hidden', !this.showReloadButton || !(s.phase === 'aim' || s.phase === 'draw') || s.player.rounds === CYLINDER);
+    this.$('g-reload').classList.toggle('hidden', !this.showReloadButton || !(s.phase === 'aim' || s.phase === 'draw') || s.player.rounds === gun.capacity || reloading);
 
     this.renderResult(s);
   }

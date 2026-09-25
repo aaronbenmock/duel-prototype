@@ -50,6 +50,10 @@ export interface Shooter {
 }
 
 export interface PlayerState extends Shooter {
+  /** Gun id (see weapons.ts). */
+  weapon: string;
+  /** While reloading: when the next round goes in. null = not reloading. */
+  reloadNextAt: number | null;
   /** Sideways position in meters (right is positive), from tilt-to-move. */
   x: number;
   /** Current movement input, -1 (full left) to 1 (full right). */
@@ -59,6 +63,8 @@ export interface PlayerState extends Shooter {
 }
 
 export interface BotState extends Shooter {
+  /** Gun id (see weapons.ts). */
+  weapon: string;
   nextFireAt: number | null;
   reloadUntil: number | null;
   /** Sideways position (m) and where it's walking to. */
@@ -110,9 +116,12 @@ export type Action =
 export type Effect =
   | { type: 'ready' }
   | { type: 'draw' }
-  | { type: 'shot'; zone: HitZone; aim: Vec2 }
+  | { type: 'shot'; zone: HitZone; aim: Vec2; damage: number }
   | { type: 'empty' }
-  | { type: 'reload' }
+  | { type: 'reloadStart'; missing: number }
+  | { type: 'reloadRound' }
+  | { type: 'reloadDone' }
+  | { type: 'botReload' }
   | { type: 'botShot'; zone: HitZone }
   | { type: 'foul' }
   | { type: 'victory' }

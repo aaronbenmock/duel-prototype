@@ -1,11 +1,9 @@
 // The duel rules as a pure function: (state, action) -> (new state, effects).
 import { CREATURES, DEFAULT_CREATURE } from './creatures';
 import type { Action, DuelConfig, DuelState, Effect, HitZone, Vec2 } from './types';
+import { DEFAULT_WEAPON, WEAPONS } from './weapons';
 
 export const MAX_HP = 100;
-export const CYLINDER = 6;
-/** Paint damage by zone. The face is the critical spot: two face hits win. */
-export const DAMAGE = { face: 50, torso: 20, limb: 10, tail: 5 } as const;
 
 /** Sprite pixels per aim unit (degree): sets how big the opponent looks and how big its zones are. */
 export const SPRITE_PX_PER_UNIT = 78;
@@ -49,11 +47,11 @@ export const DEFAULT_CONFIG: DuelConfig = {
   bot: {
     firstShotMin: 1,
     firstShotMax: 2.5,
-    intervalMin: 0.8,
-    intervalMax: 1.3,
-    hitChance: 0.75,
+    intervalMin: 0.6,
+    intervalMax: 0.95,
+    hitChance: 0.8,
     headshotShare: 0.05,
-    reloadTime: 2.2,
+    reloadTime: 1.5,
     moveRange: 1.0,
     moveSpeed: 0.7,
     pauseMin: 1.0,
@@ -104,10 +102,13 @@ export function createDuel(config: DuelConfig, seed: number, now: number): DuelS
     drawnAt: null,
     endedAt: null,
     lastTickAt: now,
-    player: { hp: MAX_HP, rounds: CYLINDER, shots: 0, hits: 0, headshots: 0, x: 0, lean: 0, vx: 0 },
+    player: {
+      hp: MAX_HP, rounds: WEAPONS[DEFAULT_WEAPON].capacity, shots: 0, hits: 0, headshots: 0,
+      weapon: DEFAULT_WEAPON, reloadNextAt: null, x: 0, lean: 0, vx: 0,
+    },
     bot: {
-      hp: MAX_HP, rounds: CYLINDER, shots: 0, hits: 0, headshots: 0,
-      nextFireAt: null, reloadUntil: null, x: 0, destX: 0, vx: 0, nextMoveAt: null,
+      hp: MAX_HP, rounds: WEAPONS[DEFAULT_WEAPON].capacity, shots: 0, hits: 0, headshots: 0,
+      weapon: DEFAULT_WEAPON, nextFireAt: null, reloadUntil: null, x: 0, destX: 0, vx: 0, nextMoveAt: null,
     },
     holes: [],
   };
@@ -129,6 +130,8 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
   const fx: Effect[] = [];
   const now = action.now;
   const bot = s.config.bot;
+  const gun = WEAPONS[s.player.weapon];
+  const botGun = WEAPONS[s.bot.weapon];
 
   switch (action.type) {
     case 'holster':
@@ -154,7 +157,8 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
 
     case 'fire':
       if (s.phase !== 'aim') break;
-      if (s.player.rounds === 0) {
+      // Empty, or mid-reload: the trigger just clicks.
+      if (s.player.rounds === 0 || s.player.reloadNextAt != null) {
         fx.push({ type: 'empty' });
         break;
       }
@@ -167,17 +171,18 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
         if (zone) {
           s.player.hits++;
           if (zone === 'face') s.player.headshots++;
-          s.bot.hp = Math.max(0, s.bot.hp - DAMAGE[zone]);
+          s.bot.hp = Math.max(0, s.bot.hp - gun.damage[zone]);
         }
-        fx.push({ type: 'shot', zone, aim: action.aim });
+        fx.push({ type: 'shot', zone, aim: action.aim, damage: zone ? gun.damage[zone] : 0 });
       }
       if (s.bot.hp <= 0) end(s, 'victory', now, fx);
       break;
 
     case 'reload':
-      if ((s.phase === 'draw' || s.phase === 'aim') && s.player.rounds < CYLINDER) {
-        s.player.rounds = CYLINDER;
-        fx.push({ type: 'reload' });
+      // Starts a reload; rounds then go in one at a time on ticks (see below).
+      if ((s.phase === 'draw' || s.phase === 'aim') && s.player.reloadNextAt == null && s.player.rounds < gun.capacity) {
+        s.player.reloadNextAt = now + gun.reloadStartMs;
+        fx.push({ type: 'reloadStart', missing: gun.capacity - s.player.rounds });
       }
       break;
 
@@ -217,9 +222,20 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
           if (s.bot.x === s.bot.destX) s.bot.nextMoveAt = now + between(s, bot.pauseMin, bot.pauseMax) * 1000;
         }
       }
+      // Player reload: one round per interval, a click each, until full.
+      while (s.player.reloadNextAt != null && now >= s.player.reloadNextAt) {
+        s.player.rounds++;
+        fx.push({ type: 'reloadRound' });
+        if (s.player.rounds >= gun.capacity) {
+          s.player.reloadNextAt = null;
+          fx.push({ type: 'reloadDone' });
+        } else {
+          s.player.reloadNextAt += gun.reloadPerRoundMs;
+        }
+      }
       if (s.phase === 'draw' || s.phase === 'aim') {
         if (s.bot.reloadUntil != null && now >= s.bot.reloadUntil) {
-          s.bot.rounds = CYLINDER;
+          s.bot.rounds = botGun.capacity;
           s.bot.reloadUntil = null;
           s.bot.nextFireAt = now + between(s, bot.intervalMin, bot.intervalMax) * 1000;
         }
@@ -241,12 +257,13 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
           if (zone) {
             s.bot.hits++;
             if (zone === 'face') s.bot.headshots++;
-            s.player.hp = Math.max(0, s.player.hp - DAMAGE[zone]);
+            s.player.hp = Math.max(0, s.player.hp - botGun.damage[zone]);
           }
           fx.push({ type: 'botShot', zone });
           if (s.bot.rounds === 0) {
             s.bot.nextFireAt = null;
             s.bot.reloadUntil = now + bot.reloadTime * 1000;
+            fx.push({ type: 'botReload' });
           } else {
             s.bot.nextFireAt = now + between(s, bot.intervalMin, bot.intervalMax) * 1000;
           }

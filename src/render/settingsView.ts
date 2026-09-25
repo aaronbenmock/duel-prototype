@@ -48,7 +48,7 @@ export class SettingsView {
           <div class="seg" id="st-bot">
             <button data-bot="easy">Easy</button><button data-bot="normal">Normal</button><button data-bot="hard">Hard</button>
           </div>
-          <p class="help">Easy: slower, hits half its shots. Normal: hits 3 in 4. Hard: fires fastest. Harder bots also move around more. Face hits are rare at every level.</p>
+          <p class="help">Easy: slower and reloads slowly. Normal: steady. Hard: fires fastest and reloads quickly. Harder bots also move around more. Face hits are rare at every level.</p>
         </div>
       </div>
       <div class="panel"><h2>Live detection</h2><div class="grid" id="st-readout"></div></div>
@@ -60,7 +60,7 @@ export class SettingsView {
         <label class="toggle"><input type="checkbox" id="st-readout-on"> Show detection readout during duels</label>
         <label class="toggle"><input type="checkbox" id="st-reloadbtn"> Show Reload button</label>
         <label class="toggle"><input type="checkbox" id="st-zones"> Show hit areas (testing)</label>
-        <p class="help">Tints the opponent: red face (50), yellow body (20), blue arms, ears and legs (10), green tail (5). The hat is a miss.</p>
+        <p class="help">Tints the opponent: red face (20), yellow body (9), blue arms, ears and legs (5), green tail (2). The hat is a miss.</p>
       </div>
       <button data-act="copy">Copy settings</button>
       <button class="secondary" data-act="reset">Reset to defaults</button>

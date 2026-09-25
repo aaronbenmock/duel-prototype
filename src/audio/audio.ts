@@ -157,11 +157,27 @@ export class AudioEngine {
     this.tone(2400, 0.03, { type: 'square', gain: 0.15 });
   }
 
-  /** Reload: cylinder clicks followed by a closing clack. */
-  reload() {
-    for (let i = 0; i < 4; i++) this.noise(0.02, { filter: 'highpass', freq: 3500, gain: 0.4, delay: i * 0.05 });
-    this.noise(0.06, { filter: 'bandpass', freq: 1200, q: 2, gain: 0.8, delay: 0.26 });
-    this.tone(600, 0.05, { type: 'square', gain: 0.2, delay: 0.26 });
+  /** Reload starts: the cylinder swings open. */
+  reloadOpen() {
+    this.noise(0.05, { filter: 'bandpass', freq: 1500, q: 2, gain: 0.6 });
+    this.tone(500, 0.05, { type: 'square', sweepTo: 350, gain: 0.15 });
+  }
+
+  /** One round goes in. */
+  reloadRound() {
+    this.noise(0.025, { filter: 'highpass', freq: 3200, gain: 0.55 });
+    this.tone(1900, 0.03, { type: 'square', gain: 0.12 });
+  }
+
+  /** Cylinder snaps shut: ready to fire. */
+  reloadClose() {
+    this.noise(0.07, { filter: 'bandpass', freq: 1100, q: 2, gain: 0.85 });
+    this.tone(650, 0.06, { type: 'square', gain: 0.22 });
+  }
+
+  /** The opponent starts reloading: quieter, distant clicks. */
+  botReload() {
+    for (let i = 0; i < 3; i++) this.noise(0.02, { filter: 'bandpass', freq: 2200, q: 2, gain: 0.25, delay: 0.1 + i * 0.12 });
   }
 
   /** The bot fires: a more distant, muffled paint pop. */

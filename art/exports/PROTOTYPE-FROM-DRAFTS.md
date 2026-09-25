@@ -24,7 +24,7 @@ When final art arrives through `ready-for-production/` with `STATUS: READY`, rep
 - Hit zones: generated from the sprite's own alpha, so only visible pixels can be hit. Zone rules are in
   `art/tools/build_hitzones.py` (face ellipse, torso, limbs incl. ears, tail; hat = miss). Output:
   `src/game/creatures/desert-sage.ts`. Re-run the script whenever the sprite changes.
-- Damage: face 50, torso 20, arms/ears/legs 10, tail 5 (Aaron, 2026-09-25; face was 100 in v0.5).
+- Damage: per gun in `src/game/weapons.ts`. Star revolver: face 20, torso 9, arms/ears/legs 5, tail 2 (v0.6; five face hits win).
 - First-person gun: muzzle anchor (0.47, 0.13) and recoil pivot (0.89, 0.95) from the draft manifest.
 - Paint: yours is yellow; the bot's is the same art tinted teal with a CSS hue shift.
 
