@@ -59,7 +59,7 @@ export class SettingsView {
         <label class="toggle"><input type="checkbox" id="st-sound"> Sound</label>
         <label class="toggle"><input type="checkbox" id="st-readout-on"> Show detection readout during duels</label>
         <label class="toggle"><input type="checkbox" id="st-zones"> Show hit areas (testing)</label>
-        <p class="help">Tints the opponent: red face (100), yellow body (20), blue arms, ears and legs (10), green tail (5). The hat is a miss.</p>
+        <p class="help">Tints the opponent: red face (50), yellow body (20), blue arms, ears and legs (10), green tail (5). The hat is a miss.</p>
       </div>
       <button data-act="copy">Copy settings</button>
       <button class="secondary" data-act="reset">Reset to defaults</button>

@@ -25,7 +25,7 @@ export class StartView {
           <li>Tap <b>Start Duel</b>, then hang the phone at your hip, top pointing at the floor. Hold still until you hear the ready click.</li>
           <li>Don't move until the loud <b>DRAW</b> sound. Moving early is a foul.</li>
           <li>Raise the phone upright, screen facing you, like aiming a revolver.</li>
-          <li>Turn the phone to move the crosshair. Tap anywhere to fire paint. Face = 100, body = 20, arms and legs = 10, tail = 5. The hat doesn't count.</li>
+          <li>Turn the phone to move the crosshair. Tap anywhere to fire paint. Face = 50, body = 20, arms and legs = 10, tail = 5. The hat doesn't count.</li>
           <li>Tip the phone sideways to sidestep left or right. A moving target is harder for the bot to hit.</li>
           <li>After six shots, flick the phone down and up (or tap <b>Reload</b>).</li>
           <li>Aim feel, detection and bot difficulty can be adjusted in <b>Settings</b>.</li>

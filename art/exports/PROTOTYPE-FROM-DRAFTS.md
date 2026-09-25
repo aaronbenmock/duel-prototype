@@ -19,12 +19,12 @@ When final art arrives through `ready-for-production/` with `STATUS: READY`, rep
 `effects/` is a new export type (prefix `fx_`) for paint and other short-lived visual effects.
 
 ## How the game uses them
-- Opponent: `creature_desert-sage_front` drawn at 64 sprite px per aim unit (degree). Torso reference
+- Opponent: `creature_desert-sage_front` drawn at 78 sprite px per aim unit (degree) (was 64 in v0.5; smaller = further away). Torso reference
   pixel (512, 600), sole baseline y = 944.
 - Hit zones: generated from the sprite's own alpha, so only visible pixels can be hit. Zone rules are in
   `art/tools/build_hitzones.py` (face ellipse, torso, limbs incl. ears, tail; hat = miss). Output:
   `src/game/creatures/desert-sage.ts`. Re-run the script whenever the sprite changes.
-- Damage: face 100, torso 20, arms/ears/legs 10, tail 5 (Aaron, 2026-09-25).
+- Damage: face 50, torso 20, arms/ears/legs 10, tail 5 (Aaron, 2026-09-25; face was 100 in v0.5).
 - First-person gun: muzzle anchor (0.47, 0.13) and recoil pivot (0.89, 0.95) from the draft manifest.
 - Paint: yours is yellow; the bot's is the same art tinted teal with a CSS hue shift.
 

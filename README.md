@@ -37,7 +37,7 @@ If that doesn't work, go to Settings, then Apps, then Safari, then **Clear Histo
 1. Tap **Start Duel**. Hang the phone at your hip, top pointing at the floor, and hold still until you hear the ready click.
 2. Wait for the loud **DRAW** sound. Moving before it is a foul.
 3. Raise the phone upright, screen facing you. The crosshair appears.
-4. Turn the phone to aim. Tap anywhere to fire paint. Only the visible alien counts: face = 100 (instant win), body = 20, arms, ears and legs = 10, tail = 5; the hat is a miss. Both you and the bot have 100 health.
+4. Turn the phone to aim. Tap anywhere to fire paint. Only the visible alien counts: face = 50 (two face hits win), body = 20, arms, ears and legs = 10, tail = 5; the hat is a miss. Both you and the bot have 100 health.
 5. Tip the phone sideways (like canting a revolver) to sidestep left or right, up to about 1.5 m each way. This doesn't move your aim. While you're moving, the bot misses more often.
 6. After six shots, flick the phone down and up to reload, or tap **Reload**.
 7. On the results screen, the buttons wake up after one second so a late tap can't skip the results. **Again** starts the next round.

@@ -17,7 +17,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 /** The screen is this many aim units wide (so 1 unit = 1 degree at sensitivity 1). */
 const VIEW_WIDTH = 40;
 /** Background image size and where its street (the opponent's feet) sits, as a fraction of its height. */
-const BG = { w: 1290, h: 2796, streetFrac: 0.58, parallaxDist: 40 };
+const BG = { w: 1290, h: 2796, streetFrac: 0.54, parallaxDist: 40 };
 /** Sprite art for each creature slug. */
 const SPRITES: Record<string, { url: string; zonesUrl: string; name: string; handPx: [number, number] }> = {
   'desert-sage': { url: sageUrl, zonesUrl: sageZonesUrl, name: 'SAGE', handPx: [300, 700] },
@@ -139,7 +139,7 @@ export class GameView {
     this.bgImage = svg('image', { href: bgUrl, preserveAspectRatio: 'none' }, this.bgLayer);
 
     this.opponent = svg('g', {}, this.svgEl);
-    this.shadow = svg('ellipse', { rx: 3.2, ry: 0.55, fill: 'rgba(40, 10, 50, 0.35)' }, this.opponent);
+    this.shadow = svg('ellipse', { rx: 205 / SPRITE_PX_PER_UNIT, ry: 35 / SPRITE_PX_PER_UNIT, fill: 'rgba(40, 10, 50, 0.35)' }, this.opponent);
     this.sprite = svg('image', {}, this.opponent);
     this.splats = svg('g', { mask: 'url(#creature-mask)' }, this.opponent);
     this.zones = svg('image', { opacity: 0.9 }, this.opponent);
@@ -402,7 +402,8 @@ export class GameView {
     this.splatKey = key;
     this.splats.replaceChildren();
     landed.forEach((h, i) => {
-      const size = h.zone === 'face' ? 3.4 : h.zone === 'torso' ? 2.8 : 2.2;
+      // Splat size in sprite pixels, so it scales with the creature.
+      const size = (h.zone === 'face' ? 218 : h.zone === 'torso' ? 180 : 140) / SPRITE_PX_PER_UNIT;
       const rot = (i * 137 + Math.round(h.x * 50)) % 360;
       const g = svg('g', { transform: `translate(${h.x} ${GameView.sy(h.y)}) rotate(${rot})` }, this.splats);
       svg('image', { href: i % 2 ? fxSplatBUrl : fxSplatAUrl, x: -size / 2, y: -size / 2, width: size, height: size }, g);

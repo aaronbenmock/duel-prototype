@@ -4,11 +4,11 @@ import type { Action, DuelConfig, DuelState, Effect, HitZone, Vec2 } from './typ
 
 export const MAX_HP = 100;
 export const CYLINDER = 6;
-/** Paint damage by zone. The face is a one-shot critical hit. */
-export const DAMAGE = { face: 100, torso: 20, limb: 10, tail: 5 } as const;
+/** Paint damage by zone. The face is the critical spot: two face hits win. */
+export const DAMAGE = { face: 50, torso: 20, limb: 10, tail: 5 } as const;
 
 /** Sprite pixels per aim unit (degree): sets how big the opponent looks and how big its zones are. */
-export const SPRITE_PX_PER_UNIT = 64;
+export const SPRITE_PX_PER_UNIT = 78;
 /** Where the opponent stands: torso reference height (aim units) puts its feet on the street. */
 export const OPPONENT_Y = -1.6;
 /** The opponent starts this far (aim units) either side of center. */
@@ -23,7 +23,7 @@ const ZONE_CODES: HitZone[] = [null, 'face', 'torso', 'limb', 'tail', null];
 export const MOVE = {
   maxSpeed: 1.2, // m/s at full tilt
   maxOffset: 1.5, // m either side of the start position
-  opponentDistance: 10, // m, sets how far the opponent appears to slide
+  opponentDistance: 12, // m, sets how far the opponent appears to slide
   dodgeSpeed: 0.3, // m/s; moving at least this fast counts as dodging
   dodgeFactor: 0.6, // bot hit chance is multiplied by this while you dodge
 } as const;
