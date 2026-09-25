@@ -160,9 +160,10 @@ sensors.onOrientation((s) => {
     case 'aim': {
       aim.update(s.q, s.t);
       // Tilt-to-move: sideways tilt becomes a sidestep (skip if unchanged).
-      const lean = settings.tiltMove ? gestures.leanValue() : 0;
+      // No stepping while aiming is paused: tilt readings are meaningless then.
+      const lean = settings.tiltMove && !aim.suspended ? gestures.leanValue() : 0;
       if (Math.abs(lean - duel.player.lean) > 0.01) dispatch({ type: 'lean', now: s.t, value: lean });
-      const flag = aim.lastWasSpike ? 'S' : aim.settling ? 'C' : '';
+      const flag = aim.suspended ? 'P' : aim.lastWasSpike ? 'S' : aim.settling ? 'C' : '';
       if (aimLog.length < LOG_MAX) {
         aimLog.push([Math.round(s.t - logStart), n1(s.alpha), n1(s.beta), n1(s.gamma), n1(aim.raw.x), n1(aim.raw.y), n1(aim.current.x), n1(aim.current.y), flag, n1(gestures.roll), duel?.player.x.toFixed(2) ?? ''].map(String).join(','));
       }
@@ -189,7 +190,8 @@ setInterval(() => {
 game.onFire = (t) => {
   // Use the aim from slightly before the tap (the look-back setting), so the
   // thumb press doesn't move the shot.
-  if (duel?.phase === 'aim') {
+  // No shooting while the gun is lowered (aiming paused).
+  if (duel?.phase === 'aim' && !aim.suspended) {
     const at = aim.at(t - settings.lookbackMs);
     if (aimLog.length < LOG_MAX) aimLog.push(`${Math.round(t - logStart)},,,,,,${n1(at.x)},${n1(at.y)},F`);
     dispatch({ type: 'fire', now: t, aim: at });
@@ -205,9 +207,9 @@ game.onCopyLog = async () => {
   const header = [
     `# duel aim log ${new Date().toISOString()}`,
     `# ${navigator.userAgent}`,
-    `# result=${s?.result} target=${s ? n1(s.target.x) + ',' + n1(s.target.y) : ''} spikes=${aim.spikes}`,
+    `# result=${s?.result} target=${s ? n1(s.target.x) + ',' + n1(s.target.y) : ''} spikes=${aim.spikes} pauses=${aim.resumes}`,
     `# settings: ${Object.entries(settings).map(([k, v]) => `${k}=${v}`).join(' ')}`,
-    '# flags: C=re-centering during draw, S=glitch ignored, F=tap (aim used)',
+    '# flags: C=re-centering (draw or after a pause), P=aim paused (phone out of aiming pose), S=glitch ignored, F=tap (aim used)',
     'ms,alpha,beta,gamma,rawX,rawY,x,y,flag,tilt,stepX',
   ];
   try {
@@ -310,7 +312,7 @@ function readoutRows(): ReadoutRow[] {
 }
 
 function frame() {
-  if (duel) game.render(duel, aim.current, duel.phase === 'aim');
+  if (duel) game.render(duel, aim.current, duel.phase === 'aim' && !aim.suspended);
   if (duel && settings.showReadout) {
     const r = readoutRows();
     game.setReadout(

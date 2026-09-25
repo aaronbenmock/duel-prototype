@@ -1,6 +1,6 @@
 // Turns phone orientation into a crosshair position, relative to the pose
 // locked at the moment of the draw.
-import { barrelInEarthFrame, type Quat } from './quat';
+import { barrelInEarthFrame, upInPhoneFrame, type Quat } from './quat';
 
 const RAD = 180 / Math.PI;
 
@@ -83,6 +83,14 @@ const SETTLE_STILL_MS = 60;
 /** ...or after this long at most (ms). */
 const SETTLE_MAX_MS = 400;
 
+/**
+ * Aiming pauses when the phone leaves the aiming pose: the back pointing more
+ * than this steeply up or down, or the top edge no longer pointing up (as in a
+ * reload flick). It resumes, re-centered, once back inside the tighter limits.
+ */
+const PAUSE_POSE = { maxTilt: 65, minUp: 0.15 };
+const RESUME_POSE = { maxTilt: 55, minUp: 0.3 };
+
 export class AimTracker {
   private ref: { heading: number; elevation: number } | null = null;
   private fx: OneEuro;
@@ -100,6 +108,10 @@ export class AimTracker {
   spikes = 0;
   lastWasSpike = false;
   settling = false;
+  /** True while aiming is paused because the phone is out of the aiming pose. */
+  suspended = false;
+  /** How many times aiming re-centered after a pause (for the aim log). */
+  resumes = 0;
 
   constructor(public config: AimConfig = { ...DEFAULT_AIM }) {
     this.fx = new OneEuro(() => this.config);
@@ -115,12 +127,16 @@ export class AimTracker {
    * the center. While the draw swing is still moving fast, the center keeps
    * following the phone (see update), so it settles where the arm stops.
    */
-  lock(q: Quat, t: number) {
+  lock(q: Quat, t: number, resetStats = true) {
     this.recenter(q, t);
     this.lastQ = q;
     this.lastT = t;
     this.pendingSpike = null;
-    this.spikes = 0;
+    this.suspended = false;
+    if (resetStats) {
+      this.spikes = 0;
+      this.resumes = 0;
+    }
     this.settleUntil = t + SETTLE_MAX_MS;
     this.slowSince = null;
     this.settling = true;
@@ -138,6 +154,15 @@ export class AimTracker {
   unlock() {
     this.ref = null;
     this.lastQ = null;
+    this.suspended = false;
+  }
+
+  /** Whether the phone is outside the aiming pose (with a gap between pause and resume limits). */
+  private outOfPose(q: Quat): boolean {
+    const lim = this.suspended ? RESUME_POSE : PAUSE_POSE;
+    const tilt = Math.abs(barrelAngles(q).elevation);
+    const up = upInPhoneFrame(q)[1];
+    return this.suspended ? !(tilt < lim.maxTilt && up > lim.minUp) : tilt > lim.maxTilt || up < lim.minUp;
   }
 
   update(q: Quat, t: number) {
@@ -158,6 +183,21 @@ export class AimTracker {
     const speed = this.lastQ ? quatAngle(this.lastQ, q) / Math.max(0.001, (t - this.lastT) / 1000) : 0;
     this.lastQ = q;
     this.lastT = t;
+
+    // Pause while the phone is out of the aiming pose (e.g. a reload flick):
+    // pointing near straight down, left/right stops meaning anything and would
+    // throw the crosshair around. On return, re-center like a fresh draw.
+    const out = this.outOfPose(q);
+    if (this.suspended) {
+      if (out) return;
+      this.lock(q, t, false);
+      this.resumes++;
+      return;
+    }
+    if (out) {
+      this.suspended = true;
+      return;
+    }
 
     if (this.settling) {
       if (speed > SETTLE_SPEED) this.slowSince = null;
