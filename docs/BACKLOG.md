@@ -11,6 +11,10 @@ Not scheduled. Add a date and who asked for each idea.
   cant while steering, past the 12 degree dead zone, so he sidestepped without meaning to. Consider a
   larger dead zone or a setting.
 
+- **"New version" notice** (Claude, 2026-09-25): GitHub Pages lets phones cache the page for up to
+  10 minutes, so a fresh deploy can look unchanged (Aaron tested v0.5.1 thinking it was v0.5.2). A small
+  check against a version file could show "Update available, tap to reload".
+
 ## Art and content
 - More aliens (blue, gold, violet) and guns (scattergun, raygun); character/gun picker.
 - Opponent draw and fire pose, hit reactions, defeat pose (needs new art).

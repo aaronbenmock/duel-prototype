@@ -73,7 +73,7 @@ The **Live detection** box at the top of Settings shows what the phone is detect
 The site rebuilds and republishes by itself every time code is pushed to the `main` branch on GitHub. It takes about 1 to 2 minutes.
 
 - To check progress, open https://github.com/aaronbenmock/duel-prototype/actions. A green check means the new version is live.
-- If the phone still shows the old version, close the tab and open the link again.
+- The version number is on the start screen (for example "Beta · v0.5.3"). GitHub lets phones keep the old page for up to 10 minutes; if the number is old, wait a few minutes, then pull down on the page to refresh.
 
 ## For Claude (technical notes)
 
