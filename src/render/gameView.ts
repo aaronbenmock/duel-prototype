@@ -398,15 +398,23 @@ export class GameView {
     (this.$('g-bhp') as HTMLElement).style.width = (s.bot.hp / MAX_HP) * 100 + '%';
 
     // Ammo dots, one per round of the current gun; they refill one by one while reloading.
+    // Heat guns show a heat gauge instead.
     const gun = WEAPONS[s.player.weapon];
     const cylEl = this.$('g-cyl');
-    if (this.cylSize !== gun.capacity) {
-      this.cylSize = gun.capacity;
-      cylEl.replaceChildren(...Array.from({ length: gun.capacity }, () => document.createElement('i')));
+    const slots = gun.heat ? -1 : gun.capacity;
+    if (this.cylSize !== slots) {
+      this.cylSize = slots;
+      cylEl.className = gun.heat ? 'cyl heat' : 'cyl';
+      cylEl.replaceChildren(...Array.from({ length: gun.heat ? 1 : gun.capacity }, () => document.createElement('i')));
     }
     const cyl = cylEl.children;
-    for (let i = 0; i < cyl.length; i++) cyl[i].classList.toggle('spent', i >= s.player.rounds);
-    const reloading = s.player.reloadNextAt != null;
+    if (gun.heat) {
+      (cyl[0] as HTMLElement).style.width = s.player.heat + '%';
+      cylEl.classList.toggle('hot', s.player.overheated);
+    } else {
+      for (let i = 0; i < cyl.length; i++) cyl[i].classList.toggle('spent', i >= s.player.rounds);
+    }
+    const reloading = s.player.reloadNextAt != null || s.player.venting;
     this.botReloadTag.style.display = s.bot.reloadUntil != null && (s.phase === 'draw' || s.phase === 'aim') ? '' : 'none';
 
     let big = '';
@@ -420,18 +428,23 @@ export class GameView {
     } else if (s.phase === 'draw') {
       big = 'DRAW!';
     } else if (s.phase === 'aim' && reloading) {
-      small = 'Reloading...';
-    } else if (s.phase === 'aim' && s.player.rounds === 0) {
+      small = gun.heat ? 'Venting...' : 'Reloading...';
+    } else if (s.phase === 'aim' && s.player.overheated) {
+      big = 'OVERHEATED';
+      small = 'Dip the phone to vent, or wait for it to cool.';
+    } else if (s.phase === 'aim' && !gun.heat && s.player.rounds === 0) {
       big = 'RELOAD';
       small = 'Dip the phone to point at the floor, then raise it again.';
     }
     this.$('g-big').textContent = big;
     this.$('g-small').textContent = small;
-    this.$('g-msg').classList.toggle('alert', big === 'RELOAD' || big === 'DRAW!');
+    this.$('g-msg').classList.toggle('alert', big === 'RELOAD' || big === 'DRAW!' || big === 'OVERHEATED');
 
     const dt = drawTime(s);
     this.$('g-dtime').textContent = dt != null ? `Draw ${fmtSec(dt)}` : '';
-    this.$('g-reload').classList.toggle('hidden', !this.showReloadButton || !(s.phase === 'aim' || s.phase === 'draw') || s.player.rounds === gun.capacity || reloading);
+    const full = gun.heat ? s.player.heat === 0 : s.player.rounds === gun.capacity;
+    this.$('g-reload').classList.toggle('hidden', !this.showReloadButton || !(s.phase === 'aim' || s.phase === 'draw') || full || reloading);
+    this.$('g-reload').textContent = gun.heat ? 'Vent' : 'Reload';
 
     this.renderResult(s);
   }

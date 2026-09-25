@@ -51,6 +51,7 @@ All guns are tuned (by simulating thousands of rounds) so a typical player wins 
 |---|---|
 | Star revolver | 6 shots. Face 20, body 9, arms/ears/legs 5, tail 2. Reload: about 1 s for a full cylinder. Rewards accurate aim. |
 | Scattergun | 2 blasts, each 7 paint blobs in a circle about 2.4 degrees wide. Each blob: face 4, body 2, arms/legs/tail 1. At most one blast every 0.45 s. Reload one shell at a time (about 0.8 s for both). Forgiving when your aim is shaky. |
+| Raygun | No ammo. Each zap adds heat (about 8 quick zaps in a row overheats it). Face 18, body 8, arms/ears/legs 4, tail 2. It cools by itself if you pause; once overheated it locks for about 2.5 s, or dip the phone to vent it in under a second. |
 
 ## Settings
 

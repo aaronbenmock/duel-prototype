@@ -109,7 +109,7 @@ export function createDuel(config: DuelConfig, seed: number, now: number, loadou
     lastTickAt: now,
     player: {
       hp: MAX_HP, rounds: WEAPONS[loadout.weapon].capacity, shots: 0, hits: 0, headshots: 0,
-      weapon: loadout.weapon, creature: loadout.creature, reloadNextAt: null, lastShotAt: null, x: 0, lean: 0, vx: 0,
+      weapon: loadout.weapon, creature: loadout.creature, reloadNextAt: null, lastShotAt: null, heat: 0, overheated: false, venting: false, x: 0, lean: 0, vx: 0,
     },
     bot: {
       hp: MAX_HP, rounds: WEAPONS[DEFAULT_WEAPON].capacity, shots: 0, hits: 0, headshots: 0,
@@ -165,12 +165,24 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
 
     case 'fire':
       if (s.phase !== 'aim') break;
-      // Empty, mid-reload, or too soon after the last shot: the trigger just clicks.
-      if (s.player.rounds === 0 || s.player.reloadNextAt != null || (s.player.lastShotAt != null && now - s.player.lastShotAt < gun.cooldownMs)) {
+      // Empty, mid-reload, overheated or venting, or too soon after the last shot: the trigger just clicks.
+      if (
+        (gun.heat ? s.player.overheated || s.player.venting : s.player.rounds === 0 || s.player.reloadNextAt != null) ||
+        (s.player.lastShotAt != null && now - s.player.lastShotAt < gun.cooldownMs)
+      ) {
         fx.push({ type: 'empty' });
         break;
       }
-      s.player.rounds--;
+      if (gun.heat) {
+        s.player.heat += gun.heat.perShot;
+        if (s.player.heat >= 100) {
+          s.player.heat = 100;
+          s.player.overheated = true;
+          fx.push({ type: 'overheat' });
+        }
+      } else {
+        s.player.rounds--;
+      }
       s.player.shots++;
       s.player.lastShotAt = now;
       {
@@ -200,6 +212,14 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
       break;
 
     case 'reload':
+      // Heat guns: the same gesture vents instead (also cuts an overheat short).
+      if (gun.heat) {
+        if ((s.phase === 'draw' || s.phase === 'aim') && s.player.heat > 0 && !s.player.venting) {
+          s.player.venting = true;
+          fx.push({ type: 'ventStart' });
+        }
+        break;
+      }
       // Starts a reload; rounds then go in one at a time on ticks (see below).
       if ((s.phase === 'draw' || s.phase === 'aim') && s.player.reloadNextAt == null && s.player.rounds < gun.capacity) {
         s.player.reloadNextAt = now + gun.reloadStartMs;
@@ -241,6 +261,22 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
           s.bot.x = Math.abs(gap) <= stepM ? s.bot.destX : s.bot.x + Math.sign(gap) * stepM;
           s.bot.vx = dt > 0 ? (s.bot.x - oldX) / dt : 0;
           if (s.bot.x === s.bot.destX) s.bot.nextMoveAt = now + between(s, bot.pauseMin, bot.pauseMax) * 1000;
+        }
+      }
+      // Heat guns: vent, overheat cool-down, or normal cooling after a pause in firing.
+      if (gun.heat) {
+        const h = gun.heat;
+        const p = s.player;
+        if (p.venting || p.overheated) {
+          p.heat -= (p.venting ? 100000 / h.ventMs : h.overheatCoolPerSec) * dt;
+          if (p.heat <= 0) {
+            fx.push({ type: p.venting ? 'ventDone' : 'cooled' });
+            p.heat = 0;
+            p.venting = false;
+            p.overheated = false;
+          }
+        } else if (p.lastShotAt == null || now - p.lastShotAt >= h.coolDelayMs) {
+          p.heat = Math.max(0, p.heat - h.coolPerSec * dt);
         }
       }
       // Player reload: one round per interval, a click each, until full.

@@ -126,6 +126,31 @@ export class AudioEngine {
     this.tone(2093, 0.45, { type: 'square', gain: 0.8, delay: 0.27 });
   }
 
+  /** Raygun zap: a quick falling laser chirp. */
+  zap() {
+    this.tone(1400, 0.14, { type: 'sawtooth', sweepTo: 300, gain: 0.45 });
+    this.tone(2100, 0.08, { type: 'square', sweepTo: 900, gain: 0.2 });
+    this.noise(0.05, { filter: 'highpass', freq: 5000, gain: 0.25 });
+  }
+
+  /** Raygun overheated: a warning buzz. */
+  overheat() {
+    this.tone(180, 0.35, { type: 'square', gain: 0.4 });
+    this.tone(190, 0.35, { type: 'sawtooth', gain: 0.25, delay: 0.02 });
+    this.noise(0.4, { filter: 'bandpass', freq: 3000, q: 1, gain: 0.4 });
+  }
+
+  /** Raygun venting: a steam hiss. */
+  vent() {
+    this.noise(0.6, { filter: 'highpass', freq: 2500, sweepTo: 6000, gain: 0.55 });
+  }
+
+  /** Raygun ready again (vented or cooled). */
+  ventDone() {
+    this.tone(880, 0.08, { type: 'sine', gain: 0.35 });
+    this.tone(1320, 0.12, { type: 'sine', gain: 0.35, delay: 0.08 });
+  }
+
   /** Scattergun blast: deeper and longer than the revolver, then a pump. */
   blast() {
     this.noise(0.32, { filter: 'lowpass', freq: 1800, sweepTo: 180, gain: 1 });

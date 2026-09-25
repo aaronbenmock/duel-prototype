@@ -64,6 +64,10 @@ export interface PlayerState extends Shooter {
   reloadNextAt: number | null;
   /** When the last shot was fired (for the gun's cooldown). */
   lastShotAt: number | null;
+  /** Heat guns: 0 to 100; locked while overheated (until cooled to 0) or venting. */
+  heat: number;
+  overheated: boolean;
+  venting: boolean;
   /** Sideways position in meters (right is positive), from tilt-to-move. */
   x: number;
   /** Current movement input, -1 (full left) to 1 (full right). */
@@ -138,6 +142,10 @@ export type Effect =
   | { type: 'reloadStart'; missing: number }
   | { type: 'reloadRound' }
   | { type: 'reloadDone' }
+  | { type: 'overheat' }
+  | { type: 'ventStart' }
+  | { type: 'ventDone' }
+  | { type: 'cooled' }
   | { type: 'botReload' }
   | { type: 'botShot'; zone: HitZone }
   | { type: 'foul' }

@@ -22,6 +22,20 @@ export interface WeaponDef {
   reloadStartMs: number;
   /** ...then one round goes in every this many ms until full, with a click each. You can't fire meanwhile. */
   reloadPerRoundMs: number;
+  /** Heat guns (raygun) have no rounds: each shot adds heat, and at 100 the gun locks until it cools. */
+  heat?: HeatDef;
+}
+
+export interface HeatDef {
+  /** Heat added per shot (the gun overheats at 100). */
+  perShot: number;
+  /** Cooling per second once you stop firing for coolDelayMs. */
+  coolPerSec: number;
+  coolDelayMs: number;
+  /** Cooling per second while overheated (locked until it reaches 0). */
+  overheatCoolPerSec: number;
+  /** Dipping the phone vents: heat drains to 0 at this pace (ms for a full 100). You can't fire meanwhile. */
+  ventMs: number;
 }
 
 export const WEAPONS: Record<string, WeaponDef> = {
@@ -55,7 +69,21 @@ export const WEAPONS: Record<string, WeaponDef> = {
     reloadStartMs: 350,
     reloadPerRoundMs: 450,
   },
-  // Future: 'desert-raygun' (overheats instead of reloading). Balance to a similar time to win.
+  'desert-raygun': {
+    id: 'desert-raygun',
+    name: 'Raygun',
+    blurb: 'No ammo: fire until it overheats, dip to vent',
+    capacity: 0,
+    damage: { face: 18, torso: 8, limb: 4, tail: 2 },
+    pellets: 1,
+    spread: 0,
+    // Fast zaps, but about 8 in a row overheats it (then 2.5 s locked, or vent in 0.7 s by dipping).
+    // Simulated time to win (sharp / typical / wild aim): 10.4 / 13.5 / 22.3 s, vs revolver 9.6 / 13.5 / 22.2 s.
+    cooldownMs: 250,
+    reloadStartMs: 0,
+    reloadPerRoundMs: 0,
+    heat: { perShot: 14, coolPerSec: 15, coolDelayMs: 500, overheatCoolPerSec: 40, ventMs: 700 },
+  },
 };
 
 export const DEFAULT_WEAPON = 'star-revolver';

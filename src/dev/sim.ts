@@ -53,11 +53,13 @@ export function playRound(weapon: string, model: PlayerModel, opponent?: string)
     act({ type: 'tick', now });
     if (phase() === 'draw' && now >= drawAt + model.drawMs) act({ type: 'drawPose', now });
     if (phase() !== 'aim') continue;
-    const reloading = s.player.reloadNextAt != null;
+    // Reloading (or venting a heat gun): wait, then take a moment to re-aim.
+    const reloading = s.player.reloadNextAt != null || s.player.venting;
     if (wasReloading && !reloading) nextShot = now + model.recenterMs;
     wasReloading = reloading;
     if (reloading) continue;
-    if (s.player.rounds === 0) {
+    // Out of rounds, or overheated: the model player dips to reload / vent.
+    if (gun.heat ? s.player.overheated : s.player.rounds === 0) {
       reloadAt ??= now + model.reloadReactMs;
       if (now >= reloadAt) {
         act({ type: 'reload', now });

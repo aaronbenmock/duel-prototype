@@ -102,7 +102,7 @@ export class RoundRecorder {
     log.drawnMs = s.drawnAt != null ? this.ms(s.drawnAt) : null;
     log.stats = {
       playerHp: s.player.hp, botHp: s.bot.hp, shots: s.player.shots, hits: s.player.hits, faceHits: s.player.headshots,
-      botShots: s.bot.shots, botHits: s.bot.hits, reloads: log.events.filter((e) => e[1] === 'reloadStart').length, ...extra,
+      botShots: s.bot.shots, botHits: s.bot.hits, reloads: log.events.filter((e) => e[1] === 'reloadStart' || e[1] === 'ventStart').length, ...extra,
     };
     return log;
   }

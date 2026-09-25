@@ -3,6 +3,7 @@ import './style.css';
 import { AudioEngine } from './audio/audio';
 import { createDuel, step } from './game/duel';
 import type { Action, DuelState, Effect, Loadout } from './game/types';
+import { WEAPONS } from './game/weapons';
 import { AimTracker } from './input/aim';
 import { GestureDetector } from './input/gestures';
 import { MotionSensors } from './input/motion';
@@ -146,6 +147,7 @@ function play(e: Effect) {
     case 'shot': {
       const weapon = duel?.player.weapon ?? loadout.weapon;
       if (e.pellets.length > 1) audio.blast();
+      else if (WEAPONS[weapon].heat) audio.zap();
       else audio.shot();
       game.kick();
       game.playerShot(e.zone, e.aim, e.damage, weapon, e.pellets);
@@ -167,6 +169,18 @@ function play(e: Effect) {
       break;
     case 'reloadDone':
       audio.reloadClose();
+      break;
+    case 'overheat':
+      audio.overheat();
+      vibrate([60, 40, 60]);
+      break;
+    case 'ventStart':
+      audio.vent();
+      game.reloadAnim();
+      break;
+    case 'ventDone':
+    case 'cooled':
+      audio.ventDone();
       break;
     case 'botReload':
       audio.botReload();

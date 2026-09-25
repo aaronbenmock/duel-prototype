@@ -9,6 +9,10 @@ import revolverSideUrl from '../../art/exports/ui/weapon_star-revolver_side.webp
 import revolverBlueUrl from '../../art/exports/weapons/weapon_star-revolver_blue_pov.webp';
 import revolverGoldUrl from '../../art/exports/weapons/weapon_star-revolver_gold_pov.webp';
 import revolverSageUrl from '../../art/exports/weapons/weapon_star-revolver_sage_pov.webp';
+import raySideUrl from '../../art/exports/ui/weapon_desert-raygun_side.webp';
+import rayBlueUrl from '../../art/exports/weapons/weapon_desert-raygun_blue_pov.webp';
+import rayGoldUrl from '../../art/exports/weapons/weapon_desert-raygun_gold_pov.webp';
+import raySageUrl from '../../art/exports/weapons/weapon_desert-raygun_sage_pov.webp';
 import scatterSideUrl from '../../art/exports/ui/weapon_wrapped-scattergun_side.webp';
 import scatterBlueUrl from '../../art/exports/weapons/weapon_wrapped-scattergun_blue_pov.webp';
 import scatterGoldUrl from '../../art/exports/weapons/weapon_wrapped-scattergun_gold_pov.webp';
@@ -50,5 +54,11 @@ export const GUN_ART: Record<string, GunArt> = {
     side: scatterSideUrl,
     muzzle: { x: 0.367, y: 0.207 },
     cls: 'vm-twohand',
+  },
+  'desert-raygun': {
+    pov: { 'desert-sage': raySageUrl, 'desert-blue': rayBlueUrl, 'desert-gold': rayGoldUrl },
+    side: raySideUrl,
+    muzzle: { x: 0.497, y: 0.168 },
+    cls: 'vm-onehand',
   },
 };
