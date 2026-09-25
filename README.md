@@ -43,6 +43,15 @@ If that doesn't work, go to Settings, then Apps, then Safari, then **Clear Histo
 6. To reload (any time), dip the phone to point at the floor and raise it again; a quick down-up flick also works. Rounds go in one at a time with a click each (0.3 s, then 0.12 s per round: about 1 s for a full cylinder) and you can't fire until it's done. The opponent shows a blinking RELOADING tag while it reloads. While the phone is lowered, aiming pauses; when you raise it again the crosshair re-centers where you point. An on-screen Reload button can be turned on in Settings.
 7. On the results screen, the buttons wake up after one second so a late tap can't skip the results. **Again** starts the next round.
 
+## Guns
+
+All guns are tuned (by simulating thousands of rounds) so a typical player wins in about the same time. They differ in feel:
+
+| Gun | How it works |
+|---|---|
+| Star revolver | 6 shots. Face 20, body 9, arms/ears/legs 5, tail 2. Reload: about 1 s for a full cylinder. Rewards accurate aim. |
+| Scattergun | 2 blasts, each 7 paint blobs in a circle about 2.4 degrees wide. Each blob: face 4, body 2, arms/legs/tail 1. At most one blast every 0.45 s. Reload one shell at a time (about 0.8 s for both). Forgiving when your aim is shaky. |
+
 ## Settings
 
 Open **Settings** from the top-right of the start screen, or the top-right of the results screen. Changes save on the phone automatically.

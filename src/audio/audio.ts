@@ -126,6 +126,14 @@ export class AudioEngine {
     this.tone(2093, 0.45, { type: 'square', gain: 0.8, delay: 0.27 });
   }
 
+  /** Scattergun blast: deeper and longer than the revolver, then a pump. */
+  blast() {
+    this.noise(0.32, { filter: 'lowpass', freq: 1800, sweepTo: 180, gain: 1 });
+    this.tone(150, 0.26, { type: 'sine', sweepTo: 45, gain: 1 });
+    this.noise(0.05, { filter: 'bandpass', freq: 1300, q: 2, gain: 0.6, delay: 0.26 });
+    this.noise(0.05, { filter: 'bandpass', freq: 900, q: 2, gain: 0.7, delay: 0.36 });
+  }
+
   /** Your paint blaster: a punchy pop and whoosh (not a gunshot). */
   shot() {
     this.noise(0.18, { filter: 'lowpass', freq: 2600, sweepTo: 300, gain: 0.8 });

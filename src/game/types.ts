@@ -62,6 +62,8 @@ export interface PlayerState extends Shooter {
   creature: string;
   /** While reloading: when the next round goes in. null = not reloading. */
   reloadNextAt: number | null;
+  /** When the last shot was fired (for the gun's cooldown). */
+  lastShotAt: number | null;
   /** Sideways position in meters (right is positive), from tilt-to-move. */
   x: number;
   /** Current movement input, -1 (full left) to 1 (full right). */
@@ -86,6 +88,8 @@ export interface BotState extends Shooter {
 /** A paint mark, stored relative to the opponent's torso reference so it moves with him. */
 export interface BulletHole extends Vec2 {
   zone: HitZone;
+  /** Splat size: 1 for a single blob, smaller for spread-gun blobs. */
+  size: number;
   /** When it was fired (ms), so the splat can appear as the paint arrives. */
   t: number;
 }
@@ -120,11 +124,16 @@ export type Action =
   | { type: 'lean'; now: number; value: number }
   | { type: 'tick'; now: number };
 
+/** Where one paint blob of a shot landed (aim units) and what it hit. */
+export interface Pellet extends Vec2 {
+  zone: HitZone;
+}
+
 /** Things that happened during a step, for sound, vibration and flashes. */
 export type Effect =
   | { type: 'ready' }
   | { type: 'draw' }
-  | { type: 'shot'; zone: HitZone; aim: Vec2; damage: number }
+  | { type: 'shot'; zone: HitZone; aim: Vec2; damage: number; pellets: Pellet[] }
   | { type: 'empty' }
   | { type: 'reloadStart'; missing: number }
   | { type: 'reloadRound' }

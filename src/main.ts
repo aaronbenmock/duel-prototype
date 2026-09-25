@@ -143,15 +143,18 @@ function play(e: Effect) {
       audio.draw();
       vibrate(200);
       break;
-    case 'shot':
-      audio.shot();
+    case 'shot': {
+      const weapon = duel?.player.weapon ?? loadout.weapon;
+      if (e.pellets.length > 1) audio.blast();
+      else audio.shot();
       game.kick();
-      game.playerShot(e.zone, e.aim, e.damage, duel?.player.weapon ?? loadout.weapon);
+      game.playerShot(e.zone, e.aim, e.damage, weapon, e.pellets);
       if (e.zone === 'face') audio.headshot();
       else if (e.zone) audio.hit();
       else audio.miss();
       vibrate(30);
       break;
+    }
     case 'empty':
       audio.empty();
       break;

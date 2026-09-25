@@ -9,6 +9,10 @@ import revolverSideUrl from '../../art/exports/ui/weapon_star-revolver_side.webp
 import revolverBlueUrl from '../../art/exports/weapons/weapon_star-revolver_blue_pov.webp';
 import revolverGoldUrl from '../../art/exports/weapons/weapon_star-revolver_gold_pov.webp';
 import revolverSageUrl from '../../art/exports/weapons/weapon_star-revolver_sage_pov.webp';
+import scatterSideUrl from '../../art/exports/ui/weapon_wrapped-scattergun_side.webp';
+import scatterBlueUrl from '../../art/exports/weapons/weapon_wrapped-scattergun_blue_pov.webp';
+import scatterGoldUrl from '../../art/exports/weapons/weapon_wrapped-scattergun_gold_pov.webp';
+import scatterSageUrl from '../../art/exports/weapons/weapon_wrapped-scattergun_sage_pov.webp';
 
 export interface CreatureArt {
   url: string;
@@ -40,5 +44,11 @@ export const GUN_ART: Record<string, GunArt> = {
     side: revolverSideUrl,
     muzzle: { x: 0.47, y: 0.13 },
     cls: 'vm-onehand',
+  },
+  'wrapped-scattergun': {
+    pov: { 'desert-sage': scatterSageUrl, 'desert-blue': scatterBlueUrl, 'desert-gold': scatterGoldUrl },
+    side: scatterSideUrl,
+    muzzle: { x: 0.367, y: 0.207 },
+    cls: 'vm-twohand',
   },
 };

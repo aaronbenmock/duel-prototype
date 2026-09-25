@@ -1,6 +1,6 @@
 // The duel rules as a pure function: (state, action) -> (new state, effects).
 import { ALIENS, CREATURES, DEFAULT_CREATURE } from './creatures';
-import type { Action, DuelConfig, DuelState, Effect, HitZone, Loadout, Vec2 } from './types';
+import type { Action, DuelConfig, DuelState, Effect, HitZone, Loadout, Pellet, Vec2 } from './types';
 import { DEFAULT_WEAPON, WEAPONS } from './weapons';
 
 export const MAX_HP = 100;
@@ -16,6 +16,9 @@ export const OPPONENT_SPAWN_X = 6;
 const BOT_BODY_SPLIT = { torso: 0.6, limb: 0.33, tail: 0.07 } as const;
 
 const ZONE_CODES: HitZone[] = [null, 'face', 'torso', 'limb', 'tail', null];
+/** Which zone counts as the "best" hit of a spread shot (for sounds and the label). */
+const ZONE_RANK: HitZone[] = ['face', 'torso', 'limb', 'tail'];
+const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
 /** Tilt-to-move: sidestepping, and how it affects the bot's aim. */
 export const MOVE = {
@@ -106,7 +109,7 @@ export function createDuel(config: DuelConfig, seed: number, now: number, loadou
     lastTickAt: now,
     player: {
       hp: MAX_HP, rounds: WEAPONS[loadout.weapon].capacity, shots: 0, hits: 0, headshots: 0,
-      weapon: loadout.weapon, creature: loadout.creature, reloadNextAt: null, x: 0, lean: 0, vx: 0,
+      weapon: loadout.weapon, creature: loadout.creature, reloadNextAt: null, lastShotAt: null, x: 0, lean: 0, vx: 0,
     },
     bot: {
       hp: MAX_HP, rounds: WEAPONS[DEFAULT_WEAPON].capacity, shots: 0, hits: 0, headshots: 0,
@@ -162,23 +165,36 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
 
     case 'fire':
       if (s.phase !== 'aim') break;
-      // Empty, or mid-reload: the trigger just clicks.
-      if (s.player.rounds === 0 || s.player.reloadNextAt != null) {
+      // Empty, mid-reload, or too soon after the last shot: the trigger just clicks.
+      if (s.player.rounds === 0 || s.player.reloadNextAt != null || (s.player.lastShotAt != null && now - s.player.lastShotAt < gun.cooldownMs)) {
         fx.push({ type: 'empty' });
         break;
       }
       s.player.rounds--;
       s.player.shots++;
+      s.player.lastShotAt = now;
       {
         const t = apparentTarget(s);
-        const zone = hitTest(s.creature, t, action.aim);
-        s.holes.push({ x: action.aim.x - t.x, y: action.aim.y - t.y, zone, t: now });
+        // Spread guns: blobs in an even sunflower pattern over the spread circle, turned at random.
+        const turn = gun.pellets > 1 ? between(s, 0, 2 * Math.PI) : 0;
+        const pellets: Pellet[] = [];
+        let damage = 0;
+        for (let i = 0; i < gun.pellets; i++) {
+          const r = gun.pellets > 1 ? gun.spread * Math.sqrt((i + 0.5) / gun.pellets) : 0;
+          const a = turn + i * GOLDEN_ANGLE;
+          const p = { x: action.aim.x + r * Math.cos(a), y: action.aim.y + r * Math.sin(a) };
+          const zone = hitTest(s.creature, t, p);
+          pellets.push({ ...p, zone });
+          s.holes.push({ x: p.x - t.x, y: p.y - t.y, zone, t: now, size: gun.pellets > 1 ? 0.45 : 1 });
+          if (zone) damage += gun.damage[zone];
+        }
+        const zone = ZONE_RANK.find((z) => pellets.some((p) => p.zone === z)) ?? null;
         if (zone) {
           s.player.hits++;
-          if (zone === 'face') s.player.headshots++;
-          s.bot.hp = Math.max(0, s.bot.hp - gun.damage[zone]);
+          if (pellets.some((p) => p.zone === 'face')) s.player.headshots++;
+          s.bot.hp = Math.max(0, s.bot.hp - damage);
         }
-        fx.push({ type: 'shot', zone, aim: action.aim, damage: zone ? gun.damage[zone] : 0 });
+        fx.push({ type: 'shot', zone, aim: action.aim, damage, pellets });
       }
       if (s.bot.hp <= 0) end(s, 'victory', now, fx);
       break;

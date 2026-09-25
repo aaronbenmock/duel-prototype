@@ -186,6 +186,8 @@ button.link {
   animation: vm-raise 0.25s ease-out;
 }
 .vm { width: 100%; height: auto; display: block; -webkit-user-drag: none; }
+/* Two-handed guns fill the bottom of the screen. */
+.vm-wrap.vm-twohand { width: min(100vw, 520px); transform-origin: 90% 96%; }
 .vm-kick { transform-origin: 89% 95%; }
 .vm-kick.kick { animation: vm-kick 0.2s ease-out; }
 .vm-kick.reloading { animation: vm-reload 0.45s ease-in-out; }

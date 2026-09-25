@@ -10,7 +10,7 @@ import { alienName, CREATURES } from '../game/creatures';
 import { apparentTarget, drawTime, MAX_HP, OPPONENT_Y, parallax } from '../game/duel';
 import { CREATURE_ART, GUN_ART } from './art';
 import { WEAPONS } from '../game/weapons';
-import type { DuelState, HitZone, Vec2 } from '../game/types';
+import type { DuelState, HitZone, Pellet, Vec2 } from '../game/types';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 /** The screen is this many aim units wide (so 1 unit = 1 degree at sensitivity 1). */
@@ -314,29 +314,34 @@ export class GameView {
   }
 
   /** Your shot: paint bursts from the muzzle, flies to the crosshair point and splats. */
-  playerShot(zone: HitZone, aim: Vec2, damage: number, weapon: string) {
+  playerShot(zone: HitZone, aim: Vec2, damage: number, weapon: string, pellets: Pellet[]) {
     const r = this.gun.getBoundingClientRect();
     const muzzle = GUN_ART[weapon].muzzle;
     const from = { x: r.left + muzzle.x * r.width, y: r.top + muzzle.y * r.height };
     const to = this.aimToScreen(aim);
     const angle = (Math.atan2(to.y - from.y, to.x - from.x) * 180) / Math.PI;
     const w = window.innerWidth;
-    // Muzzle burst, pointing along the shot.
-    this.fx(this.fxScreen, fxMuzzleUrl, from, w * 0.3, [
+    const spread = pellets.length > 1;
+    // Muzzle burst, pointing along the shot (bigger for a spread gun).
+    this.fx(this.fxScreen, fxMuzzleUrl, from, w * (spread ? 0.45 : 0.3), [
       { opacity: 1, transform: `rotate(${angle}deg) scale(0.5)` },
       { opacity: 0, transform: `rotate(${angle}deg) scale(1.1)` },
     ], 180, { anchor: [0.14, 0.51] });
-    // Paint blob flying away from you (shrinks with distance).
-    this.fx(this.fxScene, fxProjectileUrl, from, w * 0.22, [
-      { opacity: 1, transform: `translate(0, 0) rotate(${angle}deg) scale(1)` },
-      { opacity: 1, transform: `translate(${to.x - from.x}px, ${to.y - from.y}px) rotate(${angle}deg) scale(0.25)` },
-    ], FLIGHT_MS);
-    // Impact burst where it lands.
-    this.fx(this.fxScene, fxImpactUrl, to, w * (zone ? 0.16 : 0.1), [
-      { opacity: 1, transform: `rotate(${Math.random() * 360}deg) scale(0.3)` },
-      { opacity: 1, transform: 'scale(1)', offset: 0.35 },
-      { opacity: 0, transform: 'scale(1.15)' },
-    ], 380, { delay: FLIGHT_MS });
+    for (const p of pellets) {
+      const at = this.aimToScreen(p);
+      const a = (Math.atan2(at.y - from.y, at.x - from.x) * 180) / Math.PI;
+      // Paint blob flying away from you (shrinks with distance).
+      this.fx(this.fxScene, fxProjectileUrl, from, w * (spread ? 0.12 : 0.22), [
+        { opacity: 1, transform: `translate(0, 0) rotate(${a}deg) scale(1)` },
+        { opacity: 1, transform: `translate(${at.x - from.x}px, ${at.y - from.y}px) rotate(${a}deg) scale(0.25)` },
+      ], FLIGHT_MS);
+      // Impact burst where it lands.
+      this.fx(this.fxScene, fxImpactUrl, at, w * (p.zone ? 0.16 : 0.1) * (spread ? 0.5 : 1), [
+        { opacity: 1, transform: `rotate(${Math.random() * 360}deg) scale(0.3)` },
+        { opacity: 1, transform: 'scale(1)', offset: 0.35 },
+        { opacity: 0, transform: 'scale(1.15)' },
+      ], 380, { delay: FLIGHT_MS });
+    }
     if (zone) this.floatText(`${ZONE_LABEL[zone]} ${damage}`, to, zone === 'face' ? 'crit' : '', FLIGHT_MS);
     else this.floatText('MISS', to, 'miss', FLIGHT_MS);
   }
@@ -441,7 +446,7 @@ export class GameView {
     this.splats.replaceChildren();
     landed.forEach((h, i) => {
       // Splat size in sprite pixels, so it scales with the creature.
-      const size = (h.zone === 'face' ? 218 : h.zone === 'torso' ? 180 : 140) / CREATURES[s.creature].pxPerUnit;
+      const size = ((h.zone === 'face' ? 218 : h.zone === 'torso' ? 180 : 140) * h.size) / CREATURES[s.creature].pxPerUnit;
       const rot = (i * 137 + Math.round(h.x * 50)) % 360;
       const g = svg('g', { transform: `translate(${h.x} ${GameView.sy(h.y)}) rotate(${rot})` }, this.splats);
       svg('image', { href: i % 2 ? fxSplatBUrl : fxSplatAUrl, x: -size / 2, y: -size / 2, width: size, height: size }, g);
