@@ -10,17 +10,41 @@ Art direction and ideas live in `../docs/ART-DIRECTION.md`. Current hit zones (w
 |---|---|---|
 | `art-bible/` | Style rules, finished style decisions, approved concept boards | Yes |
 | `references/` | Mood boards, screenshots, other people's images | **No** (the repo is public, and these aren't ours to publish) |
+| `drafts/` | Private ChatGPT generations, experiments, prompts, and rejected iterations | **No** |
+| `ready-for-production/` | Approved handoff packages that Claude Code may integrate | Yes |
 | `creatures/` | Editable SVG masters, one subfolder per creature | Yes |
 | `creatures/_template/` | Blank reference sheet. Copy it, never draw in it | Yes |
 | `weapons/` `clothing/` `accessories/` | Editable SVG masters for gear | Yes |
 | `backgrounds/` | Editable SVG masters for scenes | Yes |
 | `ui/` | Editable SVG masters for buttons, icons, meters | Yes |
 | `palettes/` | Color palettes (hex lists, Inkscape `.gpl` swatch files) | Yes |
-| `exports/<type>/` | Game-ready PNG and WebP (and optimized SVG) files only | Yes |
+| `exports/<type>/` | Game-ready PNG and WebP (and optimized SVG) files only. Types include `effects/` (prefix `fx_`) for paint and other short effects | Yes |
 
 Rule of thumb: if you can edit it, it lives outside `exports/`. If the game loads it, it lives inside `exports/`. Never edit a file in `exports/`; fix the master and export again.
 
 Anything committed is public, because the GitHub repo is public.
+
+## ChatGPT to Inkscape to Claude Code
+
+Use this division of work so the art can evolve without making game integration fragile:
+
+1. **Draft with ChatGPT:** generate concept images, pose ideas, expression sheets, palette options, and edits. ChatGPT saves them in `drafts/<asset-slug>/`; they are design conversation, not game assets. `references/` is for other people's images and mood boards.
+2. **Approve a direction:** pick one draft and write down the features that must stay consistent (silhouette, proportions, face, colors, clothing, and equipment).
+3. **Build the master in Inkscape:** recreate or trace the approved design as clean SVG shapes. Put movable or replaceable parts on separate named layers: body, arm-left, arm-right, eyes, mouth, weak-spot, clothing, accessory, and weapon as needed.
+4. **Export from Inkscape:** hide guides and sketches, then export a transparent PNG into the asset's package folder, `ready-for-production/<asset-slug>/`. Keep every moving creature part on the same 1024 x 1024 page so the pieces align in the game. Convert the approved PNG to WebP with `tools/convert_png_to_webp.py` during handoff.
+5. **Hand off to Claude Code:** the package's `HANDOFF.md` lists the approved filenames and where each part attaches or animates, and contains `STATUS: READY`. Claude Code validates it, copies the runtime files into `exports/<type>/`, and integrates from there. It never redraws, renames, or edits the SVG masters.
+
+ChatGPT drafts may be raster images and may change small details between generations. Treat them as a design conversation. The SVG master is the source of truth once a design is approved.
+
+## Draft and production-ready handoff
+
+ChatGPT saves every new concept under `drafts/<asset-slug>/`. Nothing in `drafts/` is approved for the game, and the entire folder is ignored by Git except its instructions.
+
+When Aaron approves an asset, ChatGPT creates a separate package at `ready-for-production/<asset-slug>/`. A ready package contains the approved files plus `HANDOFF.md`, with the asset name, status, intended export filenames, dimensions, attachment or animation notes, and any known limitations. The handoff file must contain `STATUS: READY` before Claude Code may integrate it.
+
+Claude Code reads only ready packages. It validates them, copies optimized runtime files into `exports/<type>/`, updates game code, tests the game, and records the result in the package's `INTEGRATED.md`. It must never integrate from `drafts/` or `references/` and must not modify the editable SVG master.
+
+Folders beginning with `_` are templates or pipeline tests and must never be integrated.
 
 ## Starting a new creature
 
@@ -60,16 +84,21 @@ Why lowercase: Windows ignores capitals in file names but GitHub Pages doesn't. 
 
 Size targets: creatures under about 150 KB as WebP, backgrounds under about 400 KB. These are starting targets, not hard limits.
 
-## Exporting a transparent PNG or WebP from Inkscape 1.4
+## Exporting a transparent PNG from Inkscape 1.4
 
 1. Open the layers panel (**Layer > Layers and Objects**, or Ctrl+Shift+L). Hide any guide, sketch or reference layers (click the eye).
 2. **File > Document Properties** (Ctrl+Shift+D). Make sure the background color's alpha (the **A** value) is **0**. Turning on **Checkerboard** shows transparency on screen; it never appears in the export.
 3. Open **File > Export** (Ctrl+Shift+E), tab **Single Image**.
 4. Pick **Page** for a whole creature, or **Selection** for one object (tick **Export Selected Only** so nothing behind it sneaks in).
 5. Set **Width** in pixels from the table above. Height follows.
-6. Pick **PNG** in the file type dropdown, set the file name to `art/exports/<type>/<name>.png`, and click **Export**.
-7. Switch the dropdown to **WebP**, same name with `.webp`, and export again. Use lossless for creatures, parts and gear; quality 80 lossy is fine for backgrounds.
-8. For an SVG the game will load directly: **File > Save a Copy**, type **Optimized SVG**, into `exports/<type>/`. Save masters themselves as **Inkscape SVG** (plain SVG throws away layers).
+6. Pick **PNG** in the file type dropdown, set the file name to `art/ready-for-production/<asset-slug>/<name>.png`, and click **Export**.
+7. For an SVG the game will load directly: **File > Save a Copy**, type **Optimized SVG**, into `ready-for-production/<asset-slug>/`. Save masters themselves as **Inkscape SVG** (plain SVG throws away layers).
+
+Inkscape 1.4.4's Windows WebP extension was not reliable with the reference-sheet SVG during verification. Export PNG from Inkscape first, then have ChatGPT or Claude Code run:
+
+`"C:\Program Files\Inkscape\bin\python.exe" art\tools\convert_png_to_webp.py input.png output.webp`
+
+The converter uses lossless WebP by default and preserves transparency. Add a quality number such as `80` as the third argument for a smaller lossy background export.
 
 ## Which format the game uses
 

@@ -126,28 +126,29 @@ export class AudioEngine {
     this.tone(2093, 0.45, { type: 'square', gain: 0.8, delay: 0.27 });
   }
 
-  /** Player's gunshot: sharp crack plus a low boom. */
+  /** Your paint blaster: a punchy pop and whoosh (not a gunshot). */
   shot() {
-    this.noise(0.28, { filter: 'lowpass', freq: 6000, sweepTo: 300, gain: 1 });
-    this.tone(140, 0.25, { type: 'sine', sweepTo: 40, gain: 0.9 });
+    this.noise(0.18, { filter: 'lowpass', freq: 2600, sweepTo: 300, gain: 0.8 });
+    this.tone(260, 0.16, { type: 'sine', sweepTo: 80, gain: 0.9 });
+    this.tone(700, 0.06, { type: 'triangle', sweepTo: 300, gain: 0.3 });
   }
 
-  /** Bullet hits the body: dull thwack. */
+  /** Paint hits the body: wet splat as it lands. */
   hit() {
-    this.noise(0.12, { filter: 'bandpass', freq: 500, q: 1.5, gain: 0.9, delay: 0.07 });
-    this.tone(180, 0.12, { type: 'triangle', sweepTo: 90, gain: 0.7, delay: 0.07 });
+    this.noise(0.2, { filter: 'bandpass', freq: 700, sweepTo: 250, q: 0.9, gain: 1, delay: 0.11 });
+    this.tone(160, 0.12, { type: 'sine', sweepTo: 60, gain: 0.6, delay: 0.11 });
   }
 
-  /** Headshot: thwack plus a bright bell. */
+  /** Face hit: splat plus a cartoon boing and bell. */
   headshot() {
     this.hit();
-    this.tone(1760, 0.5, { type: 'sine', gain: 0.6, delay: 0.1 });
-    this.tone(2637, 0.4, { type: 'sine', gain: 0.35, delay: 0.1 });
+    this.tone(420, 0.3, { type: 'triangle', sweepTo: 900, gain: 0.5, delay: 0.14 });
+    this.tone(1760, 0.45, { type: 'sine', gain: 0.4, delay: 0.2 });
   }
 
-  /** Miss: ricochet whine. */
+  /** Miss: a soft plip as the paint lands somewhere else. */
   miss() {
-    this.tone(2600, 0.4, { type: 'sine', sweepTo: 800, gain: 0.35, delay: 0.09 });
+    this.tone(900, 0.12, { type: 'sine', sweepTo: 350, gain: 0.3, delay: 0.11 });
   }
 
   /** Dry fire on an empty cylinder: tiny metallic click. */
@@ -163,16 +164,16 @@ export class AudioEngine {
     this.tone(600, 0.05, { type: 'square', gain: 0.2, delay: 0.26 });
   }
 
-  /** The bot fires: a more distant, muffled shot. */
+  /** The bot fires: a more distant, muffled paint pop. */
   botShot() {
-    this.noise(0.3, { filter: 'lowpass', freq: 1800, sweepTo: 200, gain: 0.55 });
+    this.noise(0.2, { filter: 'lowpass', freq: 1400, sweepTo: 200, gain: 0.5 });
+    this.tone(200, 0.14, { type: 'sine', sweepTo: 70, gain: 0.5 });
   }
 
-  /** You got hit: heavy thud and a harsh buzz. */
+  /** You got painted: a big close-up splat. */
   hurt() {
-    this.tone(90, 0.35, { type: 'sine', sweepTo: 40, gain: 1, delay: 0.05 });
-    this.tone(110, 0.3, { type: 'sawtooth', gain: 0.35, delay: 0.05 });
-    this.noise(0.15, { filter: 'lowpass', freq: 900, gain: 0.8, delay: 0.05 });
+    this.noise(0.3, { filter: 'bandpass', freq: 500, sweepTo: 180, q: 0.8, gain: 1 });
+    this.tone(120, 0.25, { type: 'sine', sweepTo: 45, gain: 0.9 });
   }
 
   /** False start: descending buzzer. */

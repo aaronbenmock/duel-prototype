@@ -1,18 +1,23 @@
 // The duel rules as a pure function: (state, action) -> (new state, effects).
+import { CREATURES, DEFAULT_CREATURE } from './creatures';
 import type { Action, DuelConfig, DuelState, Effect, HitZone, Vec2 } from './types';
 
 export const MAX_HP = 100;
 export const CYLINDER = 6;
-export const DAMAGE = { head: 100, torso: 40 } as const;
+/** Paint damage by zone. The face is a one-shot critical hit. */
+export const DAMAGE = { face: 100, torso: 20, limb: 10, tail: 5 } as const;
 
-/** Opponent hit boxes, in aim units (degrees). The torso center is the target position. */
-export const BODY = {
-  headRadius: 1.6,
-  headAbove: 6, // head center is this far above torso center
-  torsoWidth: 5,
-  torsoHeight: 8,
-  legLength: 7,
-} as const;
+/** Sprite pixels per aim unit (degree): sets how big the opponent looks and how big its zones are. */
+export const SPRITE_PX_PER_UNIT = 64;
+/** Where the opponent stands: torso reference height (aim units) puts its feet on the street. */
+export const OPPONENT_Y = -1.6;
+/** The opponent starts this far (aim units) either side of center. */
+export const OPPONENT_SPAWN_X = 6;
+
+/** How the bot's hits spread over the body when they don't hit the face. */
+const BOT_BODY_SPLIT = { torso: 0.6, limb: 0.33, tail: 0.07 } as const;
+
+const ZONE_CODES: HitZone[] = [null, 'face', 'torso', 'limb', 'tail', null];
 
 /** Tilt-to-move: sidestepping, and how it affects the bot's aim. */
 export const MOVE = {
@@ -44,10 +49,10 @@ export const DEFAULT_CONFIG: DuelConfig = {
   bot: {
     firstShotMin: 1,
     firstShotMax: 2.5,
-    intervalMin: 0.9,
-    intervalMax: 1.5,
-    hitChance: 0.36,
-    headshotShare: 0.08,
+    intervalMin: 0.8,
+    intervalMax: 1.3,
+    hitChance: 0.75,
+    headshotShare: 0.05,
     reloadTime: 2.2,
     moveRange: 1.0,
     moveSpeed: 0.7,
@@ -71,14 +76,18 @@ function between(s: DuelState, min: number, max: number): number {
   return min + r * (max - min);
 }
 
-export function hitTest(target: Vec2, aim: Vec2): HitZone {
-  const hx = aim.x - target.x;
-  const hy = aim.y - (target.y + BODY.headAbove);
-  if (hx * hx + hy * hy <= BODY.headRadius * BODY.headRadius) return 'head';
-  if (Math.abs(aim.x - target.x) <= BODY.torsoWidth / 2 && Math.abs(aim.y - target.y) <= BODY.torsoHeight / 2) {
-    return 'torso';
-  }
-  return null;
+/**
+ * Which zone of the opponent a shot at `aim` lands on. Only visible parts of
+ * the sprite count (from its generated hit-zone map); the hat is a miss.
+ */
+export function hitTest(creature: string, target: Vec2, aim: Vec2): HitZone {
+  const c = CREATURES[creature];
+  const px = c.torsoPx[0] + (aim.x - target.x) * SPRITE_PX_PER_UNIT;
+  const py = c.torsoPx[1] - (aim.y - target.y) * SPRITE_PX_PER_UNIT;
+  if (px < 0 || py < 0 || px >= c.canvas || py >= c.canvas) return null;
+  const cell = c.canvas / c.grid;
+  const code = Number(c.rows[Math.floor(py / cell)][Math.floor(px / cell)]);
+  return ZONE_CODES[code] ?? null;
 }
 
 export function createDuel(config: DuelConfig, seed: number, now: number): DuelState {
@@ -87,6 +96,7 @@ export function createDuel(config: DuelConfig, seed: number, now: number): DuelS
     result: null,
     config,
     rng: seed >>> 0,
+    creature: DEFAULT_CREATURE,
     target: { x: 0, y: 0 },
     startedAt: now,
     holsteredAt: null,
@@ -101,8 +111,8 @@ export function createDuel(config: DuelConfig, seed: number, now: number): DuelS
     },
     holes: [],
   };
-  // Put the opponent somewhere off-center so the player has to aim.
-  s.target = { x: between(s, -9, 9), y: between(s, -3, 3) };
+  // Put the opponent somewhere off-center on the street so the player has to aim.
+  s.target = { x: between(s, -OPPONENT_SPAWN_X, OPPONENT_SPAWN_X), y: OPPONENT_Y };
   return s;
 }
 
@@ -152,14 +162,14 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
       s.player.shots++;
       {
         const t = apparentTarget(s);
-        const zone = hitTest(t, action.aim);
-        s.holes.push({ x: action.aim.x - t.x, y: action.aim.y - t.y, zone });
+        const zone = hitTest(s.creature, t, action.aim);
+        s.holes.push({ x: action.aim.x - t.x, y: action.aim.y - t.y, zone, t: now });
         if (zone) {
           s.player.hits++;
-          if (zone === 'head') s.player.headshots++;
+          if (zone === 'face') s.player.headshots++;
           s.bot.hp = Math.max(0, s.bot.hp - DAMAGE[zone]);
         }
-        fx.push({ type: 'shot', zone });
+        fx.push({ type: 'shot', zone, aim: action.aim });
       }
       if (s.bot.hp <= 0) end(s, 'victory', now, fx);
       break;
@@ -220,10 +230,17 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
           // A player who is sidestepping is harder to hit.
           const dodging = Math.abs(s.player.vx) >= MOVE.dodgeSpeed;
           const chance = bot.hitChance * (dodging ? MOVE.dodgeFactor : 1);
-          if (between(s, 0, 1) < chance) zone = between(s, 0, 1) < bot.headshotShare ? 'head' : 'torso';
+          if (between(s, 0, 1) < chance) {
+            const r = between(s, 0, 1);
+            if (r < bot.headshotShare) zone = 'face';
+            else {
+              const b = (r - bot.headshotShare) / (1 - bot.headshotShare);
+              zone = b < BOT_BODY_SPLIT.torso ? 'torso' : b < BOT_BODY_SPLIT.torso + BOT_BODY_SPLIT.limb ? 'limb' : 'tail';
+            }
+          }
           if (zone) {
             s.bot.hits++;
-            if (zone === 'head') s.bot.headshots++;
+            if (zone === 'face') s.bot.headshots++;
             s.player.hp = Math.max(0, s.player.hp - DAMAGE[zone]);
           }
           fx.push({ type: 'botShot', zone });

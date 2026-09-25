@@ -5,7 +5,7 @@ import type { BotConfig, DuelConfig } from '../game/types';
 import type { AimConfig } from '../input/aim';
 import { DEFAULT_GESTURES, type GestureConfig } from '../input/gestures';
 
-export const APP_VERSION = '0.4.1';
+export const APP_VERSION = '0.5.0';
 const STORAGE_KEY = 'duel-settings-v1';
 
 export type BotDifficulty = 'easy' | 'normal' | 'hard';
@@ -28,6 +28,8 @@ export interface Settings {
   showReadout: boolean;
   /** Tilt the phone sideways to sidestep. */
   tiltMove: boolean;
+  /** Draw the opponent's hit areas on screen (testing aid). */
+  showHitZones: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -42,6 +44,7 @@ export const DEFAULT_SETTINGS: Settings = {
   sound: true,
   showReadout: true,
   tiltMove: true,
+  showHitZones: false,
 };
 
 export function loadSettings(): Settings {
@@ -86,16 +89,17 @@ export function gestureConfig(s: Settings): GestureConfig {
 }
 
 const BOTS: Record<BotDifficulty, BotConfig> = {
-  // Median time for each bot to kill a player who never fires back (simulated):
-  // easy about 20 s, normal about 11 s, hard about 8 s.
+  // Median time for each bot to paint out a player who never fires back (simulated with the
+  // v0.5 damage table: face 100, torso 20, limbs 10, tail 5): easy about 21 s, normal 11 s, hard 8.5 s.
+  // Body hits do less damage than before, so the bots hit more often to keep the same pace.
   // Movement: easy barely shuffles, hard wanders further and faster (1 m is about 6 degrees of aim).
   easy: {
-    firstShotMin: 1.5, firstShotMax: 3, intervalMin: 1.2, intervalMax: 1.9, hitChance: 0.25, headshotShare: 0.05, reloadTime: 2.8,
+    firstShotMin: 1.5, firstShotMax: 3, intervalMin: 1.1, intervalMax: 1.7, hitChance: 0.5, headshotShare: 0.03, reloadTime: 2.8,
     moveRange: 0.5, moveSpeed: 0.4, pauseMin: 1.5, pauseMax: 3,
   },
   normal: DEFAULT_CONFIG.bot,
   hard: {
-    firstShotMin: 1, firstShotMax: 2, intervalMin: 0.9, intervalMax: 1.4, hitChance: 0.4, headshotShare: 0.08, reloadTime: 2,
+    firstShotMin: 1, firstShotMax: 2, intervalMin: 0.6, intervalMax: 1.0, hitChance: 0.8, headshotShare: 0.03, reloadTime: 1.5,
     moveRange: 1.5, moveSpeed: 1.0, pauseMin: 0.6, pauseMax: 1.8,
   },
 };

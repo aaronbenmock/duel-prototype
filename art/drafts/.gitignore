@@ -1,0 +1,4 @@
+# Draft artwork is private and never committed to the public repository.
+*
+!.gitignore
+!README.md

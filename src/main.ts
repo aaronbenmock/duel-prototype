@@ -7,7 +7,7 @@ import { AimTracker } from './input/aim';
 import { GestureDetector } from './input/gestures';
 import { MotionSensors } from './input/motion';
 import { installRotateOverlay, ScreenAwake, vibrate } from './platform/platform';
-import { GameView } from './render/gameView';
+import { BOT_FLIGHT_MS, GameView } from './render/gameView';
 import { mountSensorCheck } from './render/sensorCheck';
 import { SettingsView, type ReadoutRow } from './render/settingsView';
 import { StartView } from './render/startView';
@@ -35,8 +35,8 @@ function applySettings(s: Settings) {
   aim.config = aimConfig(s);
   gestures.config = gestureConfig(s);
   audio.enabled = s.sound;
+  game.showZones = s.showHitZones;
 }
-applySettings(settings);
 
 const app = document.getElementById('app')!;
 installRotateOverlay();
@@ -44,6 +44,7 @@ installRotateOverlay();
 const start = new StartView(app);
 const game = new GameView(document.body);
 const settingsView = new SettingsView(app, settings);
+applySettings(settings);
 const sensorScreen = document.createElement('div');
 sensorScreen.className = 'hidden';
 app.appendChild(sensorScreen);
@@ -91,10 +92,10 @@ function play(e: Effect) {
     case 'shot':
       audio.shot();
       game.kick();
-      if (e.zone === 'head') audio.headshot();
-      else if (e.zone === 'torso') audio.hit();
+      game.playerShot(e.zone, e.aim);
+      if (e.zone === 'face') audio.headshot();
+      else if (e.zone) audio.hit();
       else audio.miss();
-      game.flash('muzzle');
       vibrate(30);
       break;
     case 'empty':
@@ -106,10 +107,13 @@ function play(e: Effect) {
       break;
     case 'botShot':
       audio.botShot();
+      if (duel) game.botShot(duel, e.zone);
       if (e.zone) {
-        audio.hurt();
-        game.flash('hurt');
-        vibrate(250);
+        // Land the splat sound and buzz when the paint arrives.
+        setTimeout(() => {
+          audio.hurt();
+          vibrate(250);
+        }, BOT_FLIGHT_MS);
       }
       break;
     case 'foul':

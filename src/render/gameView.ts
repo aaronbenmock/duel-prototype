@@ -1,11 +1,35 @@
-// Draws the duel: a placeholder western scene (SVG), crosshair and HUD.
-// Reads game state; never changes it.
-import { apparentTarget, BODY, CYLINDER, MAX_HP, drawTime, parallax } from '../game/duel';
-import type { DuelState, Vec2 } from '../game/types';
+// Draws the duel: background, opponent creature, crosshair, hand-and-gun view,
+// paint effects and HUD. Reads game state; never changes it.
+import bgUrl from '../../art/exports/backgrounds/bg_alien-frontier.webp';
+import sageUrl from '../../art/exports/creatures/creature_desert-sage_front.webp';
+import sageZonesUrl from '../../art/exports/creatures/creature_desert-sage_front_hitzones.webp';
+import fxImpactUrl from '../../art/exports/effects/fx_paint-yellow_impact.webp';
+import fxMuzzleUrl from '../../art/exports/effects/fx_paint-yellow_muzzle-burst.webp';
+import fxProjectileUrl from '../../art/exports/effects/fx_paint-yellow_projectile.webp';
+import fxSplatAUrl from '../../art/exports/effects/fx_paint-yellow_splat-a.webp';
+import fxSplatBUrl from '../../art/exports/effects/fx_paint-yellow_splat-b.webp';
+import gunUrl from '../../art/exports/weapons/weapon_star-revolver_sage_pov.webp';
+import { CREATURES } from '../game/creatures';
+import { apparentTarget, CYLINDER, DAMAGE, drawTime, MAX_HP, OPPONENT_Y, parallax, SPRITE_PX_PER_UNIT } from '../game/duel';
+import type { DuelState, HitZone, Vec2 } from '../game/types';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 /** The screen is this many aim units wide (so 1 unit = 1 degree at sensitivity 1). */
 const VIEW_WIDTH = 40;
+/** Background image size and where its street (the opponent's feet) sits, as a fraction of its height. */
+const BG = { w: 1290, h: 2796, streetFrac: 0.58, parallaxDist: 40 };
+/** Sprite art for each creature slug. */
+const SPRITES: Record<string, { url: string; zonesUrl: string; name: string; handPx: [number, number] }> = {
+  'desert-sage': { url: sageUrl, zonesUrl: sageZonesUrl, name: 'SAGE', handPx: [300, 700] },
+};
+/** Where the paint leaves the gun, as a fraction of the gun image (from the art manifest). */
+const MUZZLE = { x: 0.47, y: 0.13 };
+/** Player paint flight time (ms); splats appear when it lands. */
+const FLIGHT_MS = 110;
+/** Bot paint flight time toward the camera (ms). */
+export const BOT_FLIGHT_MS = 170;
+/** The bot's paint is tinted so it's clearly different from yours (yellow shifted to teal). */
+const BOT_TINT = 'hue-rotate(140deg) saturate(1.2)';
 
 function svg<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string, string | number>, parent?: Element) {
   const el = document.createElementNS(SVG_NS, tag);
@@ -14,10 +38,21 @@ function svg<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string,
   return el;
 }
 
+function img(src: string, cls: string, parent: HTMLElement): HTMLImageElement {
+  const el = document.createElement('img');
+  el.src = src;
+  el.className = cls;
+  el.alt = '';
+  el.draggable = false;
+  parent.appendChild(el);
+  return el;
+}
+
 /** How long the results buttons ignore taps after the round ends. */
 const RESULT_LOCK_MS = 1000;
 
 const fmtSec = (ms: number | null) => (ms == null ? '--' : (ms / 1000).toFixed(2) + ' s');
+const ZONE_LABEL: Record<Exclude<HitZone, null>, string> = { face: 'FACE!', torso: 'BODY', limb: 'LIMB', tail: 'TAIL' };
 
 export class GameView {
   readonly el: HTMLElement;
@@ -28,48 +63,40 @@ export class GameView {
   onSettings: () => void = () => {};
   /** Returns true if the log was copied. */
   onCopyLog: () => Promise<boolean> = async () => false;
+  /** Draw the hit-zone overlay on the opponent (testing aid). */
+  showZones = false;
 
   private svgEl: SVGSVGElement;
+  private bgLayer: SVGGElement;
+  private bgImage: SVGImageElement;
   private opponent: SVGGElement;
-  private holes: SVGGElement;
+  private sprite: SVGImageElement;
+  private zones: SVGImageElement;
+  private maskImage: SVGImageElement;
+  private splats: SVGGElement;
+  private shadow: SVGEllipseElement;
   private cross: SVGGElement;
-  private holeCount = -1;
-  /** Scene pieces that shift with the player's sidestep, with their distance in meters. */
-  private layers: { g: SVGGElement; dist: number }[] = [];
-  private prevAim: Vec2 | null = null;
-  private sway = { x: 0, y: 0 };
+  private fxScene: HTMLElement;
+  private fxScreen: HTMLElement;
+  private gun: HTMLImageElement;
+  private splatKey = '';
+  private creature = '';
   private $: (sel: string) => HTMLElement;
   private shownResult: string | null = null;
   private unlockTimer: ReturnType<typeof setTimeout> | undefined;
+  private prevAim: Vec2 | null = null;
+  private sway = { x: 0, y: 0 };
 
   constructor(parent: HTMLElement) {
     this.el = document.createElement('div');
     this.el.className = 'game hidden';
     this.el.innerHTML = `
-      <div class="vm-wrap hidden" id="g-vm">
-        <div class="vm-kick" id="g-vmk">
-          <svg viewBox="0 0 200 240" class="vm">
-            <!-- Placeholder hand and revolver, seen from behind. Swap for final art later. -->
-            <rect x="89" y="8" width="10" height="12" rx="2" fill="#26262b"/>
-            <rect x="82" y="16" width="24" height="96" rx="5" fill="#3b3b42"/>
-            <rect x="86" y="18" width="6" height="92" rx="3" fill="#5c5c66"/>
-            <rect x="70" y="104" width="48" height="50" rx="12" fill="#4a4a53"/>
-            <line x1="82" y1="108" x2="82" y2="150" stroke="#34343b" stroke-width="3"/>
-            <line x1="94" y1="106" x2="94" y2="152" stroke="#34343b" stroke-width="3"/>
-            <line x1="106" y1="108" x2="106" y2="150" stroke="#34343b" stroke-width="3"/>
-            <rect x="78" y="150" width="32" height="26" rx="4" fill="#3b3b42"/>
-            <rect x="89" y="142" width="10" height="16" rx="2" fill="#26262b"/>
-            <ellipse cx="100" cy="212" rx="64" ry="44" fill="#8a5a34"/>
-            <rect x="52" y="160" width="30" height="62" rx="15" fill="#9c6a3e" transform="rotate(-18 67 190)"/>
-            <rect x="110" y="170" width="46" height="22" rx="11" fill="#9c6a3e"/>
-            <rect x="112" y="190" width="46" height="22" rx="11" fill="#94643a"/>
-            <rect x="36" y="226" width="128" height="20" fill="#6a3a24"/>
-          </svg>
-        </div>
-      </div>
+      <div class="fx-layer" id="g-fx-scene"></div>
+      <div class="vm-wrap hidden" id="g-vm"><div class="vm-kick" id="g-vmk"></div></div>
+      <div class="fx-layer" id="g-fx-screen"></div>
       <div class="hud-top">
         <div class="hp"><span>YOU</span><div class="bar"><i id="g-php"></i></div></div>
-        <div class="hp"><span>BOT</span><div class="bar"><i id="g-bhp"></i></div></div>
+        <div class="hp"><span id="g-bname">OPPONENT</span><div class="bar"><i id="g-bhp"></i></div></div>
       </div>
       <div class="readout hidden" id="g-readout"></div>
       <div class="msg" id="g-msg"><div class="big" id="g-big"></div><div class="small" id="g-small"></div></div>
@@ -78,8 +105,6 @@ export class GameView {
         <div class="dtime" id="g-dtime"></div>
         <button class="secondary reload-btn" id="g-reload">Reload</button>
       </div>
-      <div class="flash hurt" id="g-hurt"></div>
-      <div class="flash muzzle" id="g-muzzle"></div>
       <div class="result hidden" id="g-result">
         <div class="panel">
           <div class="result-links">
@@ -95,19 +120,38 @@ export class GameView {
       </div>`;
     parent.appendChild(this.el);
     this.$ = (id: string) => this.el.querySelector<HTMLElement>('#' + id)!;
+    this.fxScene = this.$('g-fx-scene');
+    this.fxScreen = this.$('g-fx-screen');
+    this.gun = img(gunUrl, 'vm', this.$('g-vmk'));
 
+    // ---- Scene (SVG in aim units: 1 unit = 1 degree, y up = negative SVG y) ----
     this.svgEl = svg('svg', { class: 'scene', preserveAspectRatio: 'xMidYMid slice' });
     this.el.prepend(this.svgEl);
-    this.buildScene();
-    this.opponent = this.buildOpponent();
-    // Bullet marks live inside the opponent group, so they move with him.
-    this.holes = svg('g', {}, this.opponent);
+    const defs = svg('defs', {}, this.svgEl);
+    // Turns the creature image into a solid white silhouette, used as a mask so
+    // paint splats only show on the creature itself.
+    const white = svg('filter', { id: 'to-white' }, defs);
+    svg('feColorMatrix', { type: 'matrix', values: '0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0' }, white);
+    const mask = svg('mask', { id: 'creature-mask', maskUnits: 'userSpaceOnUse', x: -50, y: -50, width: 100, height: 100 }, defs);
+    this.maskImage = svg('image', { filter: 'url(#to-white)' }, mask);
+
+    this.bgLayer = svg('g', {}, this.svgEl);
+    this.bgImage = svg('image', { href: bgUrl, preserveAspectRatio: 'none' }, this.bgLayer);
+
+    this.opponent = svg('g', {}, this.svgEl);
+    this.shadow = svg('ellipse', { rx: 3.2, ry: 0.55, fill: 'rgba(40, 10, 50, 0.35)' }, this.opponent);
+    this.sprite = svg('image', {}, this.opponent);
+    this.splats = svg('g', { mask: 'url(#creature-mask)' }, this.opponent);
+    this.zones = svg('image', { opacity: 0.9 }, this.opponent);
+
     this.cross = svg('g', { class: 'cross' }, this.svgEl);
-    svg('circle', { r: 1.3, fill: 'none', stroke: '#fff', 'stroke-width': 0.18 }, this.cross);
-    svg('circle', { r: 0.15, fill: '#ff3b30' }, this.cross);
-    for (const [x1, y1, x2, y2] of [[-2.4, 0, -0.6, 0], [0.6, 0, 2.4, 0], [0, -2.4, 0, -0.6], [0, 0.6, 0, 2.4]]) {
-      svg('line', { x1, y1, x2, y2, stroke: '#fff', 'stroke-width': 0.18 }, this.cross);
+    for (const [color, width] of [['rgba(0,0,0,0.55)', 0.42], ['#fff', 0.18]] as const) {
+      svg('circle', { r: 1.3, fill: 'none', stroke: color, 'stroke-width': width }, this.cross);
+      for (const [x1, y1, x2, y2] of [[-2.4, 0, -0.6, 0], [0.6, 0, 2.4, 0], [0, -2.4, 0, -0.6], [0, 0.6, 0, 2.4]]) {
+        svg('line', { x1, y1, x2, y2, stroke: color, 'stroke-width': width }, this.cross);
+      }
     }
+    svg('circle', { r: 0.18, fill: '#ffd23f', stroke: '#000', 'stroke-width': 0.06 }, this.cross);
 
     const cyl = this.$('g-cyl');
     for (let i = 0; i < CYLINDER; i++) cyl.appendChild(document.createElement('i'));
@@ -127,12 +171,8 @@ export class GameView {
       void this.onCopyLog().then((ok) => (btn.textContent = ok ? 'Aim log copied' : 'Copy failed'));
     });
 
-    const resize = () => {
-      const h = (VIEW_WIDTH * window.innerHeight) / Math.max(1, window.innerWidth);
-      this.svgEl.setAttribute('viewBox', `${-VIEW_WIDTH / 2} ${-h / 2} ${VIEW_WIDTH} ${h}`);
-    };
-    window.addEventListener('resize', resize);
-    resize();
+    window.addEventListener('resize', () => this.resize());
+    this.resize();
   }
 
   show(visible: boolean) {
@@ -144,45 +184,36 @@ export class GameView {
     return -y;
   }
 
-  private buildScene() {
-    const s = this.svgEl;
-    const horizon = GameView.sy(-2);
-    const defs = svg('defs', {}, s);
-    const grad = svg('linearGradient', { id: 'sky', x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
-    svg('stop', { offset: 0, 'stop-color': '#3d6fa8' }, grad);
-    svg('stop', { offset: 1, 'stop-color': '#f2b76b' }, grad);
-    svg('rect', { x: -40, y: -80, width: 80, height: 80 + horizon, fill: 'url(#sky)' }, s);
-    svg('circle', { cx: 12, cy: -16, r: 3, fill: '#ffe39a' }, s);
-    const far = svg('g', {}, s);
-    this.layers.push({ g: far, dist: 300 });
-    svg('polygon', { points: `-40,${horizon} -30,${horizon - 5} -22,${horizon - 5} -18,${horizon} -6,${horizon} -2,${horizon - 3} 6,${horizon - 3} 9,${horizon} 22,${horizon} 26,${horizon - 7} 34,${horizon - 7} 40,${horizon}`, fill: '#a0583a' }, far);
-    svg('rect', { x: -40, y: horizon, width: 80, height: 80, fill: '#c89456' }, s);
-    // Cacti at different distances, so sidestepping shows depth (closer = shifts more).
-    for (const [x, base, h, dist] of [[-15, horizon + 6, 9, 8], [16, horizon + 10, 12, 5]]) {
-      const g = svg('g', {}, s);
-      this.layers.push({ g, dist });
-      svg('rect', { x: x - 0.8, y: base - h, width: 1.6, height: h, rx: 0.8, fill: '#4f7a3a' }, g);
-      svg('rect', { x: x - 3, y: base - h * 0.7, width: 1.2, height: h * 0.35, rx: 0.6, fill: '#4f7a3a' }, g);
-      svg('rect', { x: x + 1.8, y: base - h * 0.8, width: 1.2, height: h * 0.3, rx: 0.6, fill: '#4f7a3a' }, g);
-    }
+  private resize() {
+    const viewH = (VIEW_WIDTH * window.innerHeight) / Math.max(1, window.innerWidth);
+    this.svgEl.setAttribute('viewBox', `${-VIEW_WIDTH / 2} ${-viewH / 2} ${VIEW_WIDTH} ${viewH}`);
+    // Cover the screen with the background, and pin its street to the opponent's feet.
+    const w = Math.max(VIEW_WIDTH + 6, (viewH * BG.w) / BG.h);
+    const h = (w * BG.h) / BG.w;
+    const c = Object.values(CREATURES)[0];
+    const feetSvgY = GameView.sy(OPPONENT_Y) + (c.baselineY - c.torsoPx[1]) / SPRITE_PX_PER_UNIT;
+    let top = feetSvgY - BG.streetFrac * h;
+    // Never leave a gap at the top or bottom of the screen.
+    top = Math.min(-viewH / 2, Math.max(viewH / 2 - h, top));
+    for (const [k, v] of Object.entries({ x: -w / 2, y: top, width: w, height: h })) this.bgImage.setAttribute(k, String(v));
   }
 
-  private buildOpponent(): SVGGElement {
-    const g = svg('g', {}, this.svgEl);
-    const { headRadius: r, headAbove, torsoWidth: w, torsoHeight: h, legLength } = BODY;
-    // Legs (not a hit zone).
-    svg('rect', { x: -w / 2 + 0.3, y: h / 2, width: 1.7, height: legLength, fill: '#3b2f4a' }, g);
-    svg('rect', { x: w / 2 - 2, y: h / 2, width: 1.7, height: legLength, fill: '#3b2f4a' }, g);
-    // Gun arm.
-    svg('rect', { x: w / 2 - 0.2, y: -h / 2 + 1.2, width: 3.2, height: 1.1, fill: '#7a4a2a' }, g);
-    svg('rect', { x: w / 2 + 2.6, y: -h / 2 + 0.9, width: 1.4, height: 0.7, fill: '#222' }, g);
-    // Torso (hit zone).
-    svg('rect', { x: -w / 2, y: -h / 2, width: w, height: h, rx: 0.6, fill: '#8a3b2a' }, g);
-    // Head (hit zone) and hat.
-    svg('circle', { cx: 0, cy: -headAbove, r, fill: '#e2b48a' }, g);
-    svg('rect', { x: -2.8, y: -headAbove - r + 0.1, width: 5.6, height: 0.5, rx: 0.2, fill: '#2b1d12' }, g);
-    svg('rect', { x: -1.5, y: -headAbove - r - 1.7, width: 3, height: 1.9, rx: 0.4, fill: '#2b1d12' }, g);
-    return g;
+  /** Places the creature sprite (and its mask and zone overlay) in the opponent group. */
+  private setCreature(slug: string) {
+    if (slug === this.creature) return;
+    this.creature = slug;
+    const c = CREATURES[slug];
+    const art = SPRITES[slug];
+    const size = c.canvas / SPRITE_PX_PER_UNIT;
+    const box = { x: -c.torsoPx[0] / SPRITE_PX_PER_UNIT, y: -c.torsoPx[1] / SPRITE_PX_PER_UNIT, width: size, height: size };
+    for (const el of [this.sprite, this.maskImage, this.zones]) {
+      for (const [k, v] of Object.entries(box)) el.setAttribute(k, String(v));
+    }
+    this.sprite.setAttribute('href', art.url);
+    this.maskImage.setAttribute('href', art.url);
+    this.zones.setAttribute('href', art.zonesUrl);
+    this.shadow.setAttribute('cy', String((c.baselineY - c.torsoPx[1]) / SPRITE_PX_PER_UNIT - 0.1));
+    this.$('g-bname').textContent = art.name;
   }
 
   /** Small detection readout under the health bars; null hides it. */
@@ -208,31 +239,128 @@ export class GameView {
     el.classList.add(cls);
   }
 
-  flash(kind: 'hurt' | 'muzzle') {
-    const el = this.$('g-' + kind);
-    el.classList.remove('on');
-    void el.offsetWidth; // restart the CSS animation
-    el.classList.add('on');
+  // ---- Paint effects (HTML overlays in screen pixels) ----
+
+  private aimToScreen(p: Vec2): { x: number; y: number } {
+    const k = window.innerWidth / VIEW_WIDTH;
+    return { x: window.innerWidth / 2 + p.x * k, y: window.innerHeight / 2 - p.y * k };
   }
 
+  /** A one-shot image effect centered on a point; removed when its animation ends. */
+  private fx(
+    layer: HTMLElement,
+    src: string,
+    at: { x: number; y: number },
+    size: number,
+    frames: Keyframe[],
+    ms: number,
+    opts: { anchor?: [number, number]; filter?: string; delay?: number } = {},
+  ) {
+    const el = img(src, 'fx', layer);
+    const [ax, ay] = opts.anchor ?? [0.5, 0.5];
+    Object.assign(el.style, {
+      width: size + 'px',
+      height: size + 'px',
+      left: at.x - ax * size + 'px',
+      top: at.y - ay * size + 'px',
+      transformOrigin: `${ax * 100}% ${ay * 100}%`,
+      filter: opts.filter ?? '',
+      opacity: '0',
+    });
+    const anim = el.animate(frames, { duration: ms, delay: opts.delay ?? 0, easing: 'ease-out', fill: 'forwards' });
+    anim.onfinish = () => el.remove();
+  }
+
+  private floatText(text: string, at: { x: number; y: number }, cls: string, delay: number) {
+    const el = document.createElement('div');
+    el.className = 'dmg ' + cls;
+    el.textContent = text;
+    Object.assign(el.style, { left: at.x + 'px', top: at.y + 'px', opacity: '0' });
+    this.fxScreen.appendChild(el);
+    const anim = el.animate(
+      [
+        { opacity: 1, transform: 'translate(-50%, -50%) scale(0.7)' },
+        { opacity: 1, transform: 'translate(-50%, -120%) scale(1.1)', offset: 0.3 },
+        { opacity: 0, transform: 'translate(-50%, -220%) scale(1)' },
+      ],
+      { duration: 800, delay, easing: 'ease-out', fill: 'forwards' },
+    );
+    anim.onfinish = () => el.remove();
+  }
+
+  /** Your shot: paint bursts from the muzzle, flies to the crosshair point and splats. */
+  playerShot(zone: HitZone, aim: Vec2) {
+    const r = this.gun.getBoundingClientRect();
+    const from = { x: r.left + MUZZLE.x * r.width, y: r.top + MUZZLE.y * r.height };
+    const to = this.aimToScreen(aim);
+    const angle = (Math.atan2(to.y - from.y, to.x - from.x) * 180) / Math.PI;
+    const w = window.innerWidth;
+    // Muzzle burst, pointing along the shot.
+    this.fx(this.fxScreen, fxMuzzleUrl, from, w * 0.3, [
+      { opacity: 1, transform: `rotate(${angle}deg) scale(0.5)` },
+      { opacity: 0, transform: `rotate(${angle}deg) scale(1.1)` },
+    ], 180, { anchor: [0.14, 0.51] });
+    // Paint blob flying away from you (shrinks with distance).
+    this.fx(this.fxScene, fxProjectileUrl, from, w * 0.22, [
+      { opacity: 1, transform: `translate(0, 0) rotate(${angle}deg) scale(1)` },
+      { opacity: 1, transform: `translate(${to.x - from.x}px, ${to.y - from.y}px) rotate(${angle}deg) scale(0.25)` },
+    ], FLIGHT_MS);
+    // Impact burst where it lands.
+    this.fx(this.fxScene, fxImpactUrl, to, w * (zone ? 0.16 : 0.1), [
+      { opacity: 1, transform: `rotate(${Math.random() * 360}deg) scale(0.3)` },
+      { opacity: 1, transform: 'scale(1)', offset: 0.35 },
+      { opacity: 0, transform: 'scale(1.15)' },
+    ], 380, { delay: FLIGHT_MS });
+    if (zone) this.floatText(`${ZONE_LABEL[zone]} ${DAMAGE[zone]}`, to, zone === 'face' ? 'crit' : '', FLIGHT_MS);
+    else this.floatText('MISS', to, 'miss', FLIGHT_MS);
+  }
+
+  /** The bot's shot: teal paint flies from its hand toward you; a hit splats the screen. */
+  botShot(s: DuelState, zone: HitZone) {
+    const c = CREATURES[s.creature];
+    const art = SPRITES[s.creature];
+    const t = apparentTarget(s);
+    const from = this.aimToScreen({
+      x: t.x + (art.handPx[0] - c.torsoPx[0]) / SPRITE_PX_PER_UNIT,
+      y: t.y - (art.handPx[1] - c.torsoPx[1]) / SPRITE_PX_PER_UNIT,
+    });
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    const to = zone
+      ? { x: W * (0.25 + Math.random() * 0.5), y: H * (0.3 + Math.random() * 0.4) }
+      : { x: Math.random() < 0.5 ? -W * 0.2 : W * 1.2, y: H * (0.2 + Math.random() * 0.6) };
+    const angle = (Math.atan2(to.y - from.y, to.x - from.x) * 180) / Math.PI;
+    this.fx(this.fxScreen, fxProjectileUrl, from, W * 0.12, [
+      { opacity: 1, transform: `translate(0, 0) rotate(${angle}deg) scale(0.3)` },
+      { opacity: 1, transform: `translate(${to.x - from.x}px, ${to.y - from.y}px) rotate(${angle}deg) scale(${zone ? 3 : 2.2})` },
+    ], BOT_FLIGHT_MS, { filter: BOT_TINT });
+    if (!zone) return;
+    // Paint splat on your screen that drips and fades.
+    const size = W * (zone === 'face' ? 0.95 : 0.6);
+    const rot = Math.random() * 360;
+    this.fx(this.fxScreen, Math.random() < 0.5 ? fxSplatAUrl : fxSplatBUrl, to, size, [
+      { opacity: 0.95, transform: `translateY(0) rotate(${rot}deg) scale(0.4)` },
+      { opacity: 0.95, transform: `translateY(0) rotate(${rot}deg) scale(1)`, offset: 0.06 },
+      { opacity: 0.9, transform: `translateY(${H * 0.04}px) rotate(${rot}deg) scale(1)`, offset: 0.7 },
+      { opacity: 0, transform: `translateY(${H * 0.07}px) rotate(${rot}deg) scale(1)` },
+    ], 2000, { filter: BOT_TINT, delay: BOT_FLIGHT_MS });
+  }
+
+  // ---- Per-frame drawing ----
+
   render(s: DuelState, aim: Vec2, aimVisible: boolean) {
+    this.setCreature(s.creature);
     const t = apparentTarget(s);
     // Small bob while the bot is walking.
-    const bob = s.bot.vx !== 0 ? Math.abs(Math.sin(performance.now() / 110)) * 0.35 : 0;
+    const bob = s.bot.vx !== 0 ? Math.abs(Math.sin(performance.now() / 110)) * 0.3 : 0;
     this.opponent.setAttribute('transform', `translate(${t.x} ${GameView.sy(t.y + bob)})`);
-    for (const l of this.layers) l.g.setAttribute('transform', `translate(${parallax(s, l.dist)} 0)`);
+    this.bgLayer.setAttribute('transform', `translate(${parallax(s, BG.parallaxDist)} 0)`);
+    this.zones.style.display = this.showZones ? '' : 'none';
     this.renderViewmodel(s, aim, aimVisible);
     this.cross.style.display = aimVisible ? '' : 'none';
     this.cross.setAttribute('transform', `translate(${aim.x} ${GameView.sy(aim.y)})`);
     this.svgEl.classList.toggle('dim', s.phase === 'holster' || s.phase === 'ready');
-
-    if (s.holes.length !== this.holeCount) {
-      this.holeCount = s.holes.length;
-      this.holes.replaceChildren();
-      for (const h of s.holes) {
-        svg('circle', { cx: h.x, cy: GameView.sy(h.y), r: 0.35, fill: h.zone ? '#200' : '#333', stroke: h.zone ? '#ff5b4a' : '#eee', 'stroke-width': 0.08 }, this.holes);
-      }
-    }
+    this.renderSplats(s);
 
     (this.$('g-php') as HTMLElement).style.width = (s.player.hp / MAX_HP) * 100 + '%';
     (this.$('g-bhp') as HTMLElement).style.width = (s.bot.hp / MAX_HP) * 100 + '%';
@@ -243,7 +371,7 @@ export class GameView {
     let big = '';
     let small = '';
     if (s.phase === 'holster') {
-      big = 'HOLSTER YOUR WEAPON';
+      big = 'HOLSTER YOUR BLASTER';
       small = 'Lower the phone to your hip, top pointing at the floor, and hold still.';
     } else if (s.phase === 'ready') {
       big = 'READY';
@@ -265,6 +393,22 @@ export class GameView {
     this.renderResult(s);
   }
 
+  /** Paint splats stuck to the opponent; each appears once its paint has landed. */
+  private renderSplats(s: DuelState) {
+    const now = performance.now();
+    const landed = s.holes.filter((h) => h.zone && now >= h.t + FLIGHT_MS);
+    const key = `${s.startedAt}:${landed.length}`;
+    if (key === this.splatKey) return;
+    this.splatKey = key;
+    this.splats.replaceChildren();
+    landed.forEach((h, i) => {
+      const size = h.zone === 'face' ? 3.4 : h.zone === 'torso' ? 2.8 : 2.2;
+      const rot = (i * 137 + Math.round(h.x * 50)) % 360;
+      const g = svg('g', { transform: `translate(${h.x} ${GameView.sy(h.y)}) rotate(${rot})` }, this.splats);
+      svg('image', { href: i % 2 ? fxSplatBUrl : fxSplatAUrl, x: -size / 2, y: -size / 2, width: size, height: size }, g);
+    });
+  }
+
   /** Hand and gun: raised while aiming, lags slightly behind aim movement, tilts with sidestep. */
   private renderViewmodel(s: DuelState, aim: Vec2, visible: boolean) {
     const wrap = this.$('g-vm');
@@ -278,8 +422,8 @@ export class GameView {
     // Ease toward a small offset opposite to the movement, then settle back.
     this.sway.x += (Math.max(-30, Math.min(30, -d.x * 12)) - this.sway.x) * 0.2;
     this.sway.y += (Math.max(-30, Math.min(30, d.y * 12)) - this.sway.y) * 0.2;
-    const tilt = s.player.lean * 6;
-    wrap.style.transform = `translate(${this.sway.x.toFixed(1)}px, ${this.sway.y.toFixed(1)}px) rotate(${(-14 + tilt).toFixed(1)}deg)`;
+    // The art is already drawn at an aiming angle; only add the sidestep tilt.
+    wrap.style.transform = `translate(${this.sway.x.toFixed(1)}px, ${this.sway.y.toFixed(1)}px) rotate(${(s.player.lean * 5).toFixed(1)}deg)`;
   }
 
   private renderResult(s: DuelState) {
@@ -296,10 +440,12 @@ export class GameView {
     this.unlockTimer = setTimeout(() => panel.classList.remove('locked'), RESULT_LOCK_MS);
     this.$('r-log').textContent = 'Copy aim log';
 
-    const titles = { victory: 'VICTORY', defeat: 'DEFEAT', foul: 'FOUL' } as const;
+    const name = SPRITES[s.creature]?.name ?? 'OPPONENT';
+    const cap = name.charAt(0) + name.slice(1).toLowerCase();
+    const titles = { victory: "YOU PAINTED 'EM!", defeat: 'YOU GOT PAINTED!', foul: 'FOUL' } as const;
     const notes = {
-      victory: 'The bot is down.',
-      defeat: 'The bot got you.',
+      victory: `${cap} is covered in paint.`,
+      defeat: `${cap} painted you first.`,
       foul: 'You left the holster before the DRAW sound.',
     } as const;
     const r = s.result ?? 'foul';
@@ -314,9 +460,9 @@ export class GameView {
       ['Shots', String(p.shots)],
       ['Hits', String(p.hits)],
       ['Accuracy', acc],
-      ['Headshots', String(p.headshots)],
+      ['Face shots', String(p.headshots)],
       ['Your health', `${p.hp} / ${MAX_HP}`],
-      ['Bot shots / hits', `${s.bot.shots} / ${s.bot.hits}`],
+      [`${cap} shots / hits`, `${s.bot.shots} / ${s.bot.hits}`],
     ];
     this.$('r-stats').innerHTML = rows.map(([k, v]) => `<span class="k">${k}</span><span class="v">${v}</span>`).join('');
   }

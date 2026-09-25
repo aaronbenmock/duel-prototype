@@ -3,7 +3,7 @@
 
 export type Phase = 'holster' | 'ready' | 'draw' | 'aim' | 'over';
 export type Result = 'victory' | 'defeat' | 'foul';
-export type HitZone = 'head' | 'torso' | null;
+export type HitZone = 'face' | 'torso' | 'limb' | 'tail' | null;
 
 /** Aim positions are in "aim units": degrees of phone rotation from the draw pose (right and up are positive). */
 export interface Vec2 {
@@ -20,7 +20,7 @@ export interface BotConfig {
   intervalMax: number;
   /** Chance each bot shot hits (0 to 1). */
   hitChance: number;
-  /** Share of bot hits that are headshots (0 to 1). */
+  /** Share of bot hits that land on the face (0 to 1). */
   headshotShare: number;
   /** Seconds the bot needs to reload after six shots. */
   reloadTime: number;
@@ -45,6 +45,7 @@ export interface Shooter {
   rounds: number;
   shots: number;
   hits: number;
+  /** Face hits (critical). */
   headshots: number;
 }
 
@@ -68,9 +69,11 @@ export interface BotState extends Shooter {
   nextMoveAt: number | null;
 }
 
-/** A bullet mark, stored relative to the opponent's torso center so it moves with him. */
+/** A paint mark, stored relative to the opponent's torso reference so it moves with him. */
 export interface BulletHole extends Vec2 {
   zone: HitZone;
+  /** When it was fired (ms), so the splat can appear as the paint arrives. */
+  t: number;
 }
 
 export interface DuelState {
@@ -79,7 +82,9 @@ export interface DuelState {
   config: DuelConfig;
   /** Seeded random state, so a round can be replayed or synced later. */
   rng: number;
-  /** Center of the opponent's torso, in aim units. */
+  /** Which creature sprite and hit-zone map the opponent uses. */
+  creature: string;
+  /** The opponent's torso reference point, in aim units (before any sidestep). */
   target: Vec2;
   startedAt: number;
   holsteredAt: number | null;
@@ -105,7 +110,7 @@ export type Action =
 export type Effect =
   | { type: 'ready' }
   | { type: 'draw' }
-  | { type: 'shot'; zone: HitZone }
+  | { type: 'shot'; zone: HitZone; aim: Vec2 }
   | { type: 'empty' }
   | { type: 'reload' }
   | { type: 'botShot'; zone: HitZone }

@@ -1,6 +1,6 @@
 # Art direction notes (not started)
 
-Status: parked on 2026-09-24. Next step is a concept sheet (Claude builds it in chat), when Aaron asks.
+Status (2026-09-25): direction chosen. Name "High Moon" (check before public launch). Western aliens, paint instead of bullets. First static prototype (v0.5) uses draft art; see `art/exports/PROTOTYPE-FROM-DRAFTS.md`. Earlier status: parked on 2026-09-24.
 
 Art workspace set up 2026-09-24: `art/` (Inkscape SVG masters, blank creature reference sheet, exports). How to use it: `art/README.md`. Working title under discussion: "Fast Hand".
 

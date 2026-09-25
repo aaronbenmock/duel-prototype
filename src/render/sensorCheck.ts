@@ -17,7 +17,7 @@ function poseLabel(up: [number, number, number]): string {
 
 export function mountSensorCheck(root: HTMLElement, sensors: MotionSensors, audio: AudioEngine, awake: ScreenAwake) {
   root.innerHTML = `
-    <h1>QUICK DRAW</h1>
+    <h1>HIGH MOON</h1>
     <p class="sub">Sensor and sound check</p>
     <button id="enable">Enable Motion</button>
     <button id="beep" class="secondary hidden">Play test beep again</button>
