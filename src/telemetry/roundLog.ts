@@ -48,7 +48,8 @@ const r2 = (v: number) => Math.round(v * 100) / 100;
 function effectEvent(e: Effect): (string | number | null)[] {
   switch (e.type) {
     case 'shot':
-      return ['shot', e.zone, r2(e.aim.x), r2(e.aim.y), e.damage, e.last ? 'last' : null];
+      // Details: zone, where it went (x, y), damage, last round?, recoil kick at the shot (x, y), fired settled?
+      return ['shot', e.zone, r2(e.aim.x), r2(e.aim.y), e.damage, e.last ? 'last' : null, r2(e.recoil.x), r2(e.recoil.y), e.settled ? 1 : 0];
     case 'botShot':
       return ['botShot', e.zone];
     case 'reloadStart':

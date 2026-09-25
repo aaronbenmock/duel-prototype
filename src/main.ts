@@ -157,7 +157,8 @@ function play(e: Effect) {
       if (e.pellets.length > 1) audio.blast();
       else if (WEAPONS[weapon].heat) audio.zap();
       else audio.shot();
-      game.kick();
+      // Recoil guns move the gun with the kick itself; others play the fixed kick animation.
+      if (!WEAPONS[weapon].recoil) game.kick();
       if (e.last) {
         audio.lastRound();
         game.lastRound();
@@ -337,6 +338,8 @@ game.onShareLog = () => {
   if (lastLog) void shareJson(`high-moon-${lastLog.startedAt.slice(0, 10)}-${logFileName(lastLog)}`, lastLog);
 };
 game.onSettings = () => openSettings('game');
+// Revolver ready again after a kick: a soft hammer click, the rhythm cue.
+game.onSettled = () => audio.cock();
 game.onMenu = () => {
   duel = null;
   show('start');

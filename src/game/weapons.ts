@@ -24,6 +24,29 @@ export interface WeaponDef {
   reloadPerRoundMs: number;
   /** Heat guns (raygun) have no rounds: each shot adds heat, and at 100 the gun locks until it cools. */
   heat?: HeatDef;
+  /** Guns with recoil: each shot kicks the crosshair, which then glides back. Shots go exactly where the crosshair is. */
+  recoil?: RecoilDef;
+}
+
+/**
+ * Recoil: a consistent, learnable kick after each shot, then recovery back to where the phone points.
+ * All angles are aim units (degrees). Tune the feel here.
+ */
+export interface RecoilDef {
+  /** Upward kick of the first shot in a string. */
+  kickUp: number;
+  /** Sideways kick for shots 1, 2, 3... of a quick string (right is positive); the last value repeats. */
+  kickSide: number[];
+  /** Each further shot in a quick string kicks this much harder (1.15 = 15% more each time). */
+  stackGrowth: number;
+  /** Small randomness: kick size varies by up to this fraction (+/-), sideways by up to sideVariation degrees. */
+  variation: number;
+  sideVariation: number;
+  /** After a shot the crosshair holds for recoveryDelayMs, then glides back with this time constant (ms). */
+  recoveryDelayMs: number;
+  recoveryTauMs: number;
+  /** Once the kick left is under this (degrees) the gun counts as settled: the string resets and the crosshair shows ready. */
+  settledAt: number;
 }
 
 export interface HeatDef {
@@ -48,10 +71,26 @@ export const WEAPONS: Record<string, WeaponDef> = {
     damage: { face: 20, torso: 9, limb: 5, tail: 2 },
     pellets: 1,
     spread: 0,
-    cooldownMs: 0,
+    // Fastest cadence: one shot per 0.25 s (the hammer cycle).
+    cooldownMs: 250,
     // Topping up 2 rounds takes about 0.55 s; a full cylinder about 1 s.
     reloadStartMs: 300,
     reloadPerRoundMs: 120,
+    // Kicks up 3 degrees (about the height of the face) and drifts right in a fixed pattern; settled
+    // again about 0.65 s after a single shot. Wait for it, or pull the phone down against it.
+    // Simulated time to win vs the Normal bot (same basic aim, different recoil handling):
+    //   waits to settle 16.5 s, intermediate 10.3 s, expert (fast and compensating) 8.0 s,
+    //   spamming at full speed 9.9 s but missing 61% of shots.
+    recoil: {
+      kickUp: 3.0,
+      kickSide: [0.8, 1.2, -0.6, 1.5, -0.8, 1.8],
+      stackGrowth: 1.25,
+      variation: 0.15,
+      sideVariation: 0.15,
+      recoveryDelayMs: 80,
+      recoveryTauMs: 300,
+      settledAt: 0.45,
+    },
   },
   'wrapped-scattergun': {
     id: 'wrapped-scattergun',

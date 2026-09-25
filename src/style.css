@@ -240,3 +240,10 @@ button.link {
 .pick .gun { display: block; width: 100%; aspect-ratio: 2; overflow: hidden; position: relative; }
 .pick .gun img { position: absolute; width: 100%; left: 0; top: -25%; pointer-events: none; }
 .pick .note { display: block; font-size: 0.7rem; font-weight: 500; color: var(--muted); }
+
+/* ---- Recoil (revolver): kicked crosshair, settle dot, ready pop ---- */
+.cross.kicked [stroke="#fff"] { stroke: #ffb347; }
+.rest-dot { fill: rgba(255, 255, 255, 0.75); stroke: rgba(0, 0, 0, 0.6); stroke-width: 0.1; pointer-events: none; }
+.ready-ring { fill: none; stroke: #fff; stroke-width: 0.15; opacity: 0; pointer-events: none; transform-box: fill-box; transform-origin: center; }
+.ready-ring.pop { animation: ready-pop 0.28s ease-out; }
+@keyframes ready-pop { from { opacity: 0.9; transform: scale(0.8); } to { opacity: 0; transform: scale(1.6); } }

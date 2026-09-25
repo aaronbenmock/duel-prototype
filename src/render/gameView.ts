@@ -7,7 +7,7 @@ import fxProjectileUrl from '../../art/exports/effects/fx_paint-yellow_projectil
 import fxSplatAUrl from '../../art/exports/effects/fx_paint-yellow_splat-a.webp';
 import fxSplatBUrl from '../../art/exports/effects/fx_paint-yellow_splat-b.webp';
 import { alienName, CREATURES } from '../game/creatures';
-import { apparentTarget, drawTime, MAX_HP, OPPONENT_Y, parallax } from '../game/duel';
+import { apparentTarget, drawTime, MAX_HP, OPPONENT_Y, parallax, recoilOffset } from '../game/duel';
 import { CREATURE_ART, GUN_ART } from './art';
 import { WEAPONS } from '../game/weapons';
 import type { DuelState, HitZone, Pellet, Vec2 } from '../game/types';
@@ -72,6 +72,13 @@ export class GameView {
   private splats: SVGGElement;
   private shadow: SVGEllipseElement;
   private cross: SVGGElement;
+  /** Faint dot where the phone points: the crosshair glides back here after a kick. */
+  private restDot: SVGCircleElement;
+  /** Ring that pops when the gun has settled after a kick. */
+  private readyRing: SVGCircleElement;
+  private wasSettled = true;
+  /** Called when the gun settles after a kick (for the ready click). */
+  onSettled: () => void = () => {};
   private botReloadTag: SVGTextElement;
   private cylSize = 0;
   private fxScene: HTMLElement;
@@ -151,6 +158,8 @@ export class GameView {
     this.botReloadTag = svg('text', { class: 'bot-reload', 'text-anchor': 'middle', 'font-size': 1.3 }, this.opponent);
     this.botReloadTag.textContent = 'RELOADING';
 
+    this.restDot = svg('circle', { r: 0.4, class: 'rest-dot' }, this.svgEl);
+    this.readyRing = svg('circle', { r: 1.3, class: 'ready-ring' }, this.svgEl);
     this.cross = svg('g', { class: 'cross' }, this.svgEl);
     for (const [color, width] of [['rgba(0,0,0,0.55)', 0.42], ['#fff', 0.18]] as const) {
       svg('circle', { r: 1.3, fill: 'none', stroke: color, 'stroke-width': width }, this.cross);
@@ -412,9 +421,31 @@ export class GameView {
     this.opponent.setAttribute('transform', `translate(${t.x} ${GameView.sy(t.y + bob)}) rotate(${lean.toFixed(1)} 0 ${feetY.toFixed(2)})`);
     this.bgLayer.setAttribute('transform', `translate(${parallax(s, BG.parallaxDist)} 0)`);
     this.zones.style.display = this.showZones ? '' : 'none';
-    this.renderViewmodel(s, aim, aimVisible);
+    // Recoil: the crosshair sits where the gun points (phone aim plus the kick still recovering).
+    const def = WEAPONS[s.player.weapon].recoil;
+    const kick = recoilOffset(s, performance.now());
+    const kickSize = Math.hypot(kick.x, kick.y);
+    const settled = !def || kickSize < def.settledAt;
+    const cx = aim.x + kick.x;
+    const cy = aim.y + kick.y;
+    this.renderViewmodel(s, aim, aimVisible, kick);
     this.cross.style.display = aimVisible ? '' : 'none';
-    this.cross.setAttribute('transform', `translate(${aim.x} ${GameView.sy(aim.y)})`);
+    // Kicked: ring grows and turns amber; it shrinks back as the gun recovers.
+    const grow = 1 + Math.min(0.8, kickSize * 0.25);
+    this.cross.setAttribute('transform', `translate(${cx} ${GameView.sy(cy)}) scale(${grow.toFixed(3)})`);
+    this.cross.classList.toggle('kicked', !settled);
+    this.restDot.style.display = aimVisible && !settled ? '' : 'none';
+    this.restDot.setAttribute('cx', String(aim.x));
+    this.restDot.setAttribute('cy', String(GameView.sy(aim.y)));
+    if (settled && !this.wasSettled && aimVisible) {
+      this.readyRing.setAttribute('cx', String(cx));
+      this.readyRing.setAttribute('cy', String(GameView.sy(cy)));
+      this.readyRing.classList.remove('pop');
+      void this.readyRing.getBoundingClientRect();
+      this.readyRing.classList.add('pop');
+      this.onSettled();
+    }
+    this.wasSettled = settled;
     this.svgEl.classList.toggle('dim', s.phase === 'holster' || s.phase === 'ready');
     this.renderSplats(s);
 
@@ -491,7 +522,7 @@ export class GameView {
   }
 
   /** Hand and gun: raised while aiming, lags slightly behind aim movement, tilts with sidestep. */
-  private renderViewmodel(s: DuelState, aim: Vec2, visible: boolean) {
+  private renderViewmodel(s: DuelState, aim: Vec2, visible: boolean, kick: Vec2) {
     const wrap = this.$('g-vm');
     wrap.classList.toggle('hidden', !visible);
     if (!visible) {
@@ -505,6 +536,11 @@ export class GameView {
     this.sway.y += (Math.max(-30, Math.min(30, d.y * 12)) - this.sway.y) * 0.2;
     // The art is already drawn at an aiming angle; only add the sidestep tilt.
     wrap.style.transform = `translate(${this.sway.x.toFixed(1)}px, ${this.sway.y.toFixed(1)}px) rotate(${(s.player.lean * 5).toFixed(1)}deg)`;
+    // Recoil guns: the gun rises with the kick and eases back with the crosshair.
+    const vmk = this.$('g-vmk');
+    vmk.style.transform = WEAPONS[s.player.weapon].recoil
+      ? `translate(${(kick.x * 1.5).toFixed(2)}%, ${(-kick.y * 1.8).toFixed(2)}%) rotate(${(-kick.y * 3.5).toFixed(2)}deg)`
+      : '';
   }
 
   private renderResult(s: DuelState) {

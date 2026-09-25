@@ -3,7 +3,7 @@ import { moveBot } from './bot';
 import { ALIENS, CREATURES, DEFAULT_CREATURE } from './creatures';
 import { between } from './rng';
 import type { Action, DuelConfig, DuelState, EmptyReason, Effect, HitZone, Loadout, Pellet, Vec2 } from './types';
-import { DEFAULT_WEAPON, WEAPONS } from './weapons';
+import { DEFAULT_WEAPON, WEAPONS, type RecoilDef } from './weapons';
 
 export const MAX_HP = 100;
 
@@ -90,6 +90,29 @@ export function hitTest(creature: string, target: Vec2, aim: Vec2): HitZone {
 
 export const DEFAULT_LOADOUT: Loadout = { creature: DEFAULT_CREATURE, weapon: DEFAULT_WEAPON };
 
+/**
+ * How far recoil has moved the player's crosshair from where the phone points, at time `t`:
+ * the kick holds briefly after a shot, then glides back to zero.
+ */
+export function recoilOffset(s: DuelState, t: number): Vec2 {
+  const r = s.player.recoil;
+  const def = WEAPONS[s.player.weapon].recoil;
+  if (!def || r.at == null) return { x: 0, y: 0 };
+  const e = t - r.at - def.recoveryDelayMs;
+  const k = e <= 0 ? 1 : Math.exp(-e / def.recoveryTauMs);
+  return { x: r.x * k, y: r.y * k };
+}
+
+/** Adds one shot's kick: up, plus a sideways step from the pattern; quick strings kick harder. */
+function addKick(s: DuelState, def: RecoilDef, current: Vec2, settled: boolean, now: number) {
+  const r = s.player.recoil;
+  const i = settled ? 0 : r.string;
+  const grow = Math.pow(def.stackGrowth, i);
+  const up = def.kickUp * grow * (1 + between(s, -def.variation, def.variation));
+  const side = def.kickSide[Math.min(i, def.kickSide.length - 1)] * grow + between(s, -def.sideVariation, def.sideVariation);
+  s.player.recoil = { x: current.x + side, y: current.y + up, at: now, string: i + 1 };
+}
+
 export function createDuel(config: DuelConfig, seed: number, now: number, loadout: Loadout = DEFAULT_LOADOUT): DuelState {
   const s: DuelState = {
     phase: 'holster',
@@ -106,7 +129,7 @@ export function createDuel(config: DuelConfig, seed: number, now: number, loadou
     lastTickAt: now,
     player: {
       hp: MAX_HP, rounds: WEAPONS[loadout.weapon].capacity, shots: 0, hits: 0, headshots: 0,
-      weapon: loadout.weapon, creature: loadout.creature, reloadNextAt: null, lastShotAt: null, heat: 0, overheated: false, venting: false, x: 0, lean: 0, vx: 0,
+      weapon: loadout.weapon, creature: loadout.creature, reloadNextAt: null, lastShotAt: null, recoil: { x: 0, y: 0, at: null, string: 0 }, heat: 0, overheated: false, venting: false, x: 0, lean: 0, vx: 0,
     },
     bot: {
       hp: MAX_HP, rounds: WEAPONS[DEFAULT_WEAPON].capacity, shots: 0, hits: 0, headshots: 0,
@@ -188,6 +211,12 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
       s.player.shots++;
       s.player.lastShotAt = now;
       {
+        // Recoil: the shot goes where the crosshair is (phone aim plus any kick still recovering),
+        // then this shot adds its own kick.
+        const kick = recoilOffset(s, now);
+        const settled = Math.hypot(kick.x, kick.y) < (gun.recoil?.settledAt ?? Infinity);
+        const shotAim = { x: action.aim.x + kick.x, y: action.aim.y + kick.y };
+        if (gun.recoil) addKick(s, gun.recoil, kick, settled, now);
         const t = apparentTarget(s);
         // Spread guns: blobs in an even sunflower pattern over the spread circle, turned at random.
         const turn = gun.pellets > 1 ? between(s, 0, 2 * Math.PI) : 0;
@@ -196,7 +225,7 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
         for (let i = 0; i < gun.pellets; i++) {
           const r = gun.pellets > 1 ? gun.spread * Math.sqrt((i + 0.5) / gun.pellets) : 0;
           const a = turn + i * GOLDEN_ANGLE;
-          const p = { x: action.aim.x + r * Math.cos(a), y: action.aim.y + r * Math.sin(a) };
+          const p = { x: shotAim.x + r * Math.cos(a), y: shotAim.y + r * Math.sin(a) };
           const zone = hitTest(s.creature, t, p);
           pellets.push({ ...p, zone });
           s.holes.push({ x: p.x - t.x, y: p.y - t.y, zone, t: now, size: gun.pellets > 1 ? 0.45 : 1 });
@@ -208,7 +237,7 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
           if (pellets.some((p) => p.zone === 'face')) s.player.headshots++;
           s.bot.hp = Math.max(0, s.bot.hp - damage);
         }
-        fx.push({ type: 'shot', zone, aim: action.aim, damage, pellets, last: !gun.heat && s.player.rounds === 0 });
+        fx.push({ type: 'shot', zone, aim: shotAim, damage, pellets, last: !gun.heat && s.player.rounds === 0, recoil: kick, settled });
       }
       if (s.bot.hp <= 0) end(s, 'victory', now, fx);
       break;
@@ -251,7 +280,8 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
       }
       s.bot.vx = 0;
       if (s.phase === 'draw' || s.phase === 'aim') {
-        const onTarget = action.aim != null && hitTest(s.creature, apparentTarget(s), action.aim) != null;
+        const k = recoilOffset(s, now);
+        const onTarget = action.aim != null && hitTest(s.creature, apparentTarget(s), { x: action.aim.x + k.x, y: action.aim.y + k.y }) != null;
         moveBot(s, now, dt, onTarget, MOVE.opponentDistance);
       }
       // Heat guns: vent, overheat cool-down, or normal cooling after a pause in firing.

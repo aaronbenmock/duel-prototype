@@ -151,6 +151,12 @@ export class AudioEngine {
     this.tone(1320, 0.12, { type: 'sine', gain: 0.35, delay: 0.08 });
   }
 
+  /** Revolver settled after a kick: a soft hammer click. */
+  cock() {
+    this.noise(0.02, { filter: 'bandpass', freq: 2600, q: 3, gain: 0.35 });
+    this.tone(1800, 0.025, { type: 'square', gain: 0.08 });
+  }
+
   /** Last round fired: a hollow ring after the shot, so you know to reload. */
   lastRound() {
     this.tone(1320, 0.35, { type: 'triangle', gain: 0.35, delay: 0.12 });
