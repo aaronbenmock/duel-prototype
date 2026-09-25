@@ -62,8 +62,9 @@ export class GameView {
   onAgain: () => void = () => {};
   onMenu: () => void = () => {};
   onSettings: () => void = () => {};
-  /** Returns true if the log was copied. */
-  onCopyLog: () => Promise<boolean> = async () => false;
+  /** Flags the round just played for Claude to look at; returns false if cancelled. */
+  onFlag: () => Promise<boolean> = async () => false;
+  onShareLog: () => void = () => {};
   /** Draw the hit-zone overlay on the opponent (testing aid). */
   showZones = false;
   /** Show the on-screen Reload button (off by default; dip or flick the phone instead). */
@@ -120,7 +121,11 @@ export class GameView {
           <p class="sub" id="r-note"></p>
           <div class="grid" id="r-stats"></div>
           <button id="r-again">Again</button>
-          <button class="secondary small-btn" id="r-log">Copy aim log</button>
+          <div class="log-row">
+            <button class="secondary small-btn" id="r-flag">Something felt off</button>
+            <button class="secondary small-btn" id="r-share">Share log</button>
+          </div>
+          <p class="log-status" id="r-logstatus"></p>
         </div>
       </div>`;
     parent.appendChild(this.el);
@@ -171,10 +176,13 @@ export class GameView {
     this.$('r-again').addEventListener('click', () => this.onAgain());
     this.$('r-menu').addEventListener('click', () => this.onMenu());
     this.$('r-settings').addEventListener('click', () => this.onSettings());
-    this.$('r-log').addEventListener('click', () => {
-      const btn = this.$('r-log');
-      void this.onCopyLog().then((ok) => (btn.textContent = ok ? 'Aim log copied' : 'Copy failed'));
+    this.$('r-flag').addEventListener('click', () => {
+      const btn = this.$('r-flag');
+      void this.onFlag().then((ok) => {
+        if (ok) btn.textContent = 'Flagged for Claude';
+      });
     });
+    this.$('r-share').addEventListener('click', () => this.onShareLog());
 
     window.addEventListener('resize', () => this.resize());
     this.resize();
@@ -227,6 +235,11 @@ export class GameView {
     const el = this.$('g-readout');
     el.classList.toggle('hidden', text == null);
     if (text != null && el.textContent !== text) el.textContent = text;
+  }
+
+  /** Line under the log buttons on the results screen (saved / uploaded / waiting). */
+  setLogStatus(text: string) {
+    this.$('r-logstatus').textContent = text;
   }
 
   /** Gun kicks up on a shot. */
@@ -456,7 +469,7 @@ export class GameView {
     panel.classList.add('locked');
     clearTimeout(this.unlockTimer);
     this.unlockTimer = setTimeout(() => panel.classList.remove('locked'), RESULT_LOCK_MS);
-    this.$('r-log').textContent = 'Copy aim log';
+    this.$('r-flag').textContent = 'Something felt off';
 
     const name = SPRITES[s.creature]?.name ?? 'OPPONENT';
     const cap = name.charAt(0) + name.slice(1).toLowerCase();

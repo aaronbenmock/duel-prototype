@@ -62,6 +62,7 @@ export class SettingsView {
         <label class="toggle"><input type="checkbox" id="st-zones"> Show hit areas (testing)</label>
         <p class="help">Tints the opponent: red face (20), yellow body (9), blue arms, ears and legs (5), green tail (2). The hat is a miss.</p>
       </div>
+      <div class="panel" id="st-logs"></div>
       <button data-act="copy">Copy settings</button>
       <button class="secondary" data-act="reset">Reset to defaults</button>
       <button class="secondary" data-act="back">Back</button>`;

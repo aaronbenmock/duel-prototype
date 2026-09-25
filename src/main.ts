@@ -11,6 +11,10 @@ import { BOT_FLIGHT_MS, GameView } from './render/gameView';
 import { mountSensorCheck } from './render/sensorCheck';
 import { SettingsView, type ReadoutRow } from './render/settingsView';
 import { StartView } from './render/startView';
+import { mountLogsPanel } from './render/logsPanel';
+import { logFileName, RoundRecorder, type RoundLog } from './telemetry/roundLog';
+import { shareJson } from './telemetry/share';
+import { deviceId, flush, getKey, getLabel, onStatus, randomId, saveRound, status } from './telemetry/upload';
 import {
   APP_VERSION,
   aimConfig,
@@ -57,12 +61,52 @@ let motionOn = false;
 let lastFlickAt = -Infinity;
 let settingsReturn: 'start' | 'game' = 'start';
 
-// Aim log: raw sensor angles and crosshair position for the current round,
-// so a tracking problem on the phone can be copied and diagnosed.
-const aimLog: string[] = [];
-const LOG_MAX = 1500;
-let logStart = 0;
+// Test log for the current round (events, raw aim samples, errors); saved on the
+// phone and uploaded when the round ends. See src/telemetry.
+const recorder = new RoundRecorder();
+/** The last finished round, kept in memory so Share works straight from the tap. */
+let lastLog: RoundLog | null = null;
 const n1 = (v: number) => v.toFixed(1);
+const logsPanel = mountLogsPanel(settingsView.el.querySelector('#st-logs')!);
+
+function logExtras() {
+  return { sensorHz: sensors.orientationHz(), spikes: aim.spikes, pauses: aim.resumes };
+}
+
+function finishLog(s: DuelState) {
+  const log = recorder.finish(s, performance.now(), logExtras());
+  if (!log) return;
+  lastLog = log;
+  showLogStatus();
+  void saveRound(log);
+}
+
+function showLogStatus() {
+  if (!lastLog) return;
+  const flagged = lastLog.flag ? 'Flagged. ' : '';
+  const where = !getKey()
+    ? 'Log saved on this phone (no upload key).'
+    : status.busy
+      ? 'Log saved. Uploading...'
+      : status.waiting
+        ? `Log saved. ${status.waiting} waiting to upload.`
+        : 'Log saved and uploaded.';
+  game.setLogStatus(flagged + where);
+}
+onStatus(showLogStatus);
+
+// Errors go into the round's log so Claude sees them.
+window.addEventListener('error', (e) => recorder.error(`${e.message} @${e.filename}:${e.lineno}`));
+window.addEventListener('unhandledrejection', (e) => recorder.error(`unhandled: ${String(e.reason)}`));
+// Closing or switching away mid-round saves what was recorded so far.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && duel && duel.phase !== 'over' && recorder.log) {
+    const partial = structuredClone(recorder.log);
+    partial.result = 'abandoned';
+    partial.durationMs = recorder.ms(performance.now());
+    void saveRound(partial);
+  }
+});
 
 function show(screen: 'start' | 'game' | 'sensors' | 'settings') {
   start.show(screen === 'start');
@@ -74,11 +118,17 @@ function show(screen: 'start' | 'game' | 'sensors' | 'settings') {
 
 // ---- Game rules <-> effects ----
 
-function dispatch(action: Action) {
+function dispatch(action: Action, source?: string) {
   if (!duel) return;
+  const wasOver = duel.phase === 'over';
   const { state, effects } = step(duel, action);
   duel = state;
+  if (action.type !== 'tick' && action.type !== 'lean' && action.type !== 'fire') {
+    recorder.event(action.now, action.type, source ?? null);
+  }
+  recorder.effects(action.now, effects);
   effects.forEach(play);
+  if (!wasOver && duel.phase === 'over') finishLog(duel);
 }
 
 function play(e: Effect) {
@@ -141,10 +191,31 @@ function play(e: Effect) {
 }
 
 function newRound() {
-  aimLog.length = 0;
+  if (duel && duel.phase !== 'over') finishLog(duel);
   gestures.reset();
   aim.unlock();
-  duel = createDuel(duelConfig(settings), (Math.random() * 2 ** 32) >>> 0, performance.now());
+  const seed = (Math.random() * 2 ** 32) >>> 0;
+  const now = performance.now();
+  duel = createDuel(duelConfig(settings), seed, now);
+  recorder.start(now, {
+    v: 1,
+    id: randomId(),
+    app: APP_VERSION,
+    device: deviceId(),
+    label: getLabel(),
+    startedAt: new Date().toISOString(),
+    ua: navigator.userAgent,
+    screen: {
+      w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio,
+      homeScreen: window.matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true,
+    },
+    settings: { ...settings },
+    seed,
+    loadout: { alien: 'desert-sage', gun: duel.player.weapon },
+    opponent: { creature: duel.creature, gun: duel.bot.weapon, bot: settings.bot },
+  });
+  recorder.event(now, 'target', n1(duel.target.x), n1(duel.target.y));
+  game.setLogStatus('');
   show('game');
 }
 
@@ -164,7 +235,6 @@ sensors.onOrientation((s) => {
       if (gestures.aimPose) {
         // Lock the aiming reference at the moment of the draw.
         aim.lock(s.q, s.t);
-        logStart = s.t;
         dispatch({ type: 'drawPose', now: s.t });
       }
       break;
@@ -173,16 +243,14 @@ sensors.onOrientation((s) => {
       // Dipping the phone to point at the floor reloads (any time the gun isn't full).
       if (aim.takeDip()) {
         lastFlickAt = s.t;
-        dispatch({ type: 'reload', now: s.t });
+        dispatch({ type: 'reload', now: s.t }, 'dip');
       }
       // Tilt-to-move: sideways tilt becomes a sidestep (skip if unchanged).
       // No stepping while aiming is paused: tilt readings are meaningless then.
       const lean = settings.tiltMove && !aim.suspended ? gestures.leanValue() : 0;
       if (Math.abs(lean - duel.player.lean) > 0.01) dispatch({ type: 'lean', now: s.t, value: lean });
       const flag = aim.suspended ? 'P' : aim.lastWasSpike ? 'S' : aim.settling ? 'C' : '';
-      if (aimLog.length < LOG_MAX) {
-        aimLog.push([Math.round(s.t - logStart), n1(s.alpha), n1(s.beta), n1(s.gamma), n1(aim.raw.x), n1(aim.raw.y), n1(aim.current.x), n1(aim.current.y), flag, n1(gestures.roll), duel?.player.x.toFixed(2) ?? ''].map(String).join(','));
-      }
+      recorder.aimRow([recorder.ms(s.t), n1(s.alpha), n1(s.beta), n1(s.gamma), n1(aim.raw.x), n1(aim.raw.y), n1(aim.current.x), n1(aim.current.y), flag, n1(gestures.roll), duel.player.x.toFixed(2)].map(String).join(','));
       break;
     }
   }
@@ -192,7 +260,7 @@ sensors.onMotion((s) => {
   const flick = gestures.updateMotion(s);
   if (flick) lastFlickAt = s.t;
   // A down-up flick also reloads, at any ammo count (an accidental reload does no harm).
-  if (flick && duel?.phase === 'aim') dispatch({ type: 'reload', now: s.t });
+  if (flick && duel?.phase === 'aim') dispatch({ type: 'reload', now: s.t }, 'flick');
 });
 
 // Game clock. Runs on a timer (not animation frames) so DRAW fires on time
@@ -209,31 +277,29 @@ game.onFire = (t) => {
   // No shooting while the gun is lowered (aiming paused).
   if (duel?.phase === 'aim' && !aim.suspended) {
     const at = aim.at(t - settings.lookbackMs);
-    if (aimLog.length < LOG_MAX) aimLog.push(`${Math.round(t - logStart)},,,,,,${n1(at.x)},${n1(at.y)},F`);
+    recorder.aimRow(`${recorder.ms(t)},,,,,,${n1(at.x)},${n1(at.y)},F`);
     dispatch({ type: 'fire', now: t, aim: at });
+  } else if (duel && duel.phase !== 'over') {
+    // Taps that did nothing (before the draw, or while the gun is lowered).
+    recorder.event(t, 'tapIgnored', duel.phase, aim.suspended ? 'lowered' : null);
   }
 };
-game.onReload = () => dispatch({ type: 'reload', now: performance.now() });
+game.onReload = () => dispatch({ type: 'reload', now: performance.now() }, 'button');
 game.onAgain = () => {
   audio.unlock();
   newRound();
 };
-game.onCopyLog = async () => {
-  const s = duel;
-  const header = [
-    `# High Moon aim log, app ${APP_VERSION}, ${new Date().toISOString()}`,
-    `# ${navigator.userAgent}`,
-    `# result=${s?.result} target=${s ? n1(s.target.x) + ',' + n1(s.target.y) : ''} spikes=${aim.spikes} pauses=${aim.resumes}`,
-    `# settings: ${Object.entries(settings).map(([k, v]) => `${k}=${v}`).join(' ')}`,
-    '# flags: C=re-centering (draw or after a pause), P=aim paused (phone out of aiming pose), S=glitch ignored, F=tap (aim used)',
-    'ms,alpha,beta,gamma,rawX,rawY,x,y,flag,tilt,stepX',
-  ];
-  try {
-    await navigator.clipboard.writeText(header.concat(aimLog).join('\n'));
-    return true;
-  } catch {
-    return false;
-  }
+game.onFlag = async () => {
+  if (!lastLog) return false;
+  const note = window.prompt('What felt off? (optional, a few words)', '');
+  if (note == null) return false;
+  lastLog.flag = { note: note.trim().slice(0, 500), at: new Date().toISOString() };
+  showLogStatus();
+  await saveRound(lastLog);
+  return true;
+};
+game.onShareLog = () => {
+  if (lastLog) void shareJson(`high-moon-${lastLog.startedAt.slice(0, 10)}-${logFileName(lastLog)}`, lastLog);
 };
 game.onSettings = () => openSettings('game');
 game.onMenu = () => {
@@ -267,6 +333,7 @@ start.onStart = () => {
 };
 function openSettings(from: 'start' | 'game') {
   settingsReturn = from;
+  logsPanel.opened();
   show('settings');
 }
 start.onSettings = () => {
@@ -343,6 +410,8 @@ function frame() {
 requestAnimationFrame(frame);
 
 show('start');
+// Upload anything left over from earlier sessions.
+void flush();
 
 // Expose for debugging in the browser console.
 (window as unknown as Record<string, unknown>).__duel = { get state() { return duel; }, dispatch, newRound, gestures, aim };

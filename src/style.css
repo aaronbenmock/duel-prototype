@@ -136,6 +136,12 @@ body.in-game { overflow: hidden; touch-action: none; }
 .result .sub { text-align: center; }
 .result .grid { margin-bottom: 12px; font-size: 1rem; }
 .small-btn { font-size: 0.85rem; padding: 10px; }
+.log-row { display: flex; gap: 8px; }
+.log-row button { margin: 0; }
+.log-status { margin: 6px 0 0; font-size: 0.75rem; color: var(--muted); text-align: center; min-height: 1em; }
+.field { width: 100%; box-sizing: border-box; margin: 6px 0; padding: 10px; font-size: 16px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+.btn-row { display: flex; gap: 8px; }
+.btn-row button { margin: 6px 0; }
 
 /* ---- Results lockout and links ---- */
 .result-links { display: flex; justify-content: space-between; margin: -4px -4px 0; }
