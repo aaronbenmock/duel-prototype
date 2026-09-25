@@ -82,6 +82,45 @@ Don't worry if a name is slightly off. Claude renames files on the way in.
 
 Rough drafts and ideas are welcome too. Label them as drafts, and they'll be used for discussion only.
 
+## Using ChatGPT (or another AI image tool)
+
+That's fine. A few things to know:
+
+- **Paste the rules in, don't link them.** ChatGPT often can't open links reliably. Copy the block
+  below (or this whole guide) into the chat.
+- **AI tools are loose about exact sizes, see-through backgrounds and positions.** Get the design
+  right and don't fight the technical details. Claude can fix canvas size, foot line and background
+  removal afterwards, as it did for the current aliens. Say in your note that it came from ChatGPT.
+- **Characters drift between images.** When you like a design, keep reusing that same image as the
+  reference ("same character as this image, now...").
+- The technical pipeline file (`art/README.md`) is only needed for an AI tool that saves files
+  directly into the project folders.
+
+Paste this into ChatGPT, then describe what you want:
+
+```
+I'm making art for a mobile game called High Moon: a western frontier on an alien planet
+(purple night sky, dusty mauve street, three moons). Characters are cute non-human aliens
+dressed as cowboys. Guns shoot paint; nothing realistically violent.
+Style: thick dark outline, flat colors with light soft shading, chunky shapes. Palette:
+dusk purples and mauves, sage green, dusty blue, golden yellow, coral red, warm leather browns.
+Rules for every image except backgrounds:
+- Transparent background (PNG), only the item itself, no ground, shadow or scribbles.
+- One item per image, nothing cut off, a little margin around it.
+Sizes:
+- Full-body alien: 1024 x 1024 square, facing the viewer, centered, soles of the feet
+  80 px above the bottom edge. Face clearly visible, not hidden by the hat brim.
+- Clothing/accessory for an alien: 1024 x 1024, drawn exactly where it sits on that alien,
+  shown alone.
+- Gun held in the player's own hand: 1024 x 1024, seen from behind, hand entering from the
+  bottom-right corner, barrel pointing up and to the left.
+- Gun held by an opponent: 512 x 512, facing the viewer, pointing toward the camera, no hand.
+- Gun side view: 512 x 512, muzzle pointing right, no hand.
+- Paint effects: 512 x 512, bright yellow with darker yellow outline.
+- Background: 1290 x 2796 portrait, no transparency, horizon about 43% down, street about 54%
+  down with the middle kept clear, no characters, important things in the middle 70% of the width.
+```
+
 ## Before sending: checklist
 
 - [ ] Background is see-through (except backgrounds)
