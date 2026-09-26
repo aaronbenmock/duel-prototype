@@ -43,6 +43,18 @@ CLAUDE.md Handoff, and continues from the first unfinished row.
   fitting previews show the old items around the new ones, and the package itself says hats must replace, not
   stack. Needed from Aaron's art workflow: each alien's aiming sprite (and portrait) without hat, neckwear and
   vest, same canvas and pose, so worn layers can replace them.
+- **Hat fit test (2026-09-26), all 24 rejected.** Each of the 6 hats was scaled (1.0 to 1.5x the old hat's width)
+  and moved (±30 px) over each alien's painted hat, keeping the best fit. Best share of the old hat hidden:
+  82-96% (the old brim shows at the edges); fits that hide the most also cover 6-35% of the face (Violet
+  worst), which would hide hittable area from the player. Promotion needs 100% hidden and no face covered, so
+  hats wait for the clean base bodies. Same reason for neckwear, vests and jackets (they sit over painted ones).
+
+## What's needed to unblock hats and clothing (for Aaron's art workflow)
+For each alien (sage, blue, gold, violet), the aiming-revolver sprite **without hat, bandanna/neckwear and vest**,
+on the same 1024 x 1024 canvas with the same pose, scale and position as
+`art/exports/creatures/creature_desert-<alien>_revolver_front.png` (put them anywhere under `art/drafts/`; Claude
+reviews and tests them). Then the hats and clothing can be fitted per alien and the hit zones regenerated from the
+base body.
 
 ## Versions
 
