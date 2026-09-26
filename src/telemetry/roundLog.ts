@@ -21,6 +21,8 @@ export interface RoundLog {
   opponent: { creature: string; gun: string; bot: string };
   /** Background the round was played on (added in v0.6.10). */
   map?: string;
+  /** Saved gunslinger who played it (added in v0.7.0). */
+  profile?: { id: string; name: string };
   /** 'abandoned' if the page was closed mid-round. */
   result: string | null;
   durationMs: number;

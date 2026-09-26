@@ -264,3 +264,12 @@ button.link {
 .cyl.heat.jam { animation: vent-jam 0.35s ease-in-out; }
 @keyframes vent-perfect { 0% { box-shadow: 0 0 16px 6px #7dff9a; } 100% { box-shadow: none; } }
 @keyframes vent-jam { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+
+/* ---- Gunslingers (profiles) ---- */
+.tip { border-color: var(--accent); }
+.tip p { margin: 0 0 8px; font-size: 0.85rem; line-height: 1.35; }
+.tip .small-btn { width: auto; margin: 0; }
+.profile-bar .field { margin-top: 0; }
+.profile-bar .btn-row button { margin: 0; }
+textarea.field { font-family: var(--mono); font-size: 12px; min-height: 64px; resize: vertical; word-break: break-all; }
+.settings-head .sub { margin: 0; }

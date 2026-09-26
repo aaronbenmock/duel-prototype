@@ -32,6 +32,10 @@ export class SettingsView {
   onReset: () => void = () => {};
   onCopy: () => Promise<boolean> = async () => false;
   onBack: () => void = () => {};
+  /** Returns the backup code for all gunslingers. */
+  onExport: () => string = () => '';
+  /** Restores from a backup code; returns a message for the player. */
+  onImport: (code: string) => string = () => '';
   private values: Settings;
 
   constructor(parent: HTMLElement, initial: Settings) {
@@ -40,7 +44,7 @@ export class SettingsView {
     this.el.className = 'screen settings hidden';
     this.el.innerHTML = `
       <div class="settings-head">
-        <h1>Settings</h1>
+        <div><h1>Settings</h1><p class="sub" id="st-who"></p></div>
         <button class="secondary small-btn" data-act="back">Back</button>
       </div>
       <div class="panel">
@@ -63,6 +67,16 @@ export class SettingsView {
         <p class="help">Tints the opponent: red face (20), yellow body (9), blue arms, ears and legs (5), green tail (2). Grey (hat, braids, gun) is a miss.</p>
       </div>
       <div class="panel" id="st-logs"></div>
+      <div class="panel backup">
+        <h2>Back up gunslingers</h2>
+        <p class="help">Copies a code with every gunslinger on this phone (names, picks, settings). Keep it in Notes; paste it here to restore, on this phone or another.</p>
+        <div class="btn-row">
+          <button class="secondary small-btn" id="st-export">Copy backup code</button>
+          <button class="secondary small-btn" id="st-import">Restore from code</button>
+        </div>
+        <textarea class="field hidden" id="st-code" rows="3" spellcheck="false" autocomplete="off" placeholder="Paste a backup code, then tap Restore again"></textarea>
+        <p class="help" id="st-backup-msg"></p>
+      </div>
       <button data-act="copy">Copy settings</button>
       <button class="secondary" data-act="reset">Reset to defaults</button>
       <button class="secondary" data-act="back">Back</button>`;
@@ -118,6 +132,31 @@ export class SettingsView {
       this.onChange({ ...this.values });
     });
 
+    const code = this.el.querySelector<HTMLTextAreaElement>('#st-code')!;
+    const backupMsg = this.el.querySelector('#st-backup-msg')!;
+    this.el.querySelector('#st-export')!.addEventListener('click', async () => {
+      code.value = this.onExport();
+      code.classList.remove('hidden');
+      let copied = false;
+      try {
+        await navigator.clipboard.writeText(code.value);
+        copied = true;
+      } catch {
+        code.select();
+      }
+      backupMsg.textContent = copied ? 'Backup code copied. Paste it somewhere safe.' : 'Copy the code above and keep it somewhere safe.';
+    });
+    this.el.querySelector('#st-import')!.addEventListener('click', () => {
+      if (code.classList.contains('hidden') || !code.value.trim()) {
+        code.value = '';
+        code.classList.remove('hidden');
+        code.focus();
+        backupMsg.textContent = 'Paste a backup code above, then tap Restore from code again.';
+        return;
+      }
+      backupMsg.textContent = this.onImport(code.value);
+    });
+
     this.el.querySelectorAll<HTMLButtonElement>('[data-act]').forEach((b) =>
       b.addEventListener('click', () => {
         const act = b.dataset.act;
@@ -136,6 +175,11 @@ export class SettingsView {
 
   show(visible: boolean) {
     this.el.classList.toggle('hidden', !visible);
+  }
+
+  /** Whose settings these are. */
+  setProfileName(name: string) {
+    this.el.querySelector('#st-who')!.textContent = `For ${name}`;
   }
 
   setValues(s: Settings) {

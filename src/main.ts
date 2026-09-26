@@ -13,7 +13,7 @@ import { mountSensorCheck } from './render/sensorCheck';
 import { SettingsView, type ReadoutRow } from './render/settingsView';
 import { StartView } from './render/startView';
 import { mountLogsPanel } from './render/logsPanel';
-import { loadLoadout, saveLoadout } from './settings/loadout';
+import { persistStorage, Profiles } from './settings/profiles';
 import { logFileName, RoundRecorder, type RoundLog } from './telemetry/roundLog';
 import { shareJson } from './telemetry/share';
 import { deviceId, flush, getKey, getLabel, onStatus, randomId, saveRound, status } from './telemetry/upload';
@@ -23,8 +23,6 @@ import {
   DEFAULT_SETTINGS,
   duelConfig,
   gestureConfig,
-  loadSettings,
-  saveSettings,
   settingsText,
   type Settings,
 } from './settings/settings';
@@ -34,8 +32,10 @@ const audio = new AudioEngine();
 const awake = new ScreenAwake();
 const gestures = new GestureDetector();
 const aim = new AimTracker();
-let settings: Settings = loadSettings();
-let loadout: Loadout = loadLoadout();
+// Saved gunslingers; the first run turns the pre-v0.7 settings and loadout into "Player 1".
+const profiles = new Profiles();
+let settings: Settings = profiles.active.settings;
+let loadout: Loadout = profiles.loadout();
 
 /** Pushes settings into the aim tracker, gesture detector and sound. */
 function applySettings(s: Settings) {
@@ -54,6 +54,35 @@ const start = new StartView(app, loadout);
 const game = new GameView(document.body);
 const settingsView = new SettingsView(app, settings);
 applySettings(settings);
+
+/** Shows the active gunslinger everywhere (after a switch, create, delete or restore). */
+function applyProfile() {
+  const p = profiles.active;
+  loadout = profiles.loadout();
+  applySettings({ ...p.settings });
+  settingsView.setValues(settings);
+  settingsView.setProfileName(p.name);
+  start.setProfiles(profiles.list, p);
+}
+applyProfile();
+
+// Ask the browser to keep saved data; on iPhone Safari (not from the Home Screen) explain the week limit once.
+void persistStorage();
+const TIP_KEY = 'high-moon-tip-homescreen';
+const standalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true;
+const iOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+try {
+  start.showTip(iOS && !standalone && !localStorage.getItem(TIP_KEY));
+} catch {
+  // Storage blocked: skip the tip.
+}
+start.onTipDone = () => {
+  try {
+    localStorage.setItem(TIP_KEY, '1');
+  } catch {
+    // Storage blocked: the tip comes back next visit.
+  }
+};
 const sensorScreen = document.createElement('div');
 sensorScreen.className = 'hidden';
 app.appendChild(sensorScreen);
@@ -266,6 +295,7 @@ function newRound() {
     loadout: { alien: duel.player.creature, gun: duel.player.weapon },
     opponent: { creature: duel.creature, gun: duel.bot.weapon, bot: settings.bot },
     map: duel.map,
+    profile: { id: profiles.active.id, name: profiles.active.name },
   });
   recorder.event(now, 'target', n1(duel.target.x), n1(duel.target.y));
   game.setLogStatus('');
@@ -385,7 +415,30 @@ function enableMotion(then?: () => void) {
 
 start.onPick = (l) => {
   loadout = l;
-  saveLoadout(l);
+  profiles.update({ alien: l.creature, gun: l.weapon });
+};
+start.onSwitchProfile = (id) => {
+  profiles.switchTo(id);
+  applyProfile();
+};
+start.onNewProfile = () => {
+  const name = window.prompt('Name for the new gunslinger', profiles.nextName());
+  if (name == null) return;
+  profiles.create(name);
+  applyProfile();
+};
+start.onRenameProfile = () => {
+  const name = window.prompt('Rename gunslinger', profiles.active.name);
+  if (name == null) return;
+  profiles.update({ name });
+  applyProfile();
+};
+start.onDeleteProfile = () => {
+  const p = profiles.active;
+  if (profiles.list.length <= 1) return;
+  if (!window.confirm(`Delete ${p.name}? Their picks and settings will be gone from this phone.`)) return;
+  profiles.remove(p.id);
+  applyProfile();
 };
 start.onEnable = () => {
   enableMotion();
@@ -409,12 +462,20 @@ start.onSettings = () => {
 };
 settingsView.onChange = (s) => {
   applySettings(s);
-  saveSettings(s);
+  profiles.update({ settings: { ...s } });
 };
 settingsView.onReset = () => {
   applySettings({ ...DEFAULT_SETTINGS });
-  saveSettings(settings);
+  profiles.update({ settings: { ...settings } });
   settingsView.setValues(settings);
+};
+settingsView.onExport = () => profiles.exportCode();
+settingsView.onImport = (code) => {
+  const r = profiles.importCode(code);
+  if ('error' in r) return r.error;
+  applyProfile();
+  const s = (n: number) => (n === 1 ? '' : 's');
+  return `Restored ${r.restored} gunslinger${s(r.restored)}.` + (r.skipped ? ` ${r.skipped} didn't fit (8 at most): delete some and restore again.` : '');
 };
 settingsView.onCopy = async () => {
   try {

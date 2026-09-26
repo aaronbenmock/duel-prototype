@@ -1,7 +1,8 @@
-// Start screen: logo, alien and gun picker, Enable Motion, Start Duel.
+// Start screen: logo, gunslinger switcher, alien and gun picker, Enable Motion, Start Duel.
 import { ALIENS } from '../game/creatures';
 import type { Loadout } from '../game/types';
 import { WEAPONS } from '../game/weapons';
+import { MAX_PROFILES, type Profile } from '../settings/profiles';
 import { APP_VERSION } from '../settings/settings';
 import { CREATURE_ART, GUN_ART, LOGO_URL } from './art';
 
@@ -12,6 +13,11 @@ export class StartView {
   onSensorCheck: () => void = () => {};
   onSettings: () => void = () => {};
   onPick: (l: Loadout) => void = () => {};
+  onSwitchProfile: (id: string) => void = () => {};
+  onNewProfile: () => void = () => {};
+  onRenameProfile: () => void = () => {};
+  onDeleteProfile: () => void = () => {};
+  onTipDone: () => void = () => {};
   private loadout: Loadout;
   private enableBtn: HTMLButtonElement;
   private statusEl: HTMLElement;
@@ -24,6 +30,19 @@ export class StartView {
       <button class="secondary gear" id="s-settings" aria-label="Settings">&#9881; Settings</button>
       <h1 class="title"><img class="logo" src="${LOGO_URL}" alt="High Moon"></h1>
       <p class="sub">Beta &middot; v${APP_VERSION}</p>
+      <div class="panel tip hidden" id="s-tip">
+        <p><b>Keep your gunslingers:</b> iPhone Safari can clear a website's saved data after about a week without a visit. Add High Moon to your Home Screen (Share, then Add to Home Screen) to keep it, or back up in Settings.</p>
+        <button class="secondary small-btn" id="s-tip-ok">Got it</button>
+      </div>
+      <div class="panel profile-bar">
+        <h2>Gunslinger</h2>
+        <select class="field" id="s-profile" aria-label="Gunslinger"></select>
+        <div class="btn-row">
+          <button class="secondary small-btn" id="s-p-new">New</button>
+          <button class="secondary small-btn" id="s-p-rename">Rename</button>
+          <button class="secondary small-btn" id="s-p-delete">Delete</button>
+        </div>
+      </div>
       <div class="panel picker">
         <h2>Your alien</h2>
         <div class="picks" id="s-aliens">${ALIENS.map((a) => `
@@ -60,6 +79,15 @@ export class StartView {
     this.el.querySelector('#s-start')!.addEventListener('click', () => this.onStart());
     this.el.querySelector('#s-sensors')!.addEventListener('click', () => this.onSensorCheck());
     this.el.querySelector('#s-settings')!.addEventListener('click', () => this.onSettings());
+    const sel = this.el.querySelector<HTMLSelectElement>('#s-profile')!;
+    sel.addEventListener('change', () => this.onSwitchProfile(sel.value));
+    this.el.querySelector('#s-p-new')!.addEventListener('click', () => this.onNewProfile());
+    this.el.querySelector('#s-p-rename')!.addEventListener('click', () => this.onRenameProfile());
+    this.el.querySelector('#s-p-delete')!.addEventListener('click', () => this.onDeleteProfile());
+    this.el.querySelector('#s-tip-ok')!.addEventListener('click', () => {
+      this.showTip(false);
+      this.onTipDone();
+    });
     this.el.querySelectorAll<HTMLButtonElement>('.pick').forEach((b) =>
       b.addEventListener('click', () => {
         if (b.dataset.alien) this.loadout.creature = b.dataset.alien;
@@ -75,6 +103,20 @@ export class StartView {
     this.el.querySelectorAll<HTMLButtonElement>('.pick').forEach((b) =>
       b.classList.toggle('on', b.dataset.alien === this.loadout.creature || b.dataset.gun === this.loadout.weapon),
     );
+  }
+
+  /** Fills the gunslinger switcher and shows the active one's alien and gun. */
+  setProfiles(list: readonly Profile[], active: Profile) {
+    const sel = this.el.querySelector<HTMLSelectElement>('#s-profile')!;
+    sel.replaceChildren(...list.map((p) => new Option(p.name, p.id, false, p.id === active.id)));
+    this.el.querySelector<HTMLButtonElement>('#s-p-new')!.disabled = list.length >= MAX_PROFILES;
+    this.el.querySelector<HTMLButtonElement>('#s-p-delete')!.disabled = list.length <= 1;
+    this.loadout = { creature: active.alien, weapon: active.gun };
+    this.refreshPicks();
+  }
+
+  showTip(visible: boolean) {
+    this.el.querySelector('#s-tip')!.classList.toggle('hidden', !visible);
   }
 
   show(visible: boolean) {
