@@ -17,7 +17,8 @@ import { mountLogsPanel } from './render/logsPanel';
 import { persistStorage, Profiles } from './settings/profiles';
 import { posterHtml } from './render/posterView';
 import { backfillStats } from './stats/backfill';
-import { addRound, type Records, type Stats } from './stats/stats';
+import { addRound, cleanStats, type Records, type Stats } from './stats/stats';
+import { botSkinForSeed, newlyUnlocked, skinOf, wornItem, type Item } from './wardrobe/wardrobe';
 import { logFileName, RoundRecorder, type RoundLog } from './telemetry/roundLog';
 import { shareJson } from './telemetry/share';
 import { deviceId, flush, getKey, getLabel, onStatus, randomId, saveRound, status } from './telemetry/upload';
@@ -67,6 +68,7 @@ function applyProfile() {
   settingsView.setValues(settings);
   settingsView.setProfileName(p.name);
   game.setPaint(p.paint);
+  game.playerSkin = skinOf(p.outfit, p.alien);
   start.setProfiles(profiles.list, p);
   start.setPoster(posterHtml(p));
 }
@@ -129,11 +131,19 @@ function finishLog(s: DuelState) {
   lastLog = log;
   // All-time stats for the gunslinger who played (a round closed mid-duel counts as "left").
   const stats = profiles.active.stats;
-  game.setRecords(recordLines(addRound(stats, log), stats));
+  const before = cleanStats(JSON.parse(JSON.stringify(stats)));
+  const records = addRound(stats, log);
+  game.setRecords([...recordLines(records, stats), ...newlyUnlocked(before, stats).map(unlockLine)]);
   profiles.save();
   start.setPoster(posterHtml(profiles.active));
+  start.setProfiles(profiles.list, profiles.active);
   showLogStatus();
   void saveRound(log);
+}
+
+/** Results-screen line for an item the round unlocked. */
+function unlockLine(it: Item): string {
+  return `Unlocked: ${it.name} (Outfitter)`;
 }
 
 /** Results-screen lines for records the round broke. */
@@ -302,6 +312,8 @@ function newRound() {
   const seed = (Math.random() * 2 ** 32) >>> 0;
   const now = performance.now();
   duel = createDuel(duelConfig(settings), seed, now, loadout);
+  // The bot's look for this round (from the seed, like the map; looks only).
+  game.botSkin = botSkinForSeed(seed, duel.creature);
   recorder.start(now, {
     v: 1,
     id: randomId(),
@@ -316,8 +328,11 @@ function newRound() {
     },
     settings: { ...settings },
     seed,
-    loadout: { alien: duel.player.creature, gun: duel.player.weapon },
-    opponent: { creature: duel.creature, gun: duel.bot.weapon, bot: settings.bot },
+    loadout: {
+      alien: duel.player.creature, gun: duel.player.weapon, skin: game.playerSkin,
+      outfit: { charm: wornItem(profiles.active.outfit, 'charm')?.id ?? null, buckle: wornItem(profiles.active.outfit, 'buckle')?.id ?? null },
+    },
+    opponent: { creature: duel.creature, gun: duel.bot.weapon, bot: settings.bot, skin: game.botSkin },
     map: duel.map,
     profile: { id: profiles.active.id, name: profiles.active.name },
   });
@@ -441,6 +456,19 @@ function enableMotion(then?: () => void) {
 start.onPick = (l) => {
   loadout = l;
   profiles.update({ alien: l.creature, gun: l.weapon });
+  applyProfile();
+};
+start.onWear = (slot, id) => {
+  const p = profiles.active;
+  const outfit = structuredClone(p.outfit);
+  if (slot === 'skin') {
+    if (id) outfit.skins[p.alien] = id;
+    else delete outfit.skins[p.alien];
+  } else {
+    outfit[slot] = id;
+  }
+  profiles.update({ outfit });
+  applyProfile();
 };
 start.onSwitchProfile = (id) => {
   profiles.switchTo(id);

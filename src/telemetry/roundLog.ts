@@ -17,8 +17,9 @@ export interface RoundLog {
   settings: Record<string, unknown>;
   /** Random seed of the round, so the bot's choices can be replayed. */
   seed: number;
-  loadout: { alien: string; gun: string };
-  opponent: { creature: string; gun: string; bot: string };
+  /** skin and outfit added in v0.8.0 (looks only). */
+  loadout: { alien: string; gun: string; skin?: string; outfit?: Record<string, string | null> };
+  opponent: { creature: string; gun: string; bot: string; skin?: string };
   /** Background the round was played on (added in v0.6.10). */
   map?: string;
   /** Saved gunslinger who played it (added in v0.7.0). */

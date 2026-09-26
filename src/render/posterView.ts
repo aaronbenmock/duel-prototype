@@ -4,7 +4,8 @@ import { MAP_NAMES } from '../game/maps';
 import { WEAPONS } from '../game/weapons';
 import type { Profile } from '../settings/profiles';
 import { avg, pct, type Stats, type Tally, winPct } from '../stats/stats';
-import { CREATURE_ART } from './art';
+import { skinOf } from '../wardrobe/wardrobe';
+import { creatureUrl } from './art';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 const secs = (ms: number | null, digits: number) => (ms == null ? '&ndash;' : `${(ms / 1000).toFixed(digits)} s`);
@@ -53,7 +54,7 @@ export function posterHtml(p: Profile): string {
     <div class="poster">
       <div class="poster-head">WANTED</div>
       <div class="poster-sub">for painting aliens</div>
-      <span class="poster-face"><img src="${CREATURE_ART[p.alien].url}" alt=""></span>
+      <span class="poster-face"><img src="${creatureUrl(p.alien, skinOf(p.outfit, p.alien))}" alt=""></span>
       <div class="poster-name">${esc(p.name)}</div>
       <div class="poster-record">${s.wins} W &middot; ${s.losses} L &middot; ${s.fouls} F</div>
       <div class="poster-small">${s.rounds} round${s.rounds === 1 ? '' : 's'}${s.left ? ` &middot; ${s.left} left early` : ''}</div>

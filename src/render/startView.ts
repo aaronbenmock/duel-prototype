@@ -6,7 +6,8 @@ import type { Loadout } from '../game/types';
 import { WEAPONS } from '../game/weapons';
 import { MAX_PROFILES, NAME_MAX, PAINTS, type Profile } from '../settings/profiles';
 import { APP_VERSION } from '../settings/settings';
-import { CREATURE_ART, GUN_ART, LOGO_URL, PAINT_ART, paintCss } from './art';
+import { isUnlocked, itemsFor, ORIGINAL, ruleText, skinOf, SLOTS, type Slot } from '../wardrobe/wardrobe';
+import { CREATURE_ART, creatureUrl, GUN_ART, ITEM_ART, LOGO_URL, PAINT_ART, paintCss } from './art';
 import fxSplatUrl from '../../art/exports/effects/fx_paint-yellow_splat-a.webp';
 
 export type StartTab = 'main' | 'outfit' | 'poster';
@@ -42,6 +43,8 @@ export class StartView {
   onRenameProfile: (name: string) => void = () => {};
   onDeleteProfile: () => void = () => {};
   onPaint: (id: string) => void = () => {};
+  /** Put on an item (null = the original look / nothing in that slot). */
+  onWear: (slot: Slot, id: string | null) => void = () => {};
   onTipDone: () => void = () => {};
   onTab: (tab: StartTab) => void = () => {};
   onUpdate: () => void = () => {};
@@ -103,6 +106,7 @@ export class StartView {
           </div>
           <p class="help">Aliens and paint are looks only: every alien is just as easy to hit. The opponent's paint is always teal. Changes save straight away.</p>
         </div>
+        <div class="panel wardrobe" id="s-wardrobe"></div>
         <button class="secondary small-btn danger" id="s-p-delete">Delete this gunslinger</button>
       </section>
 
@@ -181,6 +185,18 @@ export class StartView {
         this.onPaint(this.paint);
       }),
     );
+    // Wardrobe buttons are rebuilt with the gunslinger, so listen on the panel.
+    $('#s-wardrobe').addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-slot]');
+      if (!b) return;
+      const msg = $('#s-w-msg');
+      if (b.dataset.locked) {
+        msg.textContent = `Locked: ${b.dataset.locked}`;
+        return;
+      }
+      msg.textContent = '';
+      this.onWear(b.dataset.slot as Slot, b.dataset.item || null);
+    });
     this.el.querySelectorAll<HTMLButtonElement>('#s-tabs button').forEach((b) =>
       b.addEventListener('click', () => this.setTab(b.dataset.tab as StartTab)),
     );
@@ -216,12 +232,48 @@ export class StartView {
     $<HTMLButtonElement>('#s-p-delete').disabled = list.length <= 1;
     $('#s-name').textContent = active.name;
     $('#s-meta').innerHTML = `${esc(alienName(active.alien))} &middot; ${esc(WEAPONS[active.gun]?.name ?? '')}`;
-    $<HTMLImageElement>('#s-portrait img').src = CREATURE_ART[active.alien].url;
+    $<HTMLImageElement>('#s-portrait img').src = creatureUrl(active.alien, skinOf(active.outfit, active.alien));
+    // Each alien in the picker wears the skin this gunslinger chose for it.
+    this.el.querySelectorAll<HTMLImageElement>('.pick[data-alien] img').forEach((img) => {
+      const a = (img.closest('.pick') as HTMLElement).dataset.alien!;
+      img.src = creatureUrl(a, skinOf(active.outfit, a));
+    });
+    this.renderWardrobe(active);
     const name = $<HTMLInputElement>('#s-o-name');
     if (document.activeElement !== name) name.value = active.name;
     this.loadout = { creature: active.alien, weapon: active.gun };
     this.paint = active.paint;
     this.refreshPicks();
+  }
+
+  /** Skin and item choices for the active gunslinger; locked items show how to earn them. */
+  private renderWardrobe(p: Profile) {
+    const slots = SLOTS.map((slot) => {
+      const items = itemsFor(slot.id, p.alien);
+      if (!items.length) return '';
+      const worn = slot.id === 'skin' ? skinOf(p.outfit, p.alien) : p.outfit[slot.id];
+      const none = slot.id === 'skin'
+        ? { id: '', name: 'Original', pic: creatureUrl(p.alien, ORIGINAL), on: worn === ORIGINAL, locked: '' }
+        : { id: '', name: 'None', pic: '', on: worn == null, locked: '' };
+      const list = [none, ...items.map((it) => ({
+        id: it.id, name: it.name,
+        pic: slot.id === 'skin' ? creatureUrl(p.alien, it.id.split(':')[1]) : ITEM_ART[it.id] ?? '',
+        on: slot.id === 'skin' ? worn === it.id.split(':')[1] : worn === it.id,
+        locked: isUnlocked(it, p.stats) ? '' : it.unlock ? ruleText(it.unlock, p.stats) : '',
+      }))];
+      return `
+        <h2>${slot.name}</h2>
+        <div class="wear-row">${list.map((x) => `
+          <button class="wear${x.on ? ' on' : ''}${x.locked ? ' locked' : ''}" data-slot="${slot.id}" data-item="${x.id}"${x.locked ? ` data-locked="${esc(x.locked)}"` : ''} aria-label="${esc(x.name)}">
+            <span class="${slot.id === 'skin' ? 'face' : 'thing'}">${x.pic ? `<img src="${x.pic}" alt="">` : '<i>&ndash;</i>'}</span>${esc(x.name)}
+          </button>`).join('')}
+        </div>`;
+    }).join('');
+    this.el.querySelector('#s-wardrobe')!.innerHTML = `
+      <h2 class="wardrobe-title">Wardrobe</h2>
+      ${slots || '<p class="help">Outfits arrive soon.</p>'}
+      <p class="help" id="s-w-msg"></p>
+      <p class="help">Locked items unlock as you play (they're earned from your record on the Wanted Poster). Looks only: nothing you wear changes where you can be hit.</p>`;
   }
 
   /** Wanted Poster contents (HTML built by the stats view). */

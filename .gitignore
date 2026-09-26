@@ -3,3 +3,7 @@ dist/
 .claude/
 *.log
 CLAUDE.md
+
+# Skin package PNGs are rebuilt by art/tools/build_skins.py; the game uses the WebP copies
+art/ready-for-production/high-moon-skins/creatures/*.png
+art/ready-for-production/high-moon-skins/weapons/*.png

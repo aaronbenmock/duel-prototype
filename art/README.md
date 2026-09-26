@@ -40,6 +40,10 @@ ChatGPT drafts may be raster images and may change small details between generat
 
 ## Draft and production-ready handoff
 
+**Since 2026-09-26 Claude Code reviews drafts and promotes the ones that work** (Aaron no longer marks art ready).
+See `ready-for-production/CLAUDE-HANDOFF.md` for the review, test and promotion steps. The text below is the
+original artist-handoff flow, which still applies when a package arrives already approved.
+
 ChatGPT saves every new concept under `drafts/<asset-slug>/`. Nothing in `drafts/` is approved for the game, and the entire folder is ignored by Git except its instructions.
 
 When Aaron approves an asset, ChatGPT creates a separate package at `ready-for-production/<asset-slug>/`. A ready package contains the approved files plus `HANDOFF.md`, with the asset name, status, intended export filenames, dimensions, attachment or animation notes, and any known limitations. The handoff file must contain `STATUS: READY` before Claude Code may integrate it.

@@ -8,7 +8,7 @@ import fxSplatBUrl from '../../art/exports/effects/fx_paint-yellow_splat-b.webp'
 import { alienName, CREATURES } from '../game/creatures';
 import { apparentTarget, currentSpread, drawTime, MAX_HP, OPPONENT_Y, PAINT_FLIGHT_MS, parallax, recoilOffset } from '../game/duel';
 import { MAPS } from '../game/maps';
-import { CREATURE_ART, GUN_ART, MAP_ART, PAINT_ART, paintCss } from './art';
+import { CREATURE_ART, creatureUrl, GUN_ART, MAP_ART, PAINT_ART, paintCss, povUrl } from './art';
 import { WEAPONS } from '../game/weapons';
 import type { DuelState, HitZone, Pellet, Vec2 } from '../game/types';
 
@@ -59,6 +59,9 @@ export class GameView {
   onShareLog: () => void = () => {};
   /** Draw the hit-zone overlay on the opponent (testing aid). */
   showZones = false;
+  /** Skins (looks only): yours for the first-person hand, the bot's for this round. */
+  playerSkin = 'original';
+  botSkin = 'original';
   /** Show the on-screen Reload button (off by default; dip or flick the phone instead). */
   showReloadButton = false;
 
@@ -244,8 +247,9 @@ export class GameView {
 
   /** Places the creature sprite (and its mask and zone overlay) in the opponent group. */
   private setCreature(slug: string) {
-    if (slug === this.creature) return;
-    this.creature = slug;
+    const key = slug + '|' + this.botSkin;
+    if (key === this.creature) return;
+    this.creature = key;
     const c = CREATURES[slug];
     const art = CREATURE_ART[slug];
     const k = c.pxPerUnit;
@@ -254,7 +258,8 @@ export class GameView {
     for (const el of [this.sprite, this.maskImage, this.zones]) {
       for (const [k, v] of Object.entries(box)) el.setAttribute(k, String(v));
     }
-    this.sprite.setAttribute('href', art.url);
+    // Skins keep the sprite's outline exactly, so the zone map and mask fit every skin.
+    this.sprite.setAttribute('href', creatureUrl(slug, this.botSkin));
     this.botReloadTag.setAttribute('y', String((50 - c.torsoPx[1]) / k)); // just above the tallest hat (y 63)
     this.maskImage.setAttribute('href', art.url);
     this.zones.setAttribute('href', art.zonesUrl);
@@ -266,11 +271,11 @@ export class GameView {
 
   /** The player's hand-and-gun image, for their alien and gun. */
   private setGun(creature: string, weapon: string) {
-    const key = creature + '|' + weapon;
+    const key = creature + '|' + weapon + '|' + this.playerSkin;
     if (key === this.gunKey) return;
     this.gunKey = key;
     const art = GUN_ART[weapon];
-    this.gun.src = art.pov[creature] ?? Object.values(art.pov)[0];
+    this.gun.src = povUrl(weapon, creature, this.playerSkin);
     this.$('g-vm').className = 'vm-wrap ' + art.cls + (this.$('g-vm').classList.contains('hidden') ? ' hidden' : '');
   }
 

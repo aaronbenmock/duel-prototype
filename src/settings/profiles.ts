@@ -7,14 +7,15 @@ import { DEFAULT_LOADOUT } from '../game/duel';
 import type { Loadout } from '../game/types';
 import { WEAPONS } from '../game/weapons';
 import { cleanStats, emptyStats, type Stats } from '../stats/stats';
+import { cleanOutfit, emptyOutfit, type Outfit } from '../wardrobe/wardrobe';
 import { randomId } from '../telemetry/upload';
 import { loadLoadout, saveLoadout } from './loadout';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, type Settings } from './settings';
 
 const STORAGE_KEY = 'high-moon-profiles';
 const ACTIVE_KEY = 'high-moon-active-profile';
-/** 1: v0.7.0 (no stats). 2: v0.7.2 adds all-time stats per gunslinger. */
-export const PROFILES_VERSION = 2;
+/** 1: v0.7.0 (no stats). 2: v0.7.2 adds all-time stats. 3: v0.8.0 adds the outfit (wardrobe). */
+export const PROFILES_VERSION = 3;
 export const MAX_PROFILES = 8;
 export const NAME_MAX = 20;
 
@@ -34,6 +35,8 @@ export interface Profile {
   fromLegacy?: boolean;
   /** All-time totals (src/stats/stats.ts). */
   stats: Stats;
+  /** What they wear (src/wardrobe/wardrobe.ts). */
+  outfit: Outfit;
 }
 
 export interface ProfileStore {
@@ -87,6 +90,8 @@ function cleanProfile(p: unknown, i: number): Profile | null {
     ...(o.fromLegacy === true ? { fromLegacy: true } : {}),
     // Version 1 had no stats: they start empty (the round-log backfill fills in what it can).
     stats: cleanStats(o.stats),
+    // Versions 1 and 2 had no outfit: everyone starts in their original look.
+    outfit: cleanOutfit(o.outfit),
   };
 }
 
@@ -105,7 +110,7 @@ export function migrate(raw: unknown, legacy: () => { settings: Settings; loadou
     const { settings, loadout } = legacy();
     profiles.push({
       id: randomId(), name: 'Player 1', alien: loadout.creature, gun: loadout.weapon,
-      settings: { ...settings }, paint: 'yellow', createdAt: new Date().toISOString(), fromLegacy: true, stats: emptyStats(),
+      settings: { ...settings }, paint: 'yellow', createdAt: new Date().toISOString(), fromLegacy: true, stats: emptyStats(), outfit: emptyOutfit(),
     });
   }
   const backfilled = !!raw && typeof raw === 'object' && (raw as ProfileStore).backfilled === true;
@@ -166,7 +171,7 @@ export class Profiles {
     const p: Profile = {
       id: randomId(), name: cleanName(name, this.nextName()),
       alien: DEFAULT_LOADOUT.creature, gun: DEFAULT_LOADOUT.weapon,
-      settings: { ...DEFAULT_SETTINGS }, paint: 'yellow', createdAt: new Date().toISOString(), stats: emptyStats(),
+      settings: { ...DEFAULT_SETTINGS }, paint: 'yellow', createdAt: new Date().toISOString(), stats: emptyStats(), outfit: emptyOutfit(),
     };
     this.store.profiles.push(p);
     this.activeId = p.id;

@@ -124,3 +124,20 @@ export const GUN_ART: Record<string, GunArt> = {
     tint: 'hue-rotate(75deg) saturate(1.4)',
   },
 };
+
+/** Skin pictures by alien, then skin name: the opponent sprite and the first-person hand for each gun. */
+export const SKIN_ART: Record<string, Record<string, { url: string; pov: Record<string, string> }>> = {};
+
+/** The opponent / portrait picture for an alien in a skin ('original' or unknown: the original sprite). */
+export function creatureUrl(alien: string, skin = 'original'): string {
+  return SKIN_ART[alien]?.[skin]?.url ?? CREATURE_ART[alien].url;
+}
+
+/** Your hand and gun in first person, in your alien's skin. */
+export function povUrl(gun: string, alien: string, skin = 'original'): string {
+  const art = GUN_ART[gun];
+  return SKIN_ART[alien]?.[skin]?.pov[gun] ?? art.pov[alien] ?? Object.values(art.pov)[0];
+}
+
+/** Pictures of wearable items other than skins (charms, buckles), by item id (src/wardrobe/wardrobe.ts). */
+export const ITEM_ART: Record<string, string> = {};

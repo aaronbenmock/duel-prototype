@@ -362,3 +362,19 @@ button.danger { color: var(--bad); }
 .records { text-align: center; margin: -4px 0 10px; color: var(--accent); font-weight: 800; font-size: 1rem; }
 .records div { margin: 2px 0; }
 .records div::before { content: '\2605  '; }
+
+/* ---- Wardrobe (v0.8.0) ---- */
+.wardrobe .wardrobe-title { font-size: 0.95rem; color: var(--ink); }
+.wear-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 8px; scrollbar-width: none; }
+.wear {
+  flex: 0 0 78px; margin: 0; padding: 0 0 5px; position: relative; overflow: hidden;
+  background: var(--bg); color: var(--ink); border: 2px solid var(--line); border-radius: 10px;
+  font-size: 0.72rem; font-weight: 700; line-height: 1.15;
+}
+.wear.on { border-color: var(--accent); background: var(--bg-dusk); }
+.wear .face, .wear .thing { display: block; width: 100%; aspect-ratio: 1; overflow: hidden; position: relative; margin-bottom: 3px; }
+.wear .face img { position: absolute; width: 230%; left: -65%; top: -8%; }
+.wear .thing img { width: 100%; height: 100%; object-fit: contain; padding: 8px; box-sizing: border-box; }
+.wear .thing i { display: flex; height: 100%; align-items: center; justify-content: center; font-style: normal; color: var(--muted); font-size: 1.4rem; }
+.wear.locked img { filter: grayscale(1) brightness(0.55); }
+.wear.locked::after { content: '\1F512'; position: absolute; top: 4px; right: 5px; font-size: 0.8rem; }
