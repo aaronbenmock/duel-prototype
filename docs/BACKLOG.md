@@ -16,7 +16,7 @@ Not scheduled. Add a date and who asked for each idea.
 
 - **"New version" notice** (Claude, 2026-09-25): GitHub Pages lets phones cache the page for up to
   10 minutes, so a fresh deploy can look unchanged (Aaron tested v0.5.1 thinking it was v0.5.2). A small
-  check against a version file could show "Update available, tap to reload".
+  check against a version file could show "Update available, tap to reload". **Done in v0.7.3.**
 
 ## Art and content
 - Violet alien: art arrived 2026-09-26 (first-person hands, aiming opponent pose); integration planned as v0.6.10,

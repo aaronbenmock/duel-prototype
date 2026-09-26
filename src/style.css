@@ -350,3 +350,10 @@ button.danger { color: var(--bad); }
 .res.loss { background: var(--bad); color: #1b1530; }
 .res.foul { background: var(--line); color: var(--ink); }
 .poster-note { margin: 4px 2px 12px; }
+
+/* ---- Update available (v0.7.3) ---- */
+.update-bar {
+  position: fixed; left: 12px; right: 12px; z-index: 6; width: auto; max-width: 496px; margin: 0 auto;
+  bottom: calc(78px + env(safe-area-inset-bottom));
+  padding: 12px; font-size: 0.95rem; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}

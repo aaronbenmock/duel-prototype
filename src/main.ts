@@ -8,6 +8,7 @@ import { AimTracker } from './input/aim';
 import { GestureDetector } from './input/gestures';
 import { MotionSensors } from './input/motion';
 import { installRotateOverlay, ScreenAwake, vibrate } from './platform/platform';
+import { reloadToLatest, watchForUpdate } from './platform/update';
 import { BOT_FLIGHT_MS, GameView } from './render/gameView';
 import { mountSensorCheck } from './render/sensorCheck';
 import { SettingsView, type ReadoutRow } from './render/settingsView';
@@ -552,6 +553,13 @@ function frame() {
 requestAnimationFrame(frame);
 
 show('start');
+// A newer build is live: offer a reload (checked on the start screen only, never mid-duel).
+let latest = '';
+watchForUpdate(() => start.visible, (v) => {
+  latest = v;
+  start.showUpdate(v);
+});
+start.onUpdate = () => reloadToLatest(latest);
 // Upload anything left over from earlier sessions.
 void flush();
 

@@ -44,6 +44,7 @@ export class StartView {
   onPaint: (id: string) => void = () => {};
   onTipDone: () => void = () => {};
   onTab: (tab: StartTab) => void = () => {};
+  onUpdate: () => void = () => {};
   private loadout: Loadout = { creature: '', weapon: '' };
   private paint = 'yellow';
   private tab: StartTab = loadTab();
@@ -110,6 +111,8 @@ export class StartView {
         <div id="s-poster"><div class="panel poster-empty"><p>Play a round to start your record.</p></div></div>
       </section>
 
+      <button class="update-bar hidden" id="s-update"></button>
+
       <nav class="tabbar" id="s-tabs">${TABS.map((t) => `
         <button data-tab="${t.id}"><svg viewBox="0 0 24 24" aria-hidden="true">${t.icon}</svg><span>${t.label}</span></button>`).join('')}
       </nav>
@@ -143,6 +146,7 @@ export class StartView {
     this.enableBtn.addEventListener('click', () => this.onEnable());
     $('#s-start').addEventListener('click', () => this.onStart());
     $('#s-settings').addEventListener('click', () => this.onSettings());
+    $('#s-update').addEventListener('click', () => this.onUpdate());
     $('#s-howto').addEventListener('click', () => this.sheet.classList.remove('hidden'));
     this.sheet.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => this.sheet.classList.add('hidden')));
     $('#s-sensors').addEventListener('click', () => {
@@ -230,6 +234,17 @@ export class StartView {
       b.classList.toggle('on', b.dataset.alien === this.loadout.creature || b.dataset.gun === this.loadout.weapon),
     );
     this.el.querySelectorAll<HTMLButtonElement>('.paint').forEach((b) => b.classList.toggle('on', b.dataset.paint === this.paint));
+  }
+
+  /** Shows the "Update available" bar above the tabs. */
+  showUpdate(version: string) {
+    const b = this.el.querySelector('#s-update')!;
+    b.textContent = `Update available (v${version}): tap to reload`;
+    b.classList.remove('hidden');
+  }
+
+  get visible(): boolean {
+    return !this.el.classList.contains('hidden');
   }
 
   showTip(visible: boolean) {

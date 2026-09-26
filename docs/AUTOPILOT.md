@@ -11,8 +11,8 @@ Handoff, and continues from the first unfinished step below.
 | 1 | v0.7.0 | Saved gunslingers (profiles), export/import, storage persist | done, pushed |
 | 2 | v0.7.1 | Tabbed start screen (Main Street / Outfitter / Wanted Poster), paint colour | done, pushed |
 | 3 | v0.7.2 | Stats per profile, backfill from round logs, wanted poster | done, pushed |
-| 4 | v0.7.3 | Optional 1: "Update available" notice | next |
-| 5 | v0.7.4 | Optional 2: records on the results screen | |
+| 4 | v0.7.3 | Optional 1: "Update available" notice | done, pushed |
+| 5 | v0.7.4 | Optional 2: records on the results screen | next |
 | - | - | Any other art folder with `APPROVED.txt` (check between steps) | none found yet |
 
 ## Decisions for Aaron
@@ -51,8 +51,22 @@ Handoff, and continues from the first unfinished step below.
   older logs go to "Player 1" (the profile made from the v0.6 data). Only the logs still on the phone (last 30 to
   80 rounds) can be counted; the uploaded logs in the private repo are not read back.
 - **Backup codes now include the record**, so restoring a gunslinger restores their stats too.
+- **Update check runs only on the start screen** (on load, every 3 minutes, and when the game comes back to the
+  foreground), never mid-duel; the bar sits just above the tab bar. It reloads with `?v=<version>` in the address
+  so GitHub's 10-minute page cache can't serve the old page again.
 
 ## Versions
+
+### v0.7.3 (2026-09-26): "Update available" notice
+The build now writes `version.json`. While the start screen is up, the game compares it with its own version and
+shows "Update available (vX): tap to reload" above the tab bar when a newer build is live.
+Checks: build (version.json = 0.7.3; the build refuses to run if APP_VERSION and package.json differ), type-check,
+browser at 375 x 667 with a stubbed newer version (bar shows above the tabs, no sideways scroll).
+
+Phone test (needs the next deploy after this one to see it for real):
+- [ ] Start screen shows v0.7.3.
+- [ ] After Claude pushes v0.7.4, open the game (or come back to it) on the start screen: within 3 minutes "Update available (v0.7.4)" shows; tapping it loads v0.7.4.
+- [ ] It never shows during a duel.
 
 ### v0.7.2 (2026-09-26): stats and the Wanted Poster
 Totals per gunslinger (profile store version 2; v1 profiles get empty stats, then the one-time backfill),
