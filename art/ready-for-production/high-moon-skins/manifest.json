@@ -1,0 +1,1255 @@
+{
+  "source_package": "art/drafts/high-moon-wardrobe-worlds/v01 (skins, palettes)",
+  "palettes": {
+    "sage": [
+      [
+        "dusty-coral",
+        0.012,
+        0.95,
+        0.98
+      ],
+      [
+        "glacier-blue",
+        0.55,
+        1.0,
+        1.0
+      ],
+      [
+        "moon-lilac",
+        0.755,
+        0.9,
+        0.98
+      ]
+    ],
+    "blue": [
+      [
+        "mint",
+        0.38,
+        0.8,
+        0.97
+      ],
+      [
+        "peach",
+        0.06,
+        0.8,
+        1.0
+      ],
+      [
+        "orchid",
+        0.79,
+        0.75,
+        0.98
+      ]
+    ],
+    "gold": [
+      [
+        "celadon",
+        0.36,
+        0.4,
+        0.86
+      ],
+      [
+        "periwinkle",
+        0.625,
+        0.45,
+        0.9
+      ],
+      [
+        "rose",
+        0.93,
+        0.4,
+        0.9
+      ]
+    ],
+    "violet": [
+      [
+        "seafoam",
+        0.43,
+        0.95,
+        1.02
+      ],
+      [
+        "ice-blue",
+        0.565,
+        0.9,
+        1.06
+      ],
+      [
+        "apricot",
+        0.075,
+        1.05,
+        1.1
+      ]
+    ]
+  },
+  "creatures": [
+    {
+      "id": "creature_desert-sage_dusty-coral_revolver_front",
+      "alien": "desert-sage",
+      "skin": "dusty-coral",
+      "hue_shift": -0.2469,
+      "png": "creatures/creature_desert-sage_dusty-coral_revolver_front.png",
+      "webp": "creatures/creature_desert-sage_dusty-coral_revolver_front.webp",
+      "webp_bytes": 139822,
+      "sha256_png": "c6ee9087ea07f075d01ca6682dd8b853837de004784cb375f190a584207840e5"
+    },
+    {
+      "id": "creature_desert-sage_glacier-blue_revolver_front",
+      "alien": "desert-sage",
+      "skin": "glacier-blue",
+      "hue_shift": 0.2911,
+      "png": "creatures/creature_desert-sage_glacier-blue_revolver_front.png",
+      "webp": "creatures/creature_desert-sage_glacier-blue_revolver_front.webp",
+      "webp_bytes": 140960,
+      "sha256_png": "5cc8178decd588a1b51ff121a7d7ebfae4f5598c523dcf0ef762967542e08c9a"
+    },
+    {
+      "id": "creature_desert-sage_moon-lilac_revolver_front",
+      "alien": "desert-sage",
+      "skin": "moon-lilac",
+      "hue_shift": 0.4961,
+      "png": "creatures/creature_desert-sage_moon-lilac_revolver_front.png",
+      "webp": "creatures/creature_desert-sage_moon-lilac_revolver_front.webp",
+      "webp_bytes": 139556,
+      "sha256_png": "0f73df2603d6706192b7fa63c7a9ec3ac6935700db7a2cbde8b5fa3f6ebd507f"
+    },
+    {
+      "id": "creature_desert-blue_mint_revolver_front",
+      "alien": "desert-blue",
+      "skin": "mint",
+      "hue_shift": -0.1763,
+      "png": "creatures/creature_desert-blue_mint_revolver_front.png",
+      "webp": "creatures/creature_desert-blue_mint_revolver_front.webp",
+      "webp_bytes": 152310,
+      "sha256_png": "e01a61492bbdeec3d7f5126fc742392c21a439f29b6ef2fa63a4078694757238"
+    },
+    {
+      "id": "creature_desert-blue_peach_revolver_front",
+      "alien": "desert-blue",
+      "skin": "peach",
+      "hue_shift": -0.4963,
+      "png": "creatures/creature_desert-blue_peach_revolver_front.png",
+      "webp": "creatures/creature_desert-blue_peach_revolver_front.webp",
+      "webp_bytes": 152678,
+      "sha256_png": "3788c58451369b7a83cada57e8454b003d1013f4e2c880edcac3d1d882378e15"
+    },
+    {
+      "id": "creature_desert-blue_orchid_revolver_front",
+      "alien": "desert-blue",
+      "skin": "orchid",
+      "hue_shift": 0.2337,
+      "png": "creatures/creature_desert-blue_orchid_revolver_front.png",
+      "webp": "creatures/creature_desert-blue_orchid_revolver_front.webp",
+      "webp_bytes": 152316,
+      "sha256_png": "eb82f6517c729595d786b750a4f091b2fc87d113c1474fb33ff21f39b0affd87"
+    },
+    {
+      "id": "creature_desert-gold_celadon_revolver_front",
+      "alien": "desert-gold",
+      "skin": "celadon",
+      "hue_shift": 0.2482,
+      "png": "creatures/creature_desert-gold_celadon_revolver_front.png",
+      "webp": "creatures/creature_desert-gold_celadon_revolver_front.webp",
+      "webp_bytes": 161710,
+      "sha256_png": "08e75fd69ca515141ddaa880aba60781399ab27217bd3d5d4aaed7c92da924ef"
+    },
+    {
+      "id": "creature_desert-gold_periwinkle_revolver_front",
+      "alien": "desert-gold",
+      "skin": "periwinkle",
+      "hue_shift": 0.5132,
+      "png": "creatures/creature_desert-gold_periwinkle_revolver_front.png",
+      "webp": "creatures/creature_desert-gold_periwinkle_revolver_front.webp",
+      "webp_bytes": 162068,
+      "sha256_png": "960fe63c9a83e29e6e80b805fbe469fe88f464b90b50894cd585f35569abdbff"
+    },
+    {
+      "id": "creature_desert-gold_rose_revolver_front",
+      "alien": "desert-gold",
+      "skin": "rose",
+      "hue_shift": 0.8182,
+      "png": "creatures/creature_desert-gold_rose_revolver_front.png",
+      "webp": "creatures/creature_desert-gold_rose_revolver_front.webp",
+      "webp_bytes": 160940,
+      "sha256_png": "bf50c910e65f4d9d9351fb419318bad3cd3e3a6fa9e9801e99f0e03075c02aaa"
+    },
+    {
+      "id": "creature_desert-violet_seafoam_revolver_front",
+      "alien": "desert-violet",
+      "skin": "seafoam",
+      "hue_shift": -0.4629,
+      "png": "creatures/creature_desert-violet_seafoam_revolver_front.png",
+      "webp": "creatures/creature_desert-violet_seafoam_revolver_front.webp",
+      "webp_bytes": 141628,
+      "sha256_png": "69f7894d759db15fabf056e84268c13379c46aa63de44bb3d7dcb9023dc10596"
+    },
+    {
+      "id": "creature_desert-violet_ice-blue_revolver_front",
+      "alien": "desert-violet",
+      "skin": "ice-blue",
+      "hue_shift": -0.3279,
+      "png": "creatures/creature_desert-violet_ice-blue_revolver_front.png",
+      "webp": "creatures/creature_desert-violet_ice-blue_revolver_front.webp",
+      "webp_bytes": 142682,
+      "sha256_png": "e6025b354591a97c8b2065e9d062ebef5bd2e681ac7f8bcd59ffb87e2a474b64"
+    },
+    {
+      "id": "creature_desert-violet_apricot_revolver_front",
+      "alien": "desert-violet",
+      "skin": "apricot",
+      "hue_shift": -0.8179,
+      "png": "creatures/creature_desert-violet_apricot_revolver_front.png",
+      "webp": "creatures/creature_desert-violet_apricot_revolver_front.webp",
+      "webp_bytes": 143048,
+      "sha256_png": "3902087e301594c243ed249dd7e3c8cc5ca8726318e50f59c7101c82da95a947"
+    }
+  ],
+  "hands": [
+    {
+      "id": "weapon_star-revolver_sage-dusty-coral_pov",
+      "gun": "star-revolver",
+      "alien": "desert-sage",
+      "skin": "dusty-coral",
+      "hue_shift": -0.2206,
+      "png": "weapons/weapon_star-revolver_sage-dusty-coral_pov.png",
+      "webp": "weapons/weapon_star-revolver_sage-dusty-coral_pov.webp",
+      "webp_bytes": 64468,
+      "sha256_png": "7c7dd13219656247f10c2c196fef588dc9fccc3275db70671a7ff15901c45d08"
+    },
+    {
+      "id": "weapon_star-revolver_sage-glacier-blue_pov",
+      "gun": "star-revolver",
+      "alien": "desert-sage",
+      "skin": "glacier-blue",
+      "hue_shift": 0.3174,
+      "png": "weapons/weapon_star-revolver_sage-glacier-blue_pov.png",
+      "webp": "weapons/weapon_star-revolver_sage-glacier-blue_pov.webp",
+      "webp_bytes": 64618,
+      "sha256_png": "b3140c5b94ffd72ad06ef9dc741a1882e5f564458b823aedab9b8c8d1bad26f1"
+    },
+    {
+      "id": "weapon_star-revolver_sage-moon-lilac_pov",
+      "gun": "star-revolver",
+      "alien": "desert-sage",
+      "skin": "moon-lilac",
+      "hue_shift": 0.5224,
+      "png": "weapons/weapon_star-revolver_sage-moon-lilac_pov.png",
+      "webp": "weapons/weapon_star-revolver_sage-moon-lilac_pov.webp",
+      "webp_bytes": 64994,
+      "sha256_png": "8ecc83cd64076ff83877411ccd1d5c9904da0486f8c35afce4e94cea4fc15ede"
+    },
+    {
+      "id": "weapon_star-revolver_blue-mint_pov",
+      "gun": "star-revolver",
+      "alien": "desert-blue",
+      "skin": "mint",
+      "hue_shift": -0.201,
+      "png": "weapons/weapon_star-revolver_blue-mint_pov.png",
+      "webp": "weapons/weapon_star-revolver_blue-mint_pov.webp",
+      "webp_bytes": 63876,
+      "sha256_png": "011294adebc304ab1d89420c6831a2bab2247a264d77d63413ef1066402c7aa2"
+    },
+    {
+      "id": "weapon_star-revolver_blue-peach_pov",
+      "gun": "star-revolver",
+      "alien": "desert-blue",
+      "skin": "peach",
+      "hue_shift": -0.521,
+      "png": "weapons/weapon_star-revolver_blue-peach_pov.png",
+      "webp": "weapons/weapon_star-revolver_blue-peach_pov.webp",
+      "webp_bytes": 65122,
+      "sha256_png": "8de5441305db02f39dbb1cf04519547e15402adc4df4a9e106968e7644c6a6b0"
+    },
+    {
+      "id": "weapon_star-revolver_blue-orchid_pov",
+      "gun": "star-revolver",
+      "alien": "desert-blue",
+      "skin": "orchid",
+      "hue_shift": 0.209,
+      "png": "weapons/weapon_star-revolver_blue-orchid_pov.png",
+      "webp": "weapons/weapon_star-revolver_blue-orchid_pov.webp",
+      "webp_bytes": 64328,
+      "sha256_png": "1b9023db3ac1f00fb2d83ddb6d2c6534a8c2f03891f7b32f75019d3332b4e1db"
+    },
+    {
+      "id": "weapon_star-revolver_gold-celadon_pov",
+      "gun": "star-revolver",
+      "alien": "desert-gold",
+      "skin": "celadon",
+      "hue_shift": 0.2448,
+      "png": "weapons/weapon_star-revolver_gold-celadon_pov.png",
+      "webp": "weapons/weapon_star-revolver_gold-celadon_pov.webp",
+      "webp_bytes": 64582,
+      "sha256_png": "c538f7a5515080dc6ce33dd427df09a9691fc6e8f7c56fc265e86e763a1243ca"
+    },
+    {
+      "id": "weapon_star-revolver_gold-periwinkle_pov",
+      "gun": "star-revolver",
+      "alien": "desert-gold",
+      "skin": "periwinkle",
+      "hue_shift": 0.5098,
+      "png": "weapons/weapon_star-revolver_gold-periwinkle_pov.png",
+      "webp": "weapons/weapon_star-revolver_gold-periwinkle_pov.webp",
+      "webp_bytes": 64912,
+      "sha256_png": "b52ec3d63b9054da6b39e04a8d1b84e54ad1ab97cef651df71abce4b0e67c761"
+    },
+    {
+      "id": "weapon_star-revolver_gold-rose_pov",
+      "gun": "star-revolver",
+      "alien": "desert-gold",
+      "skin": "rose",
+      "hue_shift": 0.8148,
+      "png": "weapons/weapon_star-revolver_gold-rose_pov.png",
+      "webp": "weapons/weapon_star-revolver_gold-rose_pov.webp",
+      "webp_bytes": 63826,
+      "sha256_png": "6761bdb4671b25fe2f973bdd6a7b2021b92c781f070d5fed2048b711f256ad6c"
+    },
+    {
+      "id": "weapon_star-revolver_violet-seafoam_pov",
+      "gun": "star-revolver",
+      "alien": "desert-violet",
+      "skin": "seafoam",
+      "hue_shift": -0.3795,
+      "png": "weapons/weapon_star-revolver_violet-seafoam_pov.png",
+      "webp": "weapons/weapon_star-revolver_violet-seafoam_pov.webp",
+      "webp_bytes": 62766,
+      "sha256_png": "d5cab2141f7461949ca35c5f2f2e4b5e9326499d1d0d2a4fbab6c80656f4b8ae"
+    },
+    {
+      "id": "weapon_star-revolver_violet-ice-blue_pov",
+      "gun": "star-revolver",
+      "alien": "desert-violet",
+      "skin": "ice-blue",
+      "hue_shift": -0.2445,
+      "png": "weapons/weapon_star-revolver_violet-ice-blue_pov.png",
+      "webp": "weapons/weapon_star-revolver_violet-ice-blue_pov.webp",
+      "webp_bytes": 63482,
+      "sha256_png": "1e26d157fc3b26d0b152c7e8eab4167a2e2e6a30c01c70974a057eed32aa7dda"
+    },
+    {
+      "id": "weapon_star-revolver_violet-apricot_pov",
+      "gun": "star-revolver",
+      "alien": "desert-violet",
+      "skin": "apricot",
+      "hue_shift": -0.7345,
+      "png": "weapons/weapon_star-revolver_violet-apricot_pov.png",
+      "webp": "weapons/weapon_star-revolver_violet-apricot_pov.webp",
+      "webp_bytes": 64456,
+      "sha256_png": "53a2f48e5a6a9f05a831b8bf1fdbe614dd917af3918d8a04be3eff2fd7a127a5"
+    },
+    {
+      "id": "weapon_wrapped-scattergun_sage-dusty-coral_pov",
+      "gun": "wrapped-scattergun",
+      "alien": "desert-sage",
+      "skin": "dusty-coral",
+      "hue_shift": -0.2278,
+      "png": "weapons/weapon_wrapped-scattergun_sage-dusty-coral_pov.png",
+      "webp": "weapons/weapon_wrapped-scattergun_sage-dusty-coral_pov.webp",
+      "webp_bytes": 82504,
+      "sha256_png": "b8bfd13932b0f4a1452c4c3627071fa4e2eb4802f0878f46d39d7cc73f9362f7"
+    },
+    {
+      "id": "weapon_wrapped-scattergun_sage-glacier-blue_pov",
+      "gun": "wrapped-scattergun",
+      "alien": "desert-sage",
+      "skin": "glacier-blue",
+      "hue_shift": 0.3102,
+      "png": "weapons/weapon_wrapped-scattergun_sage-glacier-blue_pov.png",
+      "webp": "weapons/weapon_wrapped-scattergun_sage-glacier-blue_pov.webp",
+      "webp_bytes": 83348,
+      "sha256_png": "91de13183606eab864e9d7cd696efd39a66216dc0775d925cb171e60eddcd94f"
+    },
+    {
+      "id": "weapon_wrapped-scattergun_sage-moon-lilac_pov",
+      "gun": "wrapped-scattergun",
+      "alien": "desert-sage",
+      "skin": "moon-lilac",
+      "hue_shift": 0.5152,
+      "png": "weapons/weapon_wrapped-scattergun_sage-moon-lilac_pov.png",
+      "webp": "weapons/weapon_wrapped-scattergun_sage-moon-lilac_pov.webp",
+      "webp_bytes": 82866,
+      "sha256_png": "b941ba153aeb5309fbfec1b8459d8c657cb921e1e21964ab4ca586273cfcc925"
+    },
+    {
+      "id": "weapon_wrapped-scattergun_blue-mint_pov",
+      "gun": "wrapped-scattergun",
+      "alien": "desert-blue",
+      "skin": "mint",
+      "hue_shift": -0.2001,
+      "png": "weapons/weapon_wrapped-scattergun_blue-mint_pov.png",
+      "webp": "weapons/weapon_wrapped-scattergun_blue-mint_pov.webp",
+      "webp_bytes": 85620,
+      "sha256_png": "2a07b5f89fac8e49801ac1f010cdcb3647b63c74ecd480f320ea37d63452d355"
+    },
+    {
+      "id": "weapon_wrapped-scattergun_blue-peach_pov",
+      "gun": "wrapped-scattergun",
+      "alien": "desert-blue",
+      "skin": "peach",
+      "hue_shift": -0.5201,
+      "png": "weapons/weapon_wrapped-scattergun_blue-peach_pov.png",
+      "webp": "weapons/weapon_wrapped-scattergun_blue-peach_pov.webp",
+      "webp_bytes": 87412,
+      "sha256_png": "aadcc06c20ee8bcc6e23178469c0201b74a229140a90c5a00c43951a6b60bb9d"
+    },
+    {
+      "id": "weapon_wrapped-scattergun_blue-orchid_pov",
+      "gun": "wrapped-scattergun",
+      "alien": "desert-blue",
+      "skin": "orchid",
+      "hue_shift": 0.2099,
+      "png": "weapons/weapon_wrapped-scattergun_blue-orchid_pov.png",
+      "webp": "weapons/weapon_wrapped-scattergun_blue-orchid_pov.webp",
+      "webp_bytes": 86358,
+      "sha256_png": "a64e1f18c6c1074ad1c21d975a8281da56a556dcd68b9a2f68cb76196964abc5"
+    },
+    {
+      "id": "weapon_wrapped-scattergun_gold-celadon_pov",
+      "gun": "wrapped-scattergun",
+      "alien": "desert-gold",
+      "skin": "celadon",
+      "hue_shift": 0.2372,
+      "png": "weapons/weapon_wrapped-scattergun_gold-celadon_pov.png",
+      "webp": "weapons/weapon_wrapped-scattergun_gold-celadon_pov.webp",
+      "webp_bytes": 87764,
+      "sha256_png": "f3c65d9b69d7a602bf6badab7711f43d5aee000addb9b0ad7aa64bb962d69929"
+    },
+    {
+      "id": "weapon_wrapped-scattergun_gold-periwinkle_pov",
+      "gun": "wrapped-scattergun",
+      "alien": "desert-gold",
+      "skin": "periwinkle",
+      "hue_shift": 0.5022,
+      "png": "weapons/weapon_wrapped-scattergun_gold-periwinkle_pov.png",
+      "webp": "weapons/weapon_wrapped-scattergun_gold-periwinkle_pov.webp",
+      "webp_bytes": 88528,
+      "sha256_png": "a1bbca3650a60603b90197467bfe091a168d5acdbbb3d6a77c96c70ee699270e"
+    },
+    {
+      "id": "weapon_wrapped-scattergun_gold-rose_pov",
+      "gun": "wrapped-scattergun",
+      "alien": "desert-gold",
+      "skin": "rose",
+      "hue_shift": 0.8072,
+      "png": "weapons/weapon_wrapped-scattergun_gold-rose_pov.png",
+      "webp": "weapons/weapon_wrapped-scattergun_gold-rose_pov.webp",
+      "webp_bytes": 87332,
+      "sha256_png": "3c719f4428665a3cf2d41031b1c0a9249ba725049240ef98cbe9b5877bba19db"
+    },
+    {
+      "id": "weapon_wrapped-scattergun_violet-seafoam_pov",
+      "gun": "wrapped-scattergun",
+      "alien": "desert-violet",
+      "skin": "seafoam",
+      "hue_shift": -0.3527,
+      "png": "weapons/weapon_wrapped-scattergun_violet-seafoam_pov.png",
+      "webp": "weapons/weapon_wrapped-scattergun_violet-seafoam_pov.webp",
+      "webp_bytes": 85800,
+      "sha256_png": "79a54e63bde92d25a3155915f5dc4b1ede51a74fafac8417bc00b2a3260b4a20"
+    },
+    {
+      "id": "weapon_wrapped-scattergun_violet-ice-blue_pov",
+      "gun": "wrapped-scattergun",
+      "alien": "desert-violet",
+      "skin": "ice-blue",
+      "hue_shift": -0.2177,
+      "png": "weapons/weapon_wrapped-scattergun_violet-ice-blue_pov.png",
+      "webp": "weapons/weapon_wrapped-scattergun_violet-ice-blue_pov.webp",
+      "webp_bytes": 86374,
+      "sha256_png": "8495058865b1426297dc611321cc77fa3a3a610b45c15d128e4f656735f54f72"
+    },
+    {
+      "id": "weapon_wrapped-scattergun_violet-apricot_pov",
+      "gun": "wrapped-scattergun",
+      "alien": "desert-violet",
+      "skin": "apricot",
+      "hue_shift": -0.7077,
+      "png": "weapons/weapon_wrapped-scattergun_violet-apricot_pov.png",
+      "webp": "weapons/weapon_wrapped-scattergun_violet-apricot_pov.webp",
+      "webp_bytes": 88350,
+      "sha256_png": "3a28590c99a7d7fda7d89f6a1df7c0a8cd6a2bb4eee1b8854d99a9e48c1c18f4"
+    },
+    {
+      "id": "weapon_desert-raygun_sage-dusty-coral_pov",
+      "gun": "desert-raygun",
+      "alien": "desert-sage",
+      "skin": "dusty-coral",
+      "hue_shift": -0.2185,
+      "png": "weapons/weapon_desert-raygun_sage-dusty-coral_pov.png",
+      "webp": "weapons/weapon_desert-raygun_sage-dusty-coral_pov.webp",
+      "webp_bytes": 81900,
+      "sha256_png": "33163d3d30875d4b6170c67d2730458ede2cb79183d4cb227f861ce2646ebb69"
+    },
+    {
+      "id": "weapon_desert-raygun_sage-glacier-blue_pov",
+      "gun": "desert-raygun",
+      "alien": "desert-sage",
+      "skin": "glacier-blue",
+      "hue_shift": 0.3195,
+      "png": "weapons/weapon_desert-raygun_sage-glacier-blue_pov.png",
+      "webp": "weapons/weapon_desert-raygun_sage-glacier-blue_pov.webp",
+      "webp_bytes": 82566,
+      "sha256_png": "9fd6ca625e7e098fe335a90a2c7da347446319097a4dd9a04d411fb7a6ae667e"
+    },
+    {
+      "id": "weapon_desert-raygun_sage-moon-lilac_pov",
+      "gun": "desert-raygun",
+      "alien": "desert-sage",
+      "skin": "moon-lilac",
+      "hue_shift": 0.5245,
+      "png": "weapons/weapon_desert-raygun_sage-moon-lilac_pov.png",
+      "webp": "weapons/weapon_desert-raygun_sage-moon-lilac_pov.webp",
+      "webp_bytes": 83762,
+      "sha256_png": "5fa49812035607d5c8b4b5472bfaeed8602c61205a86c4d055343de466ccbb7b"
+    },
+    {
+      "id": "weapon_desert-raygun_blue-mint_pov",
+      "gun": "desert-raygun",
+      "alien": "desert-blue",
+      "skin": "mint",
+      "hue_shift": -0.2002,
+      "png": "weapons/weapon_desert-raygun_blue-mint_pov.png",
+      "webp": "weapons/weapon_desert-raygun_blue-mint_pov.webp",
+      "webp_bytes": 83132,
+      "sha256_png": "2451a51c897456573b94c753810a7abd4d7dfb8529918984ed1d1107dddb1376"
+    },
+    {
+      "id": "weapon_desert-raygun_blue-peach_pov",
+      "gun": "desert-raygun",
+      "alien": "desert-blue",
+      "skin": "peach",
+      "hue_shift": -0.5202,
+      "png": "weapons/weapon_desert-raygun_blue-peach_pov.png",
+      "webp": "weapons/weapon_desert-raygun_blue-peach_pov.webp",
+      "webp_bytes": 85162,
+      "sha256_png": "a5c2a1541c89dc3fe93b4976ac02e6240f8170d7f5fc38d0a5f2d4661f072a6e"
+    },
+    {
+      "id": "weapon_desert-raygun_blue-orchid_pov",
+      "gun": "desert-raygun",
+      "alien": "desert-blue",
+      "skin": "orchid",
+      "hue_shift": 0.2098,
+      "png": "weapons/weapon_desert-raygun_blue-orchid_pov.png",
+      "webp": "weapons/weapon_desert-raygun_blue-orchid_pov.webp",
+      "webp_bytes": 83612,
+      "sha256_png": "2bcaf6df681376598c4b38d35e90cbc060d030042f66e28dc12200ff4a6c1406"
+    },
+    {
+      "id": "weapon_desert-raygun_gold-celadon_pov",
+      "gun": "desert-raygun",
+      "alien": "desert-gold",
+      "skin": "celadon",
+      "hue_shift": 0.2504,
+      "png": "weapons/weapon_desert-raygun_gold-celadon_pov.png",
+      "webp": "weapons/weapon_desert-raygun_gold-celadon_pov.webp",
+      "webp_bytes": 79044,
+      "sha256_png": "4c12f53ce0339e0e9b7b2f1227ed269c0294ffa0495c77474190d91e280525d9"
+    },
+    {
+      "id": "weapon_desert-raygun_gold-periwinkle_pov",
+      "gun": "desert-raygun",
+      "alien": "desert-gold",
+      "skin": "periwinkle",
+      "hue_shift": 0.5154,
+      "png": "weapons/weapon_desert-raygun_gold-periwinkle_pov.png",
+      "webp": "weapons/weapon_desert-raygun_gold-periwinkle_pov.webp",
+      "webp_bytes": 79776,
+      "sha256_png": "b33c76286f1a929d8ab1b3fabf12122082b0dd8d6ba64b0db580eee5f404c881"
+    },
+    {
+      "id": "weapon_desert-raygun_gold-rose_pov",
+      "gun": "desert-raygun",
+      "alien": "desert-gold",
+      "skin": "rose",
+      "hue_shift": 0.8204,
+      "png": "weapons/weapon_desert-raygun_gold-rose_pov.png",
+      "webp": "weapons/weapon_desert-raygun_gold-rose_pov.webp",
+      "webp_bytes": 78242,
+      "sha256_png": "0213a4fbbca6586fc7aba8360bf9a2649c32a319a96fc4d013191a5e9489b699"
+    },
+    {
+      "id": "weapon_desert-raygun_violet-seafoam_pov",
+      "gun": "desert-raygun",
+      "alien": "desert-violet",
+      "skin": "seafoam",
+      "hue_shift": -0.3644,
+      "png": "weapons/weapon_desert-raygun_violet-seafoam_pov.png",
+      "webp": "weapons/weapon_desert-raygun_violet-seafoam_pov.webp",
+      "webp_bytes": 81802,
+      "sha256_png": "24926a2c62954ff466672de3876bd3e68797e1f3e43b76e21d8af4d5cdba6b93"
+    },
+    {
+      "id": "weapon_desert-raygun_violet-ice-blue_pov",
+      "gun": "desert-raygun",
+      "alien": "desert-violet",
+      "skin": "ice-blue",
+      "hue_shift": -0.2294,
+      "png": "weapons/weapon_desert-raygun_violet-ice-blue_pov.png",
+      "webp": "weapons/weapon_desert-raygun_violet-ice-blue_pov.webp",
+      "webp_bytes": 81234,
+      "sha256_png": "ecfd7c0462bab5b28491dd5e6f866dd25d552c5fe0555a70a7ccee9e761ce743"
+    },
+    {
+      "id": "weapon_desert-raygun_violet-apricot_pov",
+      "gun": "desert-raygun",
+      "alien": "desert-violet",
+      "skin": "apricot",
+      "hue_shift": -0.7194,
+      "png": "weapons/weapon_desert-raygun_violet-apricot_pov.png",
+      "webp": "weapons/weapon_desert-raygun_violet-apricot_pov.webp",
+      "webp_bytes": 81814,
+      "sha256_png": "0cf8e3afe7e69dc97de0192d51dc422094805595a0ccd6cdfc32ec4af75f9ff7"
+    }
+  ],
+  "masks": {
+    "sage": {
+      "pixels": 137354,
+      "removed_regions": []
+    },
+    "blue": {
+      "pixels": 128790,
+      "removed_regions": [
+        {
+          "pixels": 7202,
+          "bbox": [
+            393,
+            176,
+            658,
+            220
+          ],
+          "reason": "hat band (above the head)"
+        }
+      ]
+    },
+    "gold": {
+      "pixels": 124693,
+      "removed_regions": [
+        {
+          "pixels": 665,
+          "bbox": [
+            490,
+            165,
+            541,
+            217
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 1421,
+          "bbox": [
+            393,
+            177,
+            488,
+            217
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 1406,
+          "bbox": [
+            542,
+            177,
+            644,
+            213
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 87,
+          "bbox": [
+            465,
+            188,
+            475,
+            199
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 85,
+          "bbox": [
+            557,
+            188,
+            568,
+            198
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 85,
+          "bbox": [
+            590,
+            194,
+            601,
+            204
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 85,
+          "bbox": [
+            430,
+            195,
+            441,
+            205
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 64,
+          "bbox": [
+            616,
+            201,
+            625,
+            209
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 67,
+          "bbox": [
+            408,
+            202,
+            417,
+            211
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 1330,
+          "bbox": [
+            188,
+            319,
+            229,
+            379
+          ],
+          "reason": "revolver cylinder"
+        },
+        {
+          "pixels": 174,
+          "bbox": [
+            241,
+            328,
+            260,
+            349
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 63,
+          "bbox": [
+            185,
+            354,
+            195,
+            366
+          ],
+          "reason": "revolver cylinder"
+        },
+        {
+          "pixels": 509,
+          "bbox": [
+            237,
+            382,
+            280,
+            484
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 1071,
+          "bbox": [
+            461,
+            413,
+            503,
+            445
+          ],
+          "reason": "tongue"
+        },
+        {
+          "pixels": 141,
+          "bbox": [
+            250,
+            417,
+            270,
+            434
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 192,
+          "bbox": [
+            252,
+            427,
+            269,
+            450
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 172,
+          "bbox": [
+            253,
+            433,
+            273,
+            473
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 295,
+          "bbox": [
+            340,
+            436,
+            376,
+            562
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 251,
+          "bbox": [
+            573,
+            447,
+            652,
+            547
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 194,
+          "bbox": [
+            391,
+            454,
+            451,
+            543
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 231,
+          "bbox": [
+            655,
+            457,
+            673,
+            568
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 131,
+          "bbox": [
+            397,
+            491,
+            407,
+            532
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 146,
+          "bbox": [
+            620,
+            500,
+            633,
+            541
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 58,
+          "bbox": [
+            404,
+            520,
+            414,
+            534
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 54,
+          "bbox": [
+            613,
+            528,
+            621,
+            542
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 54,
+          "bbox": [
+            631,
+            528,
+            638,
+            542
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 55,
+          "bbox": [
+            395,
+            539,
+            402,
+            547
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 54,
+          "bbox": [
+            622,
+            549,
+            630,
+            556
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 53,
+          "bbox": [
+            379,
+            551,
+            391,
+            562
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 566,
+          "bbox": [
+            354,
+            554,
+            412,
+            618
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 51,
+          "bbox": [
+            401,
+            554,
+            406,
+            568
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 51,
+          "bbox": [
+            581,
+            556,
+            589,
+            563
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 51,
+          "bbox": [
+            635,
+            558,
+            647,
+            566
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 53,
+          "bbox": [
+            613,
+            562,
+            621,
+            575
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 53,
+          "bbox": [
+            631,
+            562,
+            640,
+            575
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 561,
+          "bbox": [
+            609,
+            564,
+            664,
+            630
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 51,
+          "bbox": [
+            585,
+            590,
+            593,
+            598
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 57,
+          "bbox": [
+            642,
+            593,
+            657,
+            608
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 267,
+          "bbox": [
+            324,
+            600,
+            436,
+            642
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 54,
+          "bbox": [
+            314,
+            611,
+            324,
+            630
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 54,
+          "bbox": [
+            324,
+            615,
+            333,
+            634
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 260,
+          "bbox": [
+            584,
+            617,
+            690,
+            648
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 63,
+          "bbox": [
+            348,
+            627,
+            356,
+            645
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 63,
+          "bbox": [
+            362,
+            632,
+            369,
+            650
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 55,
+          "bbox": [
+            680,
+            632,
+            687,
+            651
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 65,
+          "bbox": [
+            388,
+            640,
+            394,
+            658
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 51,
+          "bbox": [
+            657,
+            641,
+            663,
+            659
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 52,
+          "bbox": [
+            647,
+            644,
+            652,
+            662
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 57,
+          "bbox": [
+            403,
+            645,
+            408,
+            662
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 55,
+          "bbox": [
+            426,
+            650,
+            430,
+            667
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 57,
+          "bbox": [
+            626,
+            650,
+            631,
+            667
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 58,
+          "bbox": [
+            613,
+            653,
+            617,
+            669
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 4775,
+          "bbox": [
+            310,
+            663,
+            427,
+            771
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 4317,
+          "bbox": [
+            585,
+            674,
+            679,
+            775
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 13921,
+          "bbox": [
+            343,
+            695,
+            671,
+            817
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 116,
+          "bbox": [
+            317,
+            714,
+            327,
+            752
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 52,
+          "bbox": [
+            320,
+            768,
+            326,
+            784
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 235,
+          "bbox": [
+            292,
+            779,
+            311,
+            820
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 9772,
+          "bbox": [
+            328,
+            791,
+            457,
+            921
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 9653,
+          "bbox": [
+            555,
+            794,
+            687,
+            922
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 2810,
+          "bbox": [
+            273,
+            881,
+            370,
+            922
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        },
+        {
+          "pixels": 2889,
+          "bbox": [
+            640,
+            883,
+            741,
+            924
+          ],
+          "reason": "chaps, boots, embroidery or hat band (less saturated than skin)"
+        }
+      ]
+    },
+    "violet": {
+      "pixels": 105494,
+      "removed_regions": []
+    }
+  }
+}

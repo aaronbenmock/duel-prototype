@@ -42,7 +42,20 @@ export const ORIGINAL = 'original';
  * Every wearable item besides each alien's original look. Art arrives in stages; an item is listed only
  * once its pictures are in the game (src/render/art.ts). Ids never change once shipped (outfits store them).
  */
-export const CATALOGUE: Item[] = [];
+export const CATALOGUE: Item[] = [
+  // v0.8.1 skins (palettes from the wardrobe-worlds draft). Per alien: first free, second 5 wins, third 3 in a row.
+  ...([
+    ['desert-sage', [['dusty-coral', 'Dusty coral'], ['glacier-blue', 'Glacier blue'], ['moon-lilac', 'Moon lilac']]],
+    ['desert-blue', [['mint', 'Mint'], ['peach', 'Peach'], ['orchid', 'Orchid']]],
+    ['desert-gold', [['celadon', 'Celadon'], ['periwinkle', 'Periwinkle'], ['rose', 'Rose']]],
+    ['desert-violet', [['seafoam', 'Seafoam'], ['ice-blue', 'Ice blue'], ['apricot', 'Apricot']]],
+  ] as [string, [string, string][]][]).flatMap(([alien, skins]) =>
+    skins.map(([id, name], i): Item => ({
+      id: `${alien}:${id}`, slot: 'skin', name, alien,
+      unlock: [null, { kind: 'wins', n: 5 } as Rule, { kind: 'streak', n: 3 } as Rule][i],
+    })),
+  ),
+];
 
 export const itemById = (id: string | null | undefined) => CATALOGUE.find((i) => i.id === id);
 

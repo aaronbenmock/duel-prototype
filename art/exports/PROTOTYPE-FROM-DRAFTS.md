@@ -110,3 +110,8 @@ Aaron approved (2026-09-26, in the autopilot session request) using the four bac
 - Not used: the same package's accessory originals (hats, neckwear, jackets): unsized concepts with no fitting
   to the flattened sprites.
 - Known limits: upscaled from 852 x 1846 like the others, so a little soft.
+
+## Skins (v0.8.1, 2026-09-26)
+Not a draft prototype: the skin package was reviewed, tested and promoted by Claude into
+`art/ready-for-production/high-moon-skins/` (see its HANDOFF.md and INTEGRATED.md), built from the
+wardrobe-worlds draft palettes applied to the game's own aiming sprites and hands.

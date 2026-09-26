@@ -10,8 +10,8 @@ CLAUDE.md Handoff, and continues from the first unfinished row.
 | Version | What | Status |
 |---|---|---|
 | v0.8.0 | Wardrobe foundation: outfit in each gunslinger (store v3), catalogue + unlock rules from stats, Wardrobe section in the Outfitter, skin-aware pictures, bot skin per round, logs record looks, check script | done |
-| v0.8.1 | Skins: 12 recolours of the aiming sprites + 36 first-person hands, promoted from the wardrobe-worlds draft palettes | next |
-| v0.8.2 | Gun charms in first person | |
+| v0.8.1 | Skins: 12 recolours of the aiming sprites + 36 first-person hands, promoted from the wardrobe-worlds draft palettes | done |
+| v0.8.2 | Gun charms in first person | next |
 | v0.8.3 | Belt buckles on the opponent sprite and portraits (only if they pass the fit tests) | |
 | later | Hats, neckwear, vests, jackets: blocked on clean base bodies (see Art review) | blocked |
 
@@ -23,6 +23,8 @@ CLAUDE.md Handoff, and continues from the first unfinished row.
   (checked pixel for pixel by the build tool), and add-ons are drawn on top without changing any zone.
 - **The bot wears a random skin** from the round seed (original about a third of the time), like the map, so the
   bot's behaviour for a seed doesn't change. Logged as `opponent.skin`.
+- **Skin unlocks:** for each alien, the first skin is free, the second after 5 wins, the third after 3 wins in a row
+  (any alien counts). Only WebP copies are committed (PNG copies are rebuilt by the tool; 25 MB saved).
 - **Skins are per alien** in each gunslinger: switching alien keeps each one's chosen skin.
 
 ## Art review (2026-09-26): high-moon-wardrobe-worlds v01
@@ -38,6 +40,20 @@ CLAUDE.md Handoff, and continues from the first unfinished row.
   vest, same canvas and pose, so worn layers can replace them.
 
 ## Versions
+
+### v0.8.1 (2026-09-26): skins
+Twelve skins (three per alien) in the Outfitter's Wardrobe, with matching first-person hands for all three guns;
+the bot wears a random skin each round. Promoted package: `art/ready-for-production/high-moon-skins/`
+(HANDOFF.md has the review and tests).
+Checks: build, type-check, wardrobe check (12 items), skin build tool's pixel checks, browser at 375 x 667 and
+390 x 844 (Outfitter lists skins with lock hints, portrait and alien picker follow the skin, a duel shows the bot's
+skin and your skinned hand, four skin choices fit without sideways scrolling).
+
+Phone test:
+- [ ] Start screen shows v0.8.1. Outfitter > Wardrobe > Skin lists Original plus three; the first is free, the others say what earns them.
+- [ ] Wear a skin: the Main Street card, the alien picker and the Wanted Poster show it; in a duel your hand is the same colour.
+- [ ] Opponents turn up in different skins; they're easy to see on every map.
+- [ ] Earn one (5 wins, or 3 in a row): the results screen says "Unlocked: ...".
 
 ### v0.8.0 (2026-09-26): wardrobe foundation
 Each gunslinger now has an outfit (skin per alien, charm, buckle), saved with them (profile store version 3;

@@ -125,8 +125,22 @@ export const GUN_ART: Record<string, GunArt> = {
   },
 };
 
-/** Skin pictures by alien, then skin name: the opponent sprite and the first-person hand for each gun. */
+/**
+ * Skin pictures by alien, then skin name: the opponent sprite and the first-person hand for each gun.
+ * Files (v0.8.1, art/ready-for-production/high-moon-skins): creature_<alien>_<skin>_revolver_front.webp and
+ * weapon_<gun>_<short alien>-<skin>_pov.webp. They keep the original outline exactly, so the zone maps fit.
+ */
 export const SKIN_ART: Record<string, Record<string, { url: string; pov: Record<string, string> }>> = {};
+const skinSprites = import.meta.glob<string>('../../art/exports/creatures/creature_desert-*_*_revolver_front.webp', { eager: true, import: 'default', query: '?url' });
+const skinHands = import.meta.glob<string>('../../art/exports/weapons/weapon_*_*-*_pov.webp', { eager: true, import: 'default', query: '?url' });
+for (const [path, url] of Object.entries(skinSprites)) {
+  const m = /creature_(desert-[a-z]+)_([a-z-]+)_revolver_front.webp$/.exec(path);
+  if (m) ((SKIN_ART[m[1]] ??= {})[m[2]] ??= { url, pov: {} }).url = url;
+}
+for (const [path, url] of Object.entries(skinHands)) {
+  const m = /weapon_([a-z-]+?)_([a-z]+)-([a-z-]+)_pov.webp$/.exec(path);
+  if (m) ((SKIN_ART['desert-' + m[2]] ??= {})[m[3]] ??= { url: '', pov: {} }).pov[m[1]] = url;
+}
 
 /** The opponent / portrait picture for an alien in a skin ('original' or unknown: the original sprite). */
 export function creatureUrl(alien: string, skin = 'original'): string {
