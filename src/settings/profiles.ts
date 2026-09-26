@@ -16,8 +16,8 @@ export const PROFILES_VERSION = 1;
 export const MAX_PROFILES = 8;
 export const NAME_MAX = 20;
 
-/** Paint colours for your shots (the art is yellow; the others are CSS hue shifts of it). */
-export const PAINTS = ['yellow'] as const;
+/** Paint colour ids for your shots (looks in PAINT_ART, src/render/art.ts). */
+export const PAINTS = ['yellow', 'orange', 'red', 'pink', 'magenta'] as const;
 
 export interface Profile {
   id: string;

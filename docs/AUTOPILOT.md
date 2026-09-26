@@ -9,8 +9,8 @@ Handoff, and continues from the first unfinished step below.
 |---|---|---|---|
 | 0 | v0.6.11 | Four wardrobe-worlds backgrounds (Aaron approved in the session prompt) | done, pushed |
 | 1 | v0.7.0 | Saved gunslingers (profiles), export/import, storage persist | done, pushed |
-| 2 | v0.7.1 | Tabbed start screen (Main Street / Outfitter / Wanted Poster), paint colour | next |
-| 3 | v0.7.2 | Stats per profile, backfill from round logs, wanted poster | |
+| 2 | v0.7.1 | Tabbed start screen (Main Street / Outfitter / Wanted Poster), paint colour | done, pushed |
+| 3 | v0.7.2 | Stats per profile, backfill from round logs, wanted poster | next |
 | 4 | v0.7.3 | Optional 1: "Update available" notice | |
 | 5 | v0.7.4 | Optional 2: records on the results screen | |
 | - | - | Any other art folder with `APPROVED.txt` (check between steps) | none found yet |
@@ -21,7 +21,6 @@ Handoff, and continues from the first unfinished step below.
 - **All seven maps are in one rotation with equal odds.** Adding maps changes which map a given seed lands on
   (logs store the map by name, so old logs still read correctly). Alternative: weight the new maps or let the
   player pick; change `MAPS` / `mapForSeed` in `src/game/maps.ts`.
-
 - **New gunslingers start from default settings and the default alien and gun**, not a copy of the current
   one. Alternative: copy the active gunslinger's settings (same phone, so sensor settings may carry over);
   change `Profiles.create` in `src/settings/profiles.ts`.
@@ -34,7 +33,36 @@ Handoff, and continues from the first unfinished step below.
   going back to v0.6.x still works.
 - **The Home Screen tip shows only on iPhone/iPad Safari outside Home Screen mode**, once ("Got it").
 
+- **Tab names as in the brief:** Main Street, Outfitter, Wanted Poster (rename in `TABS`, `src/render/startView.ts`).
+- **"How to play" is a button top-left** (opposite Settings) that opens a sheet with the rules and Sensor check;
+  a button under Draw! fell below the tab bar on a 375 x 667 phone. **"Start Duel" is now "Draw!"**.
+- **Rename and Delete moved to the Outfitter** (name field saves when you leave it; Delete sits at the bottom).
+  Main Street keeps the switcher and **+ New**.
+- **Paint colours:** yellow (default), orange, red, pink, magenta. CSS can only shift the yellow art's hue while
+  keeping its brightness, so a true purple or dark red isn't possible without new art; these were measured in the
+  browser to stay apart from each other and far from the bot's teal. **With any colour but yellow, the raygun's
+  bolts are your colour instead of green** (mixing the two gave muddy olive and brown). Yellow + raygun stays
+  green as before. Change in `PAINT_ART` (`src/render/art.ts`) and `shotTint` (`src/render/gameView.ts`).
+
 ## Versions
+
+### v0.7.1 (2026-09-26): tabbed start screen and paint colour
+Bottom tab bar: **Main Street** (logo, gunslinger card with portrait, name, alien and gun; switcher and + New;
+Enable Motion; big **Draw!**), **Outfitter** (name, alien, gun, paint colour, delete), **Wanted Poster**
+("Play a round to start your record" until v0.7.2). The last tab is remembered. How to play (with Sensor
+check) opens as a sheet from the top-left button. Your paint colour tints your flying paint, impacts and the
+splats on the opponent (an SVG filter with the same shift).
+Checks: build, type-check, browser at 375 x 667 and 390 x 844 (no sideways scroll; Main Street fits without
+scrolling at 375 x 667), paint saved per gunslinger, splat filter applied in a duel, Menu from results returns
+to the tabs, sheet opens and closes.
+
+Phone test:
+- [ ] Start screen shows v0.7.1 with three tabs at the bottom; your gunslinger's card shows the right alien and gun.
+- [ ] Everything on Main Street fits without scrolling; Draw! starts a duel as Start Duel did.
+- [ ] Outfitter: change name (tap Done), alien, gun and paint; go back to Main Street, the card matches; switch gunslinger and back, each keeps its own.
+- [ ] In a duel your paint (and the splats on the opponent) is your colour and never looks like the bot's teal; with yellow + raygun, bolts are still green.
+- [ ] Close and reopen the game: it opens on the tab you last used.
+- [ ] How to play (top-left) opens the rules; Sensor check still works from there.
 
 ### v0.7.0 (2026-09-26): saved gunslingers
 Up to 8 gunslingers per phone (name, alien, gun, settings; paint colour is stored for v0.7.1). Switcher with

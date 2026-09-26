@@ -8,7 +8,7 @@ import fxSplatBUrl from '../../art/exports/effects/fx_paint-yellow_splat-b.webp'
 import { alienName, CREATURES } from '../game/creatures';
 import { apparentTarget, currentSpread, drawTime, MAX_HP, OPPONENT_Y, PAINT_FLIGHT_MS, parallax, recoilOffset } from '../game/duel';
 import { MAPS } from '../game/maps';
-import { CREATURE_ART, GUN_ART, MAP_ART } from './art';
+import { CREATURE_ART, GUN_ART, MAP_ART, PAINT_ART, paintCss } from './art';
 import { WEAPONS } from '../game/weapons';
 import type { DuelState, HitZone, Pellet, Vec2 } from '../game/types';
 
@@ -62,6 +62,11 @@ export class GameView {
   /** Show the on-screen Reload button (off by default; dip or flick the phone instead). */
   showReloadButton = false;
 
+  /** Your paint colour (CSS filter for the flying paint; SVG filter for splats on the opponent). */
+  private paintFilter = '';
+  private paintHue: SVGFEColorMatrixElement;
+  private paintSat: SVGFEColorMatrixElement;
+  private paintBright: SVGFEFuncRElement[] = [];
   private svgEl: SVGSVGElement;
   private bgLayer: SVGGElement;
   private bgImage: SVGImageElement;
@@ -149,6 +154,12 @@ export class GameView {
     svg('feColorMatrix', { type: 'matrix', values: '0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0' }, white);
     const mask = svg('mask', { id: 'creature-mask', maskUnits: 'userSpaceOnUse', x: -50, y: -50, width: 100, height: 100 }, defs);
     this.maskImage = svg('image', { filter: 'url(#to-white)' }, mask);
+    // Your paint colour for splats on the opponent (same shift as paintCss).
+    const tint = svg('filter', { id: 'paint-tint', 'color-interpolation-filters': 'sRGB' }, defs);
+    this.paintHue = svg('feColorMatrix', { type: 'hueRotate', values: '0' }, tint);
+    this.paintSat = svg('feColorMatrix', { type: 'saturate', values: '1' }, tint);
+    const bright = svg('feComponentTransfer', {}, tint);
+    for (const fn of ['feFuncR', 'feFuncG', 'feFuncB'] as const) this.paintBright.push(svg(fn, { type: 'linear', slope: 1 }, bright) as SVGFEFuncRElement);
 
     this.bgLayer = svg('g', {}, this.svgEl);
     this.bgImage = svg('image', { href: MAP_ART[this.map].url, preserveAspectRatio: 'none' }, this.bgLayer);
@@ -358,12 +369,27 @@ export class GameView {
     anim.onfinish = () => el.remove();
   }
 
+  /** Your paint colour (an id in PAINT_ART). */
+  setPaint(id: string) {
+    const p = PAINT_ART[id] ?? PAINT_ART.yellow;
+    this.paintFilter = paintCss(id);
+    this.paintHue.setAttribute('values', String(p.hue));
+    this.paintSat.setAttribute('values', String(p.sat));
+    for (const fn of this.paintBright) fn.setAttribute('slope', String(p.bright));
+    this.splatKey = '';
+  }
+
+  /** Your paint colour, or the gun's own colour (raygun green) with the default yellow. */
+  private shotTint(weapon: string): string {
+    return this.paintFilter || (GUN_ART[weapon].tint ?? '');
+  }
+
   /** Your shot: paint bursts from the muzzle, flies to the crosshair point and splats. */
   playerShot(zone: HitZone, aim: Vec2, damage: number, weapon: string, pellets: Pellet[], travelMs = 0, charged = false) {
     // Travelling bolts (raygun): a slower, tinted bolt; the result shows when it lands (boltHit).
     const bolt = travelMs > 0;
     const flight = bolt ? travelMs : FLIGHT_MS;
-    const tint = GUN_ART[weapon].tint ?? '';
+    const tint = this.shotTint(weapon);
     const r = this.gun.getBoundingClientRect();
     const muzzle = GUN_ART[weapon].muzzle;
     const from = { x: r.left + muzzle.x * r.width, y: r.top + muzzle.y * r.height };
@@ -390,7 +416,7 @@ export class GameView {
         { opacity: 1, transform: `rotate(${Math.random() * 360}deg) scale(0.3)` },
         { opacity: 1, transform: 'scale(1)', offset: 0.35 },
         { opacity: 0, transform: 'scale(1.15)' },
-      ], 380, { delay: FLIGHT_MS });
+      ], 380, { delay: FLIGHT_MS, filter: this.paintFilter });
     }
     if (bolt) return;
     if (zone) this.floatText(`${ZONE_LABEL[zone]} ${damage}`, to, zone === 'face' ? 'crit' : '', FLIGHT_MS);
@@ -405,7 +431,7 @@ export class GameView {
       { opacity: 1, transform: `rotate(${Math.random() * 360}deg) scale(0.3)` },
       { opacity: 1, transform: 'scale(1)', offset: 0.35 },
       { opacity: 0, transform: 'scale(1.15)' },
-    ], 380, { filter: GUN_ART[weapon].tint ?? '' });
+    ], 380, { filter: this.shotTint(weapon) });
     if (zone) this.floatText(`${ZONE_LABEL[zone]} ${damage}`, at, zone === 'face' ? 'crit' : '', 0);
     else this.floatText('MISS', at, 'miss', 0);
   }
@@ -580,7 +606,8 @@ export class GameView {
       const size = ((h.zone === 'face' ? 218 : h.zone === 'torso' ? 180 : 140) * h.size) / CREATURES[s.creature].pxPerUnit;
       const rot = (i * 137 + Math.round(h.x * 50)) % 360;
       const g = svg('g', { transform: `translate(${h.x} ${GameView.sy(h.y)}) rotate(${rot})` }, this.splats);
-      svg('image', { href: i % 2 ? fxSplatBUrl : fxSplatAUrl, x: -size / 2, y: -size / 2, width: size, height: size }, g);
+      const splat = svg('image', { href: i % 2 ? fxSplatBUrl : fxSplatAUrl, x: -size / 2, y: -size / 2, width: size, height: size }, g);
+      if (this.paintFilter) splat.setAttribute('filter', 'url(#paint-tint)');
     });
   }
 

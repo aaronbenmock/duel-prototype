@@ -50,7 +50,7 @@ function applySettings(s: Settings) {
 const app = document.getElementById('app')!;
 installRotateOverlay();
 
-const start = new StartView(app, loadout);
+const start = new StartView(app);
 const game = new GameView(document.body);
 const settingsView = new SettingsView(app, settings);
 applySettings(settings);
@@ -62,6 +62,7 @@ function applyProfile() {
   applySettings({ ...p.settings });
   settingsView.setValues(settings);
   settingsView.setProfileName(p.name);
+  game.setPaint(p.paint);
   start.setProfiles(profiles.list, p);
 }
 applyProfile();
@@ -427,11 +428,13 @@ start.onNewProfile = () => {
   profiles.create(name);
   applyProfile();
 };
-start.onRenameProfile = () => {
-  const name = window.prompt('Rename gunslinger', profiles.active.name);
-  if (name == null) return;
+start.onRenameProfile = (name) => {
   profiles.update({ name });
   applyProfile();
+};
+start.onPaint = (paint) => {
+  profiles.update({ paint });
+  game.setPaint(paint);
 };
 start.onDeleteProfile = () => {
   const p = profiles.active;

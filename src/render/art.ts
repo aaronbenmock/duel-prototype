@@ -82,6 +82,26 @@ export interface GunArt {
   tint?: string;
 }
 
+/**
+ * Your paint colour (Outfitter). The paint art is yellow (hue 51); the others are filters of it, measured
+ * in the browser (resulting hue): orange 32, red 13, pink 336, magenta 300. The bot's teal is 181.
+ * CSS hue-rotate keeps brightness, so the strong saturate and brightness are needed to reach red and pink.
+ * With a colour other than yellow, the raygun's bolts take your colour instead of its own green.
+ */
+export const PAINT_ART: Record<string, { name: string; hue: number; sat: number; bright: number }> = {
+  yellow: { name: 'Yellow', hue: 0, sat: 1, bright: 1 },
+  orange: { name: 'Orange', hue: -36, sat: 4, bright: 0.9 },
+  red: { name: 'Red', hue: -60, sat: 5, bright: 0.85 },
+  pink: { name: 'Pink', hue: -66, sat: 5, bright: 0.7 },
+  magenta: { name: 'Magenta', hue: -114, sat: 5, bright: 0.85 },
+};
+
+/** CSS filter for a paint colour ('' for the art's own yellow). */
+export function paintCss(id: string): string {
+  const p = PAINT_ART[id];
+  return p && p.hue ? `hue-rotate(${p.hue}deg) saturate(${p.sat}) brightness(${p.bright})` : '';
+}
+
 export const GUN_ART: Record<string, GunArt> = {
   'star-revolver': {
     pov: { 'desert-sage': revolverSageUrl, 'desert-blue': revolverBlueUrl, 'desert-gold': revolverGoldUrl, 'desert-violet': revolverVioletUrl },

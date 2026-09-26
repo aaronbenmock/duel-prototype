@@ -34,7 +34,7 @@ If that doesn't work, go to Settings, then Apps, then Safari, then **Clear Histo
 
 ## How to play
 
-1. On the start screen, pick your alien (Sage, Blue, Gold or Violet) and gun (the phone remembers your pick). Aliens are looks only: every alien is equally easy to hit. Your opponent is one of the other aliens, picked at random each round, and each round is played on one of seven maps at random (desert town at night, moonlit canyon, desert outpost at sunset, salt-flat oasis, lunar mining town, bioluminescent canyon, comet rail station). Maps are looks only too.
+1. The start screen has three tabs at the bottom: **Main Street** (your gunslinger, Enable Motion and **Draw!** to start a duel; How to play is top-left), **Outfitter** (name, alien, gun and paint colour; changes save straight away) and **Wanted Poster** (your record). In the Outfitter, pick your alien (Sage, Blue, Gold or Violet), gun, and paint colour (yellow, orange, red, pink or magenta; the opponent's paint is always teal). Aliens are looks only: every alien is equally easy to hit. Your opponent is one of the other aliens, picked at random each round, and each round is played on one of seven maps at random (desert town at night, moonlit canyon, desert outpost at sunset, salt-flat oasis, lunar mining town, bioluminescent canyon, comet rail station). Maps are looks only too.
 1. Tap **Start Duel**. Hang the phone at your hip, top pointing at the floor, and hold still until you hear the ready click.
 2. Wait for the loud **DRAW** sound. Moving before it is a foul.
 3. Raise the phone upright, screen facing you. The crosshair appears.
@@ -55,7 +55,7 @@ Each gun has its own learning curve (simulated against the Normal bot, time to w
 
 ## Gunslingers (saved players)
 
-Up to 8 gunslingers per phone, each with its own name, alien, gun and settings. Switch, add (**New**), **Rename** or **Delete** at the top of the start screen (the last one can't be deleted). Updating from v0.6 turns your existing picks and settings into "Player 1".
+Up to 8 gunslingers per phone, each with its own name, alien, gun, paint colour and settings. Switch or add one (**+ New**) on Main Street; rename or delete in the Outfitter (the last one can't be deleted). Updating from v0.6 turns your existing picks and settings into "Player 1".
 
 - **Keep them safe:** iPhone Safari can clear a website's saved data after about a week without a visit. Add the game to your Home Screen (Share, then Add to Home Screen) to keep it.
 - **Back up:** Settings > Back up gunslingers > **Copy backup code**, and keep the code in Notes. **Restore from code** puts them back (a gunslinger already on the phone is replaced by its backed-up copy; others are added while there's room).

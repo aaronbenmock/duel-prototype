@@ -273,3 +273,46 @@ button.link {
 .profile-bar .btn-row button { margin: 0; }
 textarea.field { font-family: var(--mono); font-size: 12px; min-height: 64px; resize: vertical; word-break: break-all; }
 .settings-head .sub { margin: 0; }
+
+/* ---- Start screen tabs (v0.7.1) ---- */
+.screen.start { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+.start .title { margin-top: 2.6rem; }
+.start .title .logo { width: min(70vw, 300px, 30vh * 1.52); }
+.page-title { margin-top: 0.9rem; padding-right: 120px; }
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+  display: flex; max-width: 520px; margin: 0 auto;
+  padding: 6px 8px max(8px, env(safe-area-inset-bottom));
+  background: rgba(27, 21, 48, 0.96); border-top: 1px solid var(--line);
+}
+.tabbar button {
+  flex: 1; margin: 0; padding: 6px 2px; background: none; border-radius: 10px;
+  color: var(--muted); font-size: 0.72rem; font-weight: 700;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+}
+.tabbar svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tabbar button.on { color: var(--accent); background: var(--panel); }
+.slinger-row { display: flex; align-items: center; gap: 12px; }
+.portrait { flex: none; width: 76px; height: 76px; border-radius: 12px; overflow: hidden; position: relative; background: var(--bg); border: 2px solid var(--accent); }
+.portrait img { position: absolute; width: 230%; left: -65%; top: -8%; }
+.slinger-text { min-width: 0; }
+.slinger-name { font-size: 1.35rem; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.slinger-meta { color: var(--muted); font-size: 0.9rem; margin-top: 2px; }
+.switch-row { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+.switch-row .field { margin: 0; flex: 1; min-width: 0; }
+.switch-row .small-btn { width: auto; margin: 0; white-space: nowrap; }
+button.draw-btn { font-size: 1.5rem; padding: 18px; letter-spacing: 0.06em; }
+.gear.howto-btn { right: auto; left: 12px; }
+.picker .field { margin: 0 0 12px; }
+.paints { display: flex; gap: 8px; margin-bottom: 10px; }
+.paint { flex: 1; margin: 0; padding: 4px; aspect-ratio: 1; max-width: 64px; background: var(--bg); border: 2px solid var(--line); border-radius: 50%; }
+.paint img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.paint.on { border-color: var(--accent); background: var(--bg-dusk); }
+button.danger { color: var(--bad); }
+.poster-empty p { margin: 0.4rem 0; text-align: center; color: var(--muted); }
+.sheet {
+  position: fixed; inset: 0; z-index: 20; overflow-y: auto;
+  background: rgba(27, 21, 48, 0.97);
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+}
+.sheet-body { max-width: 520px; margin: 0 auto; }
