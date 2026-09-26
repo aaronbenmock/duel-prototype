@@ -69,7 +69,7 @@ export class SettingsView {
       <div class="panel" id="st-logs"></div>
       <div class="panel backup">
         <h2>Back up gunslingers</h2>
-        <p class="help">Copies a code with every gunslinger on this phone (names, picks, settings). Keep it in Notes; paste it here to restore, on this phone or another.</p>
+        <p class="help">Copies a code with every gunslinger on this phone (names, picks, settings and records). Keep it in Notes; paste it here to restore, on this phone or another.</p>
         <div class="btn-row">
           <button class="secondary small-btn" id="st-export">Copy backup code</button>
           <button class="secondary small-btn" id="st-import">Restore from code</button>

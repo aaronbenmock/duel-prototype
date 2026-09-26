@@ -7,6 +7,17 @@ export const MAPS = [
   'saltflat-oasis', 'lunar-mining-town', 'bioluminescent-canyon', 'comet-rail-station',
 ];
 
+/** Names for the Wanted Poster. */
+export const MAP_NAMES: Record<string, string> = {
+  'alien-frontier': 'Desert town',
+  'moonlit-canyon': 'Moonlit canyon',
+  'desert-outpost': 'Desert outpost',
+  'saltflat-oasis': 'Salt-flat oasis',
+  'lunar-mining-town': 'Lunar mining town',
+  'bioluminescent-canyon': 'Glowing canyon',
+  'comet-rail-station': 'Comet rail station',
+};
+
 /**
  * The map for a round seed. Hashes the seed instead of drawing from the round's random stream,
  * so the bot's choices for a given seed are the same as before maps existed.

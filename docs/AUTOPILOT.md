@@ -10,8 +10,8 @@ Handoff, and continues from the first unfinished step below.
 | 0 | v0.6.11 | Four wardrobe-worlds backgrounds (Aaron approved in the session prompt) | done, pushed |
 | 1 | v0.7.0 | Saved gunslingers (profiles), export/import, storage persist | done, pushed |
 | 2 | v0.7.1 | Tabbed start screen (Main Street / Outfitter / Wanted Poster), paint colour | done, pushed |
-| 3 | v0.7.2 | Stats per profile, backfill from round logs, wanted poster | next |
-| 4 | v0.7.3 | Optional 1: "Update available" notice | |
+| 3 | v0.7.2 | Stats per profile, backfill from round logs, wanted poster | done, pushed |
+| 4 | v0.7.3 | Optional 1: "Update available" notice | next |
 | 5 | v0.7.4 | Optional 2: records on the results screen | |
 | - | - | Any other art folder with `APPROVED.txt` (check between steps) | none found yet |
 
@@ -43,8 +43,33 @@ Handoff, and continues from the first unfinished step below.
   browser to stay apart from each other and far from the bot's teal. **With any colour but yellow, the raygun's
   bolts are your colour instead of green** (mixing the two gave muddy olive and brown). Yellow + raygun stays
   green as before. Change in `PAINT_ART` (`src/render/art.ts`) and `shotTint` (`src/render/gameView.ts`).
+- **Stats definitions:** win rate = wins / rounds (fouls count as rounds not won). "Hits on the face" = face
+  hits / hits (how many of your hits were face hits); accuracy = hits / shots. Time to win is measured from the
+  DRAW sound (not from the start of the round, which includes the holster wait). A round closed mid-duel counts
+  as "left early" and doesn't break or extend the win streak; the rest of its numbers are ignored.
+- **Backfill ownership:** logs from v0.7.0 and v0.7.1 go to the gunslinger they name (skipped if deleted since);
+  older logs go to "Player 1" (the profile made from the v0.6 data). Only the logs still on the phone (last 30 to
+  80 rounds) can be counted; the uploaded logs in the private repo are not read back.
+- **Backup codes now include the record**, so restoring a gunslinger restores their stats too.
 
 ## Versions
+
+### v0.7.2 (2026-09-26): stats and the Wanted Poster
+Totals per gunslinger (profile store version 2; v1 profiles get empty stats, then the one-time backfill),
+updated when each round ends. Wanted Poster: parchment poster with portrait, name, record (W / L / F), win rate,
+streak (current and best), accuracy, hits on the face, average and fastest draw, average and fastest win; then
+the last 10 rounds and tables by gun, opponent, map and bot difficulty. Maths in `src/stats/stats.ts`, checked by
+`src/dev/statsCheck.ts` (all passed).
+Checks: build, type-check, stats check, browser at 375 x 667 and 390 x 844: v0.7.1 profiles gained stats and the
+backfill added the older logs once (reloading doesn't add them again), fresh v0.6 data backfills into Player 1,
+a live win adds one round and a streak, poster and tables render without sideways scrolling.
+
+Phone test:
+- [ ] Start screen shows v0.7.2. Wanted Poster shows a record built from your recent rounds (roughly your last 30 on this phone), under the gunslinger who played them.
+- [ ] Play a round: the record, streak, draw time and "Last 10" update straight away.
+- [ ] A foul shows as F and resets the streak; closing the game mid-duel shows as "left early".
+- [ ] The numbers look right against what you remember (draw times, fastest win); tell Claude if any look off.
+- [ ] Switch gunslinger: the poster shows theirs.
 
 ### v0.7.1 (2026-09-26): tabbed start screen and paint colour
 Bottom tab bar: **Main Street** (logo, gunslinger card with portrait, name, alien and gun; switcher and + New;

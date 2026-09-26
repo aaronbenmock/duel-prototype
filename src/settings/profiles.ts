@@ -6,13 +6,15 @@ import { CREATURES } from '../game/creatures';
 import { DEFAULT_LOADOUT } from '../game/duel';
 import type { Loadout } from '../game/types';
 import { WEAPONS } from '../game/weapons';
+import { cleanStats, emptyStats, type Stats } from '../stats/stats';
 import { randomId } from '../telemetry/upload';
 import { loadLoadout, saveLoadout } from './loadout';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, type Settings } from './settings';
 
 const STORAGE_KEY = 'high-moon-profiles';
 const ACTIVE_KEY = 'high-moon-active-profile';
-export const PROFILES_VERSION = 1;
+/** 1: v0.7.0 (no stats). 2: v0.7.2 adds all-time stats per gunslinger. */
+export const PROFILES_VERSION = 2;
 export const MAX_PROFILES = 8;
 export const NAME_MAX = 20;
 
@@ -30,11 +32,15 @@ export interface Profile {
   createdAt: string;
   /** Set on the profile made from the pre-v0.7 data: older round logs on this phone belong to it. */
   fromLegacy?: boolean;
+  /** All-time totals (src/stats/stats.ts). */
+  stats: Stats;
 }
 
 export interface ProfileStore {
   version: number;
   profiles: Profile[];
+  /** The one-time stats fill from this phone's round logs has run (saved with the stats it added). */
+  backfilled?: boolean;
 }
 
 function readJson(key: string): unknown {
@@ -79,6 +85,8 @@ function cleanProfile(p: unknown, i: number): Profile | null {
     paint: typeof o.paint === 'string' && (PAINTS as readonly string[]).includes(o.paint) ? o.paint : 'yellow',
     createdAt: typeof o.createdAt === 'string' ? o.createdAt : new Date().toISOString(),
     ...(o.fromLegacy === true ? { fromLegacy: true } : {}),
+    // Version 1 had no stats: they start empty (the round-log backfill fills in what it can).
+    stats: cleanStats(o.stats),
   };
 }
 
@@ -97,10 +105,11 @@ export function migrate(raw: unknown, legacy: () => { settings: Settings; loadou
     const { settings, loadout } = legacy();
     profiles.push({
       id: randomId(), name: 'Player 1', alien: loadout.creature, gun: loadout.weapon,
-      settings: { ...settings }, paint: 'yellow', createdAt: new Date().toISOString(), fromLegacy: true,
+      settings: { ...settings }, paint: 'yellow', createdAt: new Date().toISOString(), fromLegacy: true, stats: emptyStats(),
     });
   }
-  return { version: PROFILES_VERSION, profiles };
+  const backfilled = !!raw && typeof raw === 'object' && (raw as ProfileStore).backfilled === true;
+  return { version: PROFILES_VERSION, profiles, ...(backfilled ? { backfilled } : {}) };
 }
 
 export class Profiles {
@@ -135,6 +144,10 @@ export class Profiles {
     saveLoadout(this.loadout());
   }
 
+  byId(id: string | undefined): Profile | undefined {
+    return this.store.profiles.find((p) => p.id === id);
+  }
+
   update(change: Partial<Omit<Profile, 'id' | 'createdAt'>>) {
     Object.assign(this.active, change);
     if (change.name != null) this.active.name = cleanName(change.name, this.active.name);
@@ -153,7 +166,7 @@ export class Profiles {
     const p: Profile = {
       id: randomId(), name: cleanName(name, this.nextName()),
       alien: DEFAULT_LOADOUT.creature, gun: DEFAULT_LOADOUT.weapon,
-      settings: { ...DEFAULT_SETTINGS }, paint: 'yellow', createdAt: new Date().toISOString(),
+      settings: { ...DEFAULT_SETTINGS }, paint: 'yellow', createdAt: new Date().toISOString(), stats: emptyStats(),
     };
     this.store.profiles.push(p);
     this.activeId = p.id;
@@ -176,7 +189,7 @@ export class Profiles {
 
   /** Backup code: all profiles as text a player can copy somewhere safe. */
   exportCode(): string {
-    const json = JSON.stringify({ app: 'high-moon', ...this.store });
+    const json = JSON.stringify({ app: 'high-moon', version: this.store.version, profiles: this.store.profiles });
     return 'HIGHMOON1:' + btoa(String.fromCharCode(...new TextEncoder().encode(json)));
   }
 

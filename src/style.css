@@ -316,3 +316,37 @@ button.danger { color: var(--bad); }
   padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
 }
 .sheet-body { max-width: 520px; margin: 0 auto; }
+
+/* ---- Wanted Poster (v0.7.2) ---- */
+.poster {
+  margin: 10px 0; padding: 16px 14px 14px; text-align: center; border-radius: 6px;
+  background: #efdcb4; color: #3b2415;
+  background-image: radial-gradient(ellipse at center, #f6e8c8 40%, #e2c690 100%);
+  box-shadow: 0 2px 0 #b8925a, 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+.poster-head { font-family: Georgia, 'Times New Roman', serif; font-size: 2.6rem; font-weight: 900; letter-spacing: 0.12em; line-height: 1; }
+.poster-sub { font-family: Georgia, serif; font-style: italic; font-size: 0.9rem; margin: 2px 0 10px; }
+.poster-face { display: block; width: 120px; height: 120px; margin: 0 auto; overflow: hidden; position: relative; border: 3px solid #3b2415; background: #d9bd86; filter: sepia(0.35); }
+.poster-face img { position: absolute; width: 230%; left: -65%; top: -8%; }
+.poster-name { font-family: Georgia, serif; font-size: 1.7rem; font-weight: 900; text-transform: uppercase; margin-top: 8px; overflow-wrap: anywhere; }
+.poster-record { font-size: 1.15rem; font-weight: 800; margin-top: 2px; }
+.poster-small { font-size: 0.8rem; opacity: 0.8; }
+.poster-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 12px; }
+.poster-grid div { border: 1.5px solid rgba(59, 36, 21, 0.5); border-radius: 4px; padding: 5px 4px; }
+.poster-grid span { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.85; }
+.poster-grid b { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.poster-grid small { font-size: 0.7rem; font-weight: 600; }
+.stat-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.stat-table th { color: var(--muted); font-weight: 600; font-size: 0.75rem; text-align: right; padding: 2px 4px; }
+.stat-table td { text-align: right; padding: 3px 4px; border-top: 1px solid var(--line); }
+.stat-table td:first-child, .stat-table th:first-child { text-align: left; }
+.recent { list-style: none; margin: 0; padding: 0; font-size: 0.85rem; }
+.recent li { display: flex; gap: 8px; align-items: center; padding: 4px 0; border-top: 1px solid var(--line); }
+.recent li:first-child { border-top: 0; }
+.recent li span:first-of-type { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.recent .t { color: var(--muted); font-variant-numeric: tabular-nums; }
+.res { display: inline-block; width: 22px; text-align: center; border-radius: 4px; font-size: 0.8rem; }
+.res.win { background: var(--good); color: #1b1530; }
+.res.loss { background: var(--bad); color: #1b1530; }
+.res.foul { background: var(--line); color: var(--ink); }
+.poster-note { margin: 4px 2px 12px; }

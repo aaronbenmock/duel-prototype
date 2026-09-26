@@ -14,6 +14,9 @@ import { SettingsView, type ReadoutRow } from './render/settingsView';
 import { StartView } from './render/startView';
 import { mountLogsPanel } from './render/logsPanel';
 import { persistStorage, Profiles } from './settings/profiles';
+import { posterHtml } from './render/posterView';
+import { backfillStats } from './stats/backfill';
+import { addRound } from './stats/stats';
 import { logFileName, RoundRecorder, type RoundLog } from './telemetry/roundLog';
 import { shareJson } from './telemetry/share';
 import { deviceId, flush, getKey, getLabel, onStatus, randomId, saveRound, status } from './telemetry/upload';
@@ -64,8 +67,13 @@ function applyProfile() {
   settingsView.setProfileName(p.name);
   game.setPaint(p.paint);
   start.setProfiles(profiles.list, p);
+  start.setPoster(posterHtml(p));
 }
 applyProfile();
+// Rounds played before v0.7.2 come from the logs on this phone (once).
+void backfillStats(profiles).then((n) => {
+  if (n) start.setPoster(posterHtml(profiles.active));
+});
 
 // Ask the browser to keep saved data; on iPhone Safari (not from the Home Screen) explain the week limit once.
 void persistStorage();
@@ -118,6 +126,10 @@ function finishLog(s: DuelState) {
   const log = recorder.finish(s, performance.now(), logExtras());
   if (!log) return;
   lastLog = log;
+  // All-time stats for the gunslinger who played (a round closed mid-duel counts as "left").
+  addRound(profiles.active.stats, log);
+  profiles.save();
+  start.setPoster(posterHtml(profiles.active));
   showLogStatus();
   void saveRound(log);
 }
