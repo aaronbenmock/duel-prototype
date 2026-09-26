@@ -13,7 +13,58 @@ Handoff, and continues from the first unfinished step below.
 | 3 | v0.7.2 | Stats per profile, backfill from round logs, wanted poster | done, pushed |
 | 4 | v0.7.3 | Optional 1: "Update available" notice | done, pushed |
 | 5 | v0.7.4 | Optional 2: records on the results screen | done, pushed |
-| - | - | Any other art folder with `APPROVED.txt` (check between steps) | none found yet |
+| - | - | Any other art folder with `APPROVED.txt` (checked between every step) | none found; nothing to do |
+
+## Final summary (2026-09-26): autopilot finished
+
+Every step in the brief is done; the loop is stopped. Six versions, each built, type-checked, checked in the
+browser at phone size, committed and pushed (live at https://aaronbenmock.github.io/duel-prototype/):
+
+- **v0.6.11** Four new maps from the wardrobe-worlds art you approved (salt-flat oasis, lunar mining town,
+  bioluminescent canyon, comet rail station): 7 maps in rotation.
+- **v0.7.0** Saved gunslingers: up to 8 per phone with their own name, alien, gun and settings; your v0.6 data
+  became "Player 1"; backup/restore code in Settings; one-time Home Screen tip on iPhone Safari.
+- **v0.7.1** New start screen with bottom tabs: Main Street (card, Enable Motion, Draw!), Outfitter (name, alien,
+  gun, 5 paint colours), Wanted Poster. How to play is a sheet from the top-left button.
+- **v0.7.2** All-time stats per gunslinger on the Wanted Poster, backfilled once from the logs on the phone.
+- **v0.7.3** "Update available, tap to reload" bar on the start screen.
+- **v0.7.4** "Fastest draw yet!" / "Fastest win yet!" / "New best streak" on the results screen.
+
+No game rules or balance changed. Saved data only grows: the old settings and loadout keys are kept and mirror
+the active gunslinger, so going back to v0.6.x still works. Not done (not approved or out of scope): the
+wardrobe-worlds accessory art (hats, neckwear, jackets) needs sizing and fitting before it can be worn; no other
+folder had `APPROVED.txt`.
+
+### Combined phone test checklist (on your iPhone, start at v0.7.4)
+Setup
+- [ ] Open the game; the start screen says **v0.7.4** (if it shows an older version, wait for the "Update available" bar or pull to refresh).
+- [ ] You land on **Main Street** as **Player 1** with your usual alien, gun and settings (nothing reset).
+- [ ] The "Keep your gunslingers" tip shows once; tap Got it. Consider Share > Add to Home Screen.
+
+Main Street and Outfitter
+- [ ] Everything on Main Street fits without scrolling; **Draw!** starts a duel as before; Enable Motion still works.
+- [ ] **How to play** (top-left) opens the rules; Sensor check works from there; Close returns.
+- [ ] **Outfitter:** change name (tap Done), alien, gun and paint colour; Main Street's card matches.
+- [ ] **+ New** makes a second gunslinger with default settings; switch between them on Main Street, each keeps its own picks and settings (check a slider in Settings, which says "For <name>").
+- [ ] **Delete this gunslinger** (Outfitter) asks first; with one left it's greyed out.
+- [ ] Close and reopen: it opens on the last tab you used.
+
+Duels
+- [ ] Play until you've seen the four new maps: feet on the street, crosshair and paint easy to see (salt flat is the brightest; the dark maps should still show the opponent clearly).
+- [ ] Your paint (and the splats on the opponent) is your chosen colour and never looks like the bot's teal. With yellow and the raygun, bolts are still green; with another colour they're your colour.
+
+Wanted Poster and records
+- [ ] The poster shows a record from your recent rounds (about your last 30 on this phone) for the gunslinger who played them.
+- [ ] After each round the record, streak, draw times and "Last 10" update; a foul shows as F and resets the streak.
+- [ ] Beat your fastest draw or win, or a best streak: the results screen says so in gold.
+- [ ] The numbers look believable (tell Claude any that look off; draw time = DRAW sound to gun up).
+
+Backup and updates
+- [ ] Settings > Back up gunslingers > **Copy backup code**, paste into Notes. Delete a gunslinger, then **Restore from code** (tap, paste, tap again): it comes back with its record.
+- [ ] Next time Claude pushes a version, the start screen shows "Update available" within 3 minutes; tapping it loads the new version. It never appears mid-duel.
+
+Still outstanding from before autopilot: the v0.6.7 to v0.6.10 phone tests listed in the CLAUDE.md handoff
+(bot fires mid-dash; scattergun choke, kick and reload interrupt; raygun leading and timed vents; v0.6.10 art).
 
 ## Decisions for Aaron
 - **Backgrounds shipped as v0.6.11, not v0.7.x**, so the brief's step numbers (profiles v0.7.0, start screen
