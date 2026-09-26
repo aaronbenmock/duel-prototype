@@ -48,7 +48,7 @@ export class StartView {
           <li>Tip the phone sideways to sidestep left or right. A moving target is harder for the bot to hit.</li>
           <li>To reload, dip the phone to point at the floor, then raise it again. Rounds go in one at a time (a full cylinder takes about a second) and you can't fire until it's done. Watch for the opponent's RELOADING tag: that's your moment.</li>
           <li>The revolver kicks up and right after each shot, then settles (white pop and a click). Wait for it, or learn to pull down against the kick and fire faster.</li>
-          <li>Scattergun: 2 blasts of paint blobs, forgiving aim. Raygun: no ammo, but it overheats if you fire too fast; dip the phone to vent it.</li>
+          <li>Scattergun: hold steady and the ring shrinks to a tight pattern; each blast kicks hard; you can fire mid-reload once a shell is in. Raygun: no ammo, but it overheats if you fire too fast; dip the phone to vent it.</li>
           <li>Aim feel, detection and bot difficulty can be adjusted in <b>Settings</b>.</li>
         </ol>
       </div>

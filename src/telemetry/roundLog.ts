@@ -49,7 +49,8 @@ function effectEvent(e: Effect): (string | number | null)[] {
   switch (e.type) {
     case 'shot':
       // Details: zone, where it went (x, y), damage, last round?, recoil kick at the shot (x, y), fired settled?
-      return ['shot', e.zone, r2(e.aim.x), r2(e.aim.y), e.damage, e.last ? 'last' : null, r2(e.recoil.x), r2(e.recoil.y), e.settled ? 1 : 0];
+      // ...and the spread radius (spread guns).
+      return ['shot', e.zone, r2(e.aim.x), r2(e.aim.y), e.damage, e.last ? 'last' : null, r2(e.recoil.x), r2(e.recoil.y), e.settled ? 1 : 0, r2(e.spread)];
     case 'botShot':
       return ['botShot', e.zone];
     case 'reloadStart':

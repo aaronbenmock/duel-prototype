@@ -339,7 +339,10 @@ game.onShareLog = () => {
 };
 game.onSettings = () => openSettings('game');
 // Revolver ready again after a kick: a soft hammer click, the rhythm cue.
-game.onSettled = () => audio.cock();
+game.onSettled = (weapon) => {
+  // The scattergun's pump is already in its blast sound.
+  if (weapon === 'star-revolver') audio.cock();
+};
 game.onMenu = () => {
   duel = null;
   show('start');

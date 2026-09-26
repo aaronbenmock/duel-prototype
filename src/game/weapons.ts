@@ -16,6 +16,10 @@ export interface WeaponDef {
   /** Paint blobs per shot, spread evenly over a circle of this radius (aim units = degrees). 1 blob = no spread. */
   pellets: number;
   spread: number;
+  /** Spread guns: holding the crosshair steady tightens the pattern (see ChokeDef). */
+  choke?: ChokeDef;
+  /** Reloading one round at a time can be cut short by firing once at least one round is in. */
+  reloadInterrupt?: boolean;
   /** Shortest time between shots (ms); a tap sooner just clicks. */
   cooldownMs: number;
   /** Reloading: nothing happens for this long (ms)... */
@@ -26,6 +30,18 @@ export interface WeaponDef {
   heat?: HeatDef;
   /** Guns with recoil: each shot kicks the crosshair, which then glides back. Shots go exactly where the crosshair is. */
   recoil?: RecoilDef;
+}
+
+/**
+ * Choke: the spread circle shrinks from `spread` to `minSpread` while you hold the crosshair steady
+ * (moving slower than steadySpeed degrees/second) for tightenMs. Moving faster loosens it again
+ * (loosenRate times as fast), and every blast starts it over.
+ */
+export interface ChokeDef {
+  minSpread: number;
+  tightenMs: number;
+  steadySpeed: number;
+  loosenRate: number;
 }
 
 /**
@@ -78,9 +94,9 @@ export const WEAPONS: Record<string, WeaponDef> = {
     reloadPerRoundMs: 120,
     // Kicks up 3 degrees (about the height of the face) and drifts right in a fixed pattern; settled
     // again about 0.65 s after a single shot. Wait for it, or pull the phone down against it.
-    // Simulated time to win vs the Normal bot (same basic aim, different recoil handling):
-    //   waits to settle 16.5 s, intermediate 10.3 s, expert (fast and compensating) 8.0 s,
-    //   spamming at full speed 9.9 s but missing 61% of shots.
+    // Simulated time to win vs the Normal bot (v0.6.8 player models, src/dev/sim.ts): beginner 17.0 s,
+    //   intermediate 9.2 s, expert (aims at the face, pulls against the kick) 4.8 s, spammer 10.2 s
+    //   missing 63% of shots.
     recoil: {
       kickUp: 3.0,
       kickSide: [0.8, 1.2, -0.6, 1.5, -0.8, 1.8],
@@ -95,18 +111,34 @@ export const WEAPONS: Record<string, WeaponDef> = {
   'wrapped-scattergun': {
     id: 'wrapped-scattergun',
     name: 'Scattergun',
-    blurb: '2 blasts of 7 blobs, forgiving aim',
+    blurb: '2 blasts; hold steady for a tight pattern',
     capacity: 2,
     // Each blob does little; a centered blast lands most of them.
-    damage: { face: 4, torso: 2, limb: 1, tail: 1 },
+    damage: { face: 4, torso: 2, limb: 2, tail: 1 },
     pellets: 7,
-    spread: 2.4,
+    // Wide (2.6 degrees) when you fire straight away; held steady for 0.45 s it tightens to 1.6 degrees.
+    spread: 2.6,
+    choke: { minSpread: 1.6, tightenMs: 450, steadySpeed: 12, loosenRate: 3 },
+    reloadInterrupt: true,
     cooldownMs: 450,
     // One shell at a time: the first goes in after 0.35 s, the second 0.45 s later (0.8 s for both).
-    // Simulated time to win (sharp / typical / wild aim): 9.6 / 12.7 / 20.0 s,
-    // vs the revolver's 9.6 / 13.5 / 22.2 s: same for good aim, kinder to wild aim.
+    // Firing once a shell is in cuts the reload short.
+    // Simulated time to win vs the Normal bot (v0.6.8 player models): beginner 13.8 s, intermediate 10.3 s,
+    // expert 7.8 s, spammer 11.1 s. The forgiving gun: beginners do best with it, the revolver has the higher ceiling.
     reloadStartMs: 350,
     reloadPerRoundMs: 450,
+    // One heavy kick per blast (6 degrees, about a whole head): a quick second blast sails over
+    // the target unless you pull against it. Settled again about 0.75 s after a blast.
+    recoil: {
+      kickUp: 6,
+      kickSide: [-1, 1.2],
+      stackGrowth: 1.0,
+      variation: 0.1,
+      sideVariation: 0.2,
+      recoveryDelayMs: 100,
+      recoveryTauMs: 280,
+      settledAt: 0.6,
+    },
   },
   'desert-raygun': {
     id: 'desert-raygun',

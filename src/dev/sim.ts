@@ -25,13 +25,25 @@ export interface PlayerModel {
   compensation?: number;
   /** Recoil guns: wait until the gun has settled before firing again (plus this reaction time, ms). */
   waitSettleMs?: number;
+  /** Spread guns: hold steady until the choke has built this long (ms) before firing; gives up after 400 ms more. */
+  chokeWaitMs?: number;
+  /** Reload-interrupt guns: fire mid-reload once a round is in, when the bot is standing still. */
+  interruptReload?: boolean;
+  /** Aim at the face instead of the middle of the body. */
+  aimFace?: boolean;
 }
 
-/** Revolver skill levels (same basic aim; they differ in how they handle recoil and how fast they fire). */
-export const BEGINNER: PlayerModel = { sigma: 2.4, tapMs: 750, tapJitterMs: 250, drawMs: 450, reloadReactMs: 450, recenterMs: 300, trackLagMs: 250, compensation: 0, waitSettleMs: 150 };
-export const INTERMEDIATE: PlayerModel = { ...BEGINNER, tapMs: 450, tapJitterMs: 120, compensation: 0.5, waitSettleMs: undefined };
-export const EXPERT: PlayerModel = { ...BEGINNER, tapMs: 300, tapJitterMs: 60, compensation: 0.85, waitSettleMs: undefined };
-/** Fires as fast as the gun allows without handling recoil. */
+/** Face center above the torso reference point, aim units (about the same for every alien). */
+const FACE_UP = 3.1;
+
+/**
+ * Skill levels. Beginners aim at the body and wait for the gun; intermediates aim a bit better, fire sooner
+ * and partly handle recoil; experts aim well, go for the face, fire fast and use every gun's tricks.
+ * The spammer fires as fast as the gun allows with beginner aim and no recoil control.
+ */
+export const BEGINNER: PlayerModel = { sigma: 2.6, tapMs: 750, tapJitterMs: 250, drawMs: 450, reloadReactMs: 450, recenterMs: 300, trackLagMs: 250, compensation: 0, waitSettleMs: 150 };
+export const INTERMEDIATE: PlayerModel = { ...BEGINNER, sigma: 2.0, tapMs: 450, tapJitterMs: 120, compensation: 0.5, waitSettleMs: undefined, chokeWaitMs: 300 };
+export const EXPERT: PlayerModel = { ...BEGINNER, sigma: 1.5, tapMs: 300, tapJitterMs: 60, compensation: 0.85, waitSettleMs: undefined, chokeWaitMs: 450, interruptReload: true, aimFace: true, trackLagMs: 180 };
 export const SPAMMER: PlayerModel = { ...BEGINNER, tapMs: 220, tapJitterMs: 30, compensation: 0, waitSettleMs: undefined };
 
 export const TYPICAL: PlayerModel = { sigma: 2.4, tapMs: 750, tapJitterMs: 250, drawMs: 450, reloadReactMs: 450, recenterMs: 300, trackLagMs: 250 };
@@ -93,7 +105,8 @@ export function playRound(weapon: string, model: PlayerModel, opponent?: string,
     const reloading = s.player.reloadNextAt != null || s.player.venting;
     if (wasReloading && !reloading) nextShot = now + model.recenterMs;
     wasReloading = reloading;
-    if (reloading) continue;
+    const interrupt = reloading && model.interruptReload && gun.reloadInterrupt && s.player.rounds > 0 && s.bot.mode === 'plant';
+    if (reloading && !interrupt) continue;
     // Out of rounds, or overheated: the model player dips to reload / vent.
     if (gun.heat ? s.player.overheated : s.player.rounds === 0) {
       reloadAt ??= now + model.reloadReactMs;
@@ -113,11 +126,14 @@ export function playRound(weapon: string, model: PlayerModel, opponent?: string,
         continue;
       }
     }
+    // Spread guns: hold steady for a tighter pattern (but don't wait forever).
+    if (gun.choke && model.chokeWaitMs && now >= nextShot && s.player.steadyMs < model.chokeWaitMs && now < nextShot + model.chokeWaitMs + 400) continue;
     if (now >= nextShot) {
       const t = tracked();
       // Pulling against the kick cancels part of it (the rules then add the kick back).
       const c = model.compensation ?? 0;
-      act({ type: 'fire', now, aim: { x: t.x + gauss() * model.sigma - c * kick.x, y: t.y + gauss() * model.sigma - c * kick.y } });
+      const up = model.aimFace ? FACE_UP : 0;
+      act({ type: 'fire', now, aim: { x: t.x + gauss() * model.sigma - c * kick.x, y: t.y + up + gauss() * model.sigma - c * kick.y } });
       nextShot = now + Math.max(gun.cooldownMs, model.tapMs + (Math.random() * 2 - 1) * model.tapJitterMs);
     }
   }

@@ -247,3 +247,7 @@ button.link {
 .ready-ring { fill: none; stroke: #fff; stroke-width: 0.15; opacity: 0; pointer-events: none; transform-box: fill-box; transform-origin: center; }
 .ready-ring.pop { animation: ready-pop 0.28s ease-out; }
 @keyframes ready-pop { from { opacity: 0.9; transform: scale(0.8); } to { opacity: 0; transform: scale(1.6); } }
+
+/* ---- Scattergun choke ring ---- */
+.spread-ring { fill: rgba(255, 255, 255, 0.1); stroke: rgba(255, 255, 255, 0.9); stroke-width: 0.16; stroke-dasharray: 0.4 0.25; pointer-events: none; }
+.spread-ring.tight { stroke: #7dff9a; stroke-dasharray: none; stroke-width: 0.2; fill: rgba(125, 255, 154, 0.12); }

@@ -104,6 +104,39 @@ export function recoilOffset(s: DuelState, t: number): Vec2 {
   return { x: r.x * k, y: r.y * k };
 }
 
+/** Current spread radius (aim units): tightens from gun.spread toward choke.minSpread while held steady. */
+export function currentSpread(s: DuelState): number {
+  const gun = WEAPONS[s.player.weapon];
+  if (!gun.choke) return gun.spread;
+  const k = Math.min(1, s.player.steadyMs / gun.choke.tightenMs);
+  return gun.spread - (gun.spread - gun.choke.minSpread) * k;
+}
+
+/** Choke: builds while the crosshair moves slower than steadySpeed, loosens faster when it moves more. */
+function trackSteadiness(s: DuelState, now: number, aim: Vec2 | undefined) {
+  const choke = WEAPONS[s.player.weapon].choke;
+  const p = s.player;
+  if (!choke) return;
+  if (!aim || s.phase !== 'aim') {
+    // Gun lowered (or not yet drawn): start over.
+    p.steadyMs = 0;
+    p.lastAim = null;
+    return;
+  }
+  // Measure speed over at least 50 ms, so sensor-update steps don't read as jerks.
+  if (!p.lastAim) {
+    p.lastAim = { x: aim.x, y: aim.y, t: now };
+    return;
+  }
+  const elapsed = now - p.lastAim.t;
+  if (elapsed < 50) return;
+  const speed = Math.hypot(aim.x - p.lastAim.x, aim.y - p.lastAim.y) / (elapsed / 1000);
+  p.steadyMs = speed < choke.steadySpeed
+    ? Math.min(choke.tightenMs, p.steadyMs + elapsed)
+    : Math.max(0, p.steadyMs - elapsed * choke.loosenRate);
+  p.lastAim = { x: aim.x, y: aim.y, t: now };
+}
+
 /** Adds one shot's kick: up, plus a sideways step from the pattern; quick strings kick harder. */
 function addKick(s: DuelState, def: RecoilDef, current: Vec2, settled: boolean, now: number) {
   const r = s.player.recoil;
@@ -130,7 +163,7 @@ export function createDuel(config: DuelConfig, seed: number, now: number, loadou
     lastTickAt: now,
     player: {
       hp: MAX_HP, rounds: WEAPONS[loadout.weapon].capacity, shots: 0, hits: 0, headshots: 0,
-      weapon: loadout.weapon, creature: loadout.creature, reloadNextAt: null, lastShotAt: null, recoil: { x: 0, y: 0, at: null, string: 0 }, heat: 0, overheated: false, venting: false, x: 0, lean: 0, vx: 0,
+      weapon: loadout.weapon, creature: loadout.creature, reloadNextAt: null, lastShotAt: null, recoil: { x: 0, y: 0, at: null, string: 0 }, steadyMs: 0, lastAim: null, heat: 0, overheated: false, venting: false, x: 0, lean: 0, vx: 0,
     },
     bot: {
       hp: MAX_HP, rounds: WEAPONS[DEFAULT_WEAPON].capacity, shots: 0, hits: 0, headshots: 0,
@@ -192,7 +225,8 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
         const p = s.player;
         const reason: EmptyReason | null = gun.heat
           ? p.venting ? 'venting' : p.overheated ? 'overheated' : null
-          : p.reloadNextAt != null ? 'reloading' : p.rounds === 0 ? 'empty' : null;
+          : p.rounds === 0 ? (p.reloadNextAt != null ? 'reloading' : 'empty')
+            : p.reloadNextAt != null && !gun.reloadInterrupt ? 'reloading' : null;
         const tooSoon = p.lastShotAt != null && now - p.lastShotAt < gun.cooldownMs;
         if (reason || tooSoon) {
           fx.push({ type: 'empty', reason: reason ?? 'cooldown' });
@@ -207,10 +241,14 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
           fx.push({ type: 'overheat' });
         }
       } else {
+        // Firing with a round in cuts a one-at-a-time reload short (reloadInterrupt guns).
+        s.player.reloadNextAt = null;
         s.player.rounds--;
       }
       s.player.shots++;
       s.player.lastShotAt = now;
+      const spread = currentSpread(s);
+      s.player.steadyMs = 0;
       {
         // Recoil: the shot goes where the crosshair is (phone aim plus any kick still recovering),
         // then this shot adds its own kick.
@@ -224,7 +262,7 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
         const pellets: Pellet[] = [];
         let damage = 0;
         for (let i = 0; i < gun.pellets; i++) {
-          const r = gun.pellets > 1 ? gun.spread * Math.sqrt((i + 0.5) / gun.pellets) : 0;
+          const r = gun.pellets > 1 ? spread * Math.sqrt((i + 0.5) / gun.pellets) : 0;
           const a = turn + i * GOLDEN_ANGLE;
           const p = { x: shotAim.x + r * Math.cos(a), y: shotAim.y + r * Math.sin(a) };
           const zone = hitTest(s.creature, t, p);
@@ -238,7 +276,7 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
           if (pellets.some((p) => p.zone === 'face')) s.player.headshots++;
           s.bot.hp = Math.max(0, s.bot.hp - damage);
         }
-        fx.push({ type: 'shot', zone, aim: shotAim, damage, pellets, last: !gun.heat && s.player.rounds === 0, recoil: kick, settled });
+        fx.push({ type: 'shot', zone, aim: shotAim, damage, pellets, last: !gun.heat && s.player.rounds === 0, recoil: kick, settled, spread });
       }
       if (s.bot.hp <= 0) end(s, 'victory', now, fx);
       break;
@@ -266,6 +304,7 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
     case 'tick': {
       const dt = Math.min(0.05, Math.max(0, (now - s.lastTickAt) / 1000));
       s.lastTickAt = now;
+      trackSteadiness(s, now, action.aim);
       if (s.phase === 'aim') {
         const oldX = s.player.x;
         s.player.x = Math.max(-MOVE.maxOffset, Math.min(MOVE.maxOffset, oldX + s.player.lean * MOVE.maxSpeed * dt));

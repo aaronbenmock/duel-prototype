@@ -81,6 +81,9 @@ export interface PlayerState extends Shooter {
   lastShotAt: number | null;
   /** Recoil: the crosshair's kick right after the last shot (aim units), when it happened, and how many quick shots in a row. */
   recoil: { x: number; y: number; at: number | null; string: number };
+  /** Choke (spread guns): how long the crosshair has been held steady (ms), and where it was last tick. */
+  steadyMs: number;
+  lastAim: (Vec2 & { t: number }) | null;
   /** Heat guns: 0 to 100; locked while overheated (until cooled to 0) or venting. */
   heat: number;
   overheated: boolean;
@@ -167,7 +170,7 @@ export type Effect =
    * `aim`: where the shot went (crosshair, including recoil). `recoil`: how far recoil had moved the crosshair
    * from where the phone pointed. `settled`: fired from a settled gun. `last`: last round before a reload.
    */
-  | { type: 'shot'; zone: HitZone; aim: Vec2; damage: number; pellets: Pellet[]; last: boolean; recoil: Vec2; settled: boolean }
+  | { type: 'shot'; zone: HitZone; aim: Vec2; damage: number; pellets: Pellet[]; last: boolean; recoil: Vec2; settled: boolean; spread: number }
   /** The trigger clicked without firing, and why. */
   | { type: 'empty'; reason: EmptyReason }
   | { type: 'reloadStart'; missing: number }

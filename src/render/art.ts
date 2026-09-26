@@ -40,6 +40,8 @@ export interface GunArt {
   muzzle: { x: number; y: number };
   /** CSS class for placement (two-handed guns sit wider). */
   cls: string;
+  /** Grip point (fraction of the image): if set, the picture is shifted so the grip-to-muzzle line points at the crosshair. */
+  grip?: { x: number; y: number };
 }
 
 export const GUN_ART: Record<string, GunArt> = {
@@ -53,6 +55,7 @@ export const GUN_ART: Record<string, GunArt> = {
     pov: { 'desert-sage': scatterSageUrl, 'desert-blue': scatterBlueUrl, 'desert-gold': scatterGoldUrl },
     side: scatterSideUrl,
     muzzle: { x: 0.367, y: 0.207 },
+    grip: { x: 0.7, y: 0.7 },
     cls: 'vm-twohand',
   },
   'desert-raygun': {

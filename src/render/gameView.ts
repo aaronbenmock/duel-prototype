@@ -7,7 +7,7 @@ import fxProjectileUrl from '../../art/exports/effects/fx_paint-yellow_projectil
 import fxSplatAUrl from '../../art/exports/effects/fx_paint-yellow_splat-a.webp';
 import fxSplatBUrl from '../../art/exports/effects/fx_paint-yellow_splat-b.webp';
 import { alienName, CREATURES } from '../game/creatures';
-import { apparentTarget, drawTime, MAX_HP, OPPONENT_Y, parallax, recoilOffset } from '../game/duel';
+import { apparentTarget, currentSpread, drawTime, MAX_HP, OPPONENT_Y, parallax, recoilOffset } from '../game/duel';
 import { CREATURE_ART, GUN_ART } from './art';
 import { WEAPONS } from '../game/weapons';
 import type { DuelState, HitZone, Pellet, Vec2 } from '../game/types';
@@ -78,7 +78,9 @@ export class GameView {
   private readyRing: SVGCircleElement;
   private wasSettled = true;
   /** Called when the gun settles after a kick (for the ready click). */
-  onSettled: () => void = () => {};
+  onSettled: (weapon: string) => void = () => {};
+  /** Spread guns: circle showing where the blobs will land; shrinks as the choke tightens. */
+  private spreadRing: SVGCircleElement;
   private botReloadTag: SVGTextElement;
   private cylSize = 0;
   private fxScene: HTMLElement;
@@ -160,6 +162,7 @@ export class GameView {
 
     this.restDot = svg('circle', { r: 0.4, class: 'rest-dot' }, this.svgEl);
     this.readyRing = svg('circle', { r: 1.3, class: 'ready-ring' }, this.svgEl);
+    this.spreadRing = svg('circle', { class: 'spread-ring' }, this.svgEl);
     this.cross = svg('g', { class: 'cross' }, this.svgEl);
     for (const [color, width] of [['rgba(0,0,0,0.55)', 0.42], ['#fff', 0.18]] as const) {
       svg('circle', { r: 1.3, fill: 'none', stroke: color, 'stroke-width': width }, this.cross);
@@ -443,9 +446,19 @@ export class GameView {
       this.readyRing.classList.remove('pop');
       void this.readyRing.getBoundingClientRect();
       this.readyRing.classList.add('pop');
-      this.onSettled();
+      this.onSettled(s.player.weapon);
     }
     this.wasSettled = settled;
+    // Choke ring: the pattern's size right now; turns solid when fully tightened.
+    const gunDef = WEAPONS[s.player.weapon];
+    this.spreadRing.style.display = aimVisible && gunDef.choke ? '' : 'none';
+    if (gunDef.choke) {
+      const r = currentSpread(s);
+      this.spreadRing.setAttribute('r', r.toFixed(3));
+      this.spreadRing.setAttribute('cx', String(cx));
+      this.spreadRing.setAttribute('cy', String(GameView.sy(cy)));
+      this.spreadRing.classList.toggle('tight', r <= gunDef.choke.minSpread + 0.01);
+    }
     this.svgEl.classList.toggle('dim', s.phase === 'holster' || s.phase === 'ready');
     this.renderSplats(s);
 
@@ -483,7 +496,7 @@ export class GameView {
     } else if (s.phase === 'draw') {
       big = 'DRAW!';
     } else if (s.phase === 'aim' && reloading) {
-      small = gun.heat ? 'Venting...' : 'Reloading...';
+      small = gun.heat ? 'Venting...' : gun.reloadInterrupt && s.player.rounds > 0 ? 'Reloading... (tap to fire)' : 'Reloading...';
     } else if (s.phase === 'aim' && s.player.overheated) {
       big = 'OVERHEATED';
       small = 'Dip the phone to vent, or wait for it to cool.';
@@ -522,6 +535,21 @@ export class GameView {
   }
 
   /** Hand and gun: raised while aiming, lags slightly behind aim movement, tilts with sidestep. */
+  /**
+   * Turn (degrees, around the grip) that points the gun's grip-to-muzzle line at the screen center,
+   * where the crosshair rests. Uses the untransformed layout box, so it doesn't feed back.
+   */
+  private barrelTurn(weapon: string, wrap: HTMLElement): number {
+    const art = GUN_ART[weapon];
+    if (!art.grip) return 0;
+    const w = wrap.offsetWidth;
+    const gx = window.innerWidth - w + art.grip.x * w;
+    const gy = window.innerHeight - w + art.grip.y * w;
+    const drawn = Math.atan2(art.muzzle.y - art.grip.y, art.muzzle.x - art.grip.x);
+    const wanted = Math.atan2(window.innerHeight / 2 - gy, window.innerWidth / 2 - gx);
+    return ((wanted - drawn) * 180) / Math.PI;
+  }
+
   private renderViewmodel(s: DuelState, aim: Vec2, visible: boolean, kick: Vec2) {
     const wrap = this.$('g-vm');
     wrap.classList.toggle('hidden', !visible);
@@ -535,7 +563,11 @@ export class GameView {
     this.sway.x += (Math.max(-30, Math.min(30, -d.x * 12)) - this.sway.x) * 0.2;
     this.sway.y += (Math.max(-30, Math.min(30, d.y * 12)) - this.sway.y) * 0.2;
     // The art is already drawn at an aiming angle; only add the sidestep tilt.
-    wrap.style.transform = `translate(${this.sway.x.toFixed(1)}px, ${this.sway.y.toFixed(1)}px) rotate(${(s.player.lean * 5).toFixed(1)}deg)`;
+    // Guns whose picture points off to one side are turned about the grip so the barrel lines up with the crosshair.
+    const grip = GUN_ART[s.player.weapon].grip;
+    const turn = this.barrelTurn(s.player.weapon, wrap);
+    wrap.style.transformOrigin = grip ? `${grip.x * 100}% ${grip.y * 100}%` : '';
+    wrap.style.transform = `translate(${this.sway.x.toFixed(1)}px, ${this.sway.y.toFixed(1)}px) rotate(${(s.player.lean * 5 + turn).toFixed(1)}deg)`;
     // Recoil guns: the gun rises with the kick and eases back with the crosshair.
     const vmk = this.$('g-vmk');
     vmk.style.transform = WEAPONS[s.player.weapon].recoil
