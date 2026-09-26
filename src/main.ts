@@ -19,7 +19,7 @@ import { posterHtml } from './render/posterView';
 import { ITEM_ART } from './render/art';
 import { backfillStats } from './stats/backfill';
 import { addRound, cleanStats, type Records, type Stats } from './stats/stats';
-import { botSkinForSeed, newlyUnlocked, skinOf, wornItem, type Item } from './wardrobe/wardrobe';
+import { botBuckleForSeed, botSkinForSeed, newlyUnlocked, skinOf, wornItem, type Item } from './wardrobe/wardrobe';
 import { logFileName, RoundRecorder, type RoundLog } from './telemetry/roundLog';
 import { shareJson } from './telemetry/share';
 import { deviceId, flush, getKey, getLabel, onStatus, randomId, saveRound, status } from './telemetry/upload';
@@ -317,6 +317,7 @@ function newRound() {
   duel = createDuel(duelConfig(settings), seed, now, loadout);
   // The bot's look for this round (from the seed, like the map; looks only).
   game.botSkin = botSkinForSeed(seed, duel.creature);
+  game.botBuckle = botBuckleForSeed(seed);
   recorder.start(now, {
     v: 1,
     id: randomId(),
@@ -335,7 +336,7 @@ function newRound() {
       alien: duel.player.creature, gun: duel.player.weapon, skin: game.playerSkin,
       outfit: { charm: wornItem(profiles.active.outfit, 'charm')?.id ?? null, buckle: wornItem(profiles.active.outfit, 'buckle')?.id ?? null },
     },
-    opponent: { creature: duel.creature, gun: duel.bot.weapon, bot: settings.bot, skin: game.botSkin },
+    opponent: { creature: duel.creature, gun: duel.bot.weapon, bot: settings.bot, skin: game.botSkin, buckle: game.botBuckle },
     map: duel.map,
     profile: { id: profiles.active.id, name: profiles.active.name },
   });

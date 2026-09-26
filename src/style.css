@@ -382,3 +382,6 @@ button.danger { color: var(--bad); }
 /* ---- Gun charm (v0.8.2): hangs from its loop at the anchor, turned by the pendulum in gameView ---- */
 .vm-kick { position: relative; }
 .vm-charm { position: absolute; height: auto; transform-origin: 50% 7%; transform: translate(-50%, -7%); pointer-events: none; -webkit-user-drag: none; }
+.mirror { position: relative; width: min(56vw, 220px); aspect-ratio: 1; margin: 0 auto 10px; border-radius: 12px; background: radial-gradient(circle at 50% 60%, var(--bg-dusk), var(--bg) 70%); }
+.mirror img { position: absolute; left: 0; top: 0; width: 100%; height: auto; }
+.mirror img.mirror-buckle { height: auto; }

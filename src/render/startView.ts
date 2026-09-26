@@ -6,8 +6,8 @@ import type { Loadout } from '../game/types';
 import { WEAPONS } from '../game/weapons';
 import { MAX_PROFILES, NAME_MAX, PAINTS, type Profile } from '../settings/profiles';
 import { APP_VERSION } from '../settings/settings';
-import { isUnlocked, itemsFor, ORIGINAL, ruleText, skinOf, SLOTS, type Slot } from '../wardrobe/wardrobe';
-import { CREATURE_ART, creatureUrl, GUN_ART, ITEM_ART, LOGO_URL, PAINT_ART, paintCss } from './art';
+import { isUnlocked, itemsFor, ORIGINAL, ruleText, skinOf, SLOTS, wornItem, type Slot } from '../wardrobe/wardrobe';
+import { BUCKLE_FIT, CREATURE_ART, creatureUrl, GUN_ART, ITEM_ART, LOGO_URL, PAINT_ART, paintCss } from './art';
 import fxSplatUrl from '../../art/exports/effects/fx_paint-yellow_splat-a.webp';
 
 export type StartTab = 'main' | 'outfit' | 'poster';
@@ -269,8 +269,17 @@ export class StartView {
           </button>`).join('')}
         </div>`;
     }).join('');
+    // Full-length look: skin plus buckle, placed exactly as on the opponent sprite.
+    const buckle = wornItem(p.outfit, 'buckle');
+    const fit = buckle ? BUCKLE_FIT[p.alien]?.[buckle.id] : undefined;
+    const pct = (v: number) => `${(v / 10.24).toFixed(2)}%`;
+    const mirror = `
+      <div class="mirror"><img src="${creatureUrl(p.alien, skinOf(p.outfit, p.alien))}" alt="${esc(p.name)}">${
+        fit && buckle ? `<img class="mirror-buckle" src="${ITEM_ART[buckle.id]}" alt="" style="left:${pct(fit.x)};top:${pct(fit.y)};width:${pct(fit.size)}">` : ''
+      }</div>`;
     this.el.querySelector('#s-wardrobe')!.innerHTML = `
       <h2 class="wardrobe-title">Wardrobe</h2>
+      ${mirror}
       ${slots || '<p class="help">Outfits arrive soon.</p>'}
       <p class="help" id="s-w-msg"></p>
       <p class="help">Locked items unlock as you play (they're earned from your record on the Wanted Poster). Looks only: nothing you wear changes where you can be hit.</p>`;

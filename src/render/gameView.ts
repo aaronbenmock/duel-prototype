@@ -8,7 +8,7 @@ import fxSplatBUrl from '../../art/exports/effects/fx_paint-yellow_splat-b.webp'
 import { alienName, CREATURES } from '../game/creatures';
 import { apparentTarget, currentSpread, drawTime, MAX_HP, OPPONENT_Y, PAINT_FLIGHT_MS, parallax, recoilOffset } from '../game/duel';
 import { MAPS } from '../game/maps';
-import { CHARM_SIZE, CREATURE_ART, creatureUrl, GUN_ART, MAP_ART, PAINT_ART, paintCss, povUrl } from './art';
+import { BUCKLE_FIT, CHARM_SIZE, CREATURE_ART, ITEM_ART, creatureUrl, GUN_ART, MAP_ART, PAINT_ART, paintCss, povUrl } from './art';
 import { WEAPONS } from '../game/weapons';
 import type { DuelState, HitZone, Pellet, Vec2 } from '../game/types';
 
@@ -62,6 +62,9 @@ export class GameView {
   /** Skins (looks only): yours for the first-person hand, the bot's for this round. */
   playerSkin = 'original';
   botSkin = 'original';
+  /** The bot's belt buckle this round (item id), or null. */
+  botBuckle: string | null = null;
+  private buckle!: SVGImageElement;
   /** Picture of your gun charm, or '' for none. */
   charmUrl = '';
   private charm!: HTMLImageElement;
@@ -183,6 +186,7 @@ export class GameView {
     this.opponent = svg('g', {}, this.svgEl);
     this.shadow = svg('ellipse', { fill: 'rgba(40, 10, 50, 0.35)' }, this.opponent);
     this.sprite = svg('image', {}, this.opponent);
+    this.buckle = svg('image', {}, this.opponent);
     this.splats = svg('g', { mask: 'url(#creature-mask)' }, this.opponent);
     this.zones = svg('image', { opacity: 0.9 }, this.opponent);
     // "RELOADING" tag over the opponent's hat while it reloads (animations later).
@@ -257,7 +261,7 @@ export class GameView {
 
   /** Places the creature sprite (and its mask and zone overlay) in the opponent group. */
   private setCreature(slug: string) {
-    const key = slug + '|' + this.botSkin;
+    const key = slug + '|' + this.botSkin + '|' + this.botBuckle;
     if (key === this.creature) return;
     this.creature = key;
     const c = CREATURES[slug];
@@ -270,6 +274,15 @@ export class GameView {
     }
     // Skins keep the sprite's outline exactly, so the zone map and mask fit every skin.
     this.sprite.setAttribute('href', creatureUrl(slug, this.botSkin));
+    // Buckle over the painted one (looks only: zones come from the sprite, and it sits on the torso).
+    const fit = this.botBuckle ? BUCKLE_FIT[slug]?.[this.botBuckle] : undefined;
+    this.buckle.style.display = fit ? '' : 'none';
+    if (fit && this.botBuckle) {
+      for (const [a, v] of Object.entries({ x: (fit.x - c.torsoPx[0]) / k, y: (fit.y - c.torsoPx[1]) / k, width: fit.size / k, height: fit.size / k })) {
+        this.buckle.setAttribute(a, String(v));
+      }
+      this.buckle.setAttribute('href', ITEM_ART[this.botBuckle]);
+    }
     this.botReloadTag.setAttribute('y', String((50 - c.torsoPx[1]) / k)); // just above the tallest hat (y 63)
     this.maskImage.setAttribute('href', art.url);
     this.zones.setAttribute('href', art.zonesUrl);

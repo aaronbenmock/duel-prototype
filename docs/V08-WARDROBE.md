@@ -12,8 +12,8 @@ CLAUDE.md Handoff, and continues from the first unfinished row.
 | v0.8.0 | Wardrobe foundation: outfit in each gunslinger (store v3), catalogue + unlock rules from stats, Wardrobe section in the Outfitter, skin-aware pictures, bot skin per round, logs record looks, check script | done |
 | v0.8.1 | Skins: 12 recolours of the aiming sprites + 36 first-person hands, promoted from the wardrobe-worlds draft palettes | done |
 | v0.8.2 | Gun charms in first person | done |
-| v0.8.3 | Belt buckles on the opponent sprite and portraits (only if they pass the fit tests) | next |
-| later | Hats, neckwear, vests, jackets: blocked on clean base bodies (see Art review) | blocked |
+| v0.8.3 | Belt buckles on the opponent sprite and a full-length Outfitter preview (passed the fit tests) | done |
+| later | Hats, neckwear, vests, jackets: blocked on clean base bodies (see Art review) | blocked, needs art |
 
 ## Decisions for Aaron
 - **Items are earned from your record, with a free starter in each slot.** Rules are worked out from the stats
@@ -27,6 +27,8 @@ CLAUDE.md Handoff, and continues from the first unfinished row.
   (any alien counts). Only WebP copies are committed (PNG copies are rebuilt by the tool; 25 MB saved).
 - **Charm unlocks:** saguaro free, moon beetle after 25 face hits. Charms show in first person only (the
   opponent's gun is too small on screen for one to read).
+- **Buckle unlocks:** meteor free, ringed moon after wins on 5 different maps. The bot wears one about half the
+  rounds. Your own buckle shows on a new full-length preview at the top of the Wardrobe (portraits are face crops).
 - **Skins are per alien** in each gunslinger: switching alien keeps each one's chosen skin.
 
 ## Art review (2026-09-26): high-moon-wardrobe-worlds v01
@@ -35,13 +37,26 @@ CLAUDE.md Handoff, and continues from the first unfinished row.
   the aiming sprites and hand pictures by `art/tools/build_skins.py`. Masks checked visually per alien (Blue's hat
   band, Gold's chaps/boots/embroidery/tongue/gun cylinder and Violet's pink-grey gun excluded). Hands: the four
   aliens' hand pictures are pixel-aligned, so the hand is exactly the pixels that differ between them.
-- **Charms and buckles:** small, self-contained items; to be fitted to the game's pictures and tested.
+- **Charms and buckles: promoted.** Charms fitted to the three first-person guns (fit sheet in the package);
+  buckles fitted over each alien's painted buckle with 100% coverage (`art/tools/fit_buckles.py`).
 - **Hats, neckwear, vests, jackets: not usable yet.** Every sprite has its hat, bandanna and vest painted in; the
   fitting previews show the old items around the new ones, and the package itself says hats must replace, not
   stack. Needed from Aaron's art workflow: each alien's aiming sprite (and portrait) without hat, neckwear and
   vest, same canvas and pose, so worn layers can replace them.
 
 ## Versions
+
+### v0.8.3 (2026-09-26): belt buckles and full-length preview
+Two belt buckles (meteor, ringed moon) in the Wardrobe, each fitted to hide the painted buckle on every alien.
+The Wardrobe now opens with a full-length preview of your gunslinger (skin and buckle). The bot wears a buckle
+about half the rounds. Promoted package: `art/ready-for-production/high-moon-buckles/`.
+Checks: build, type-check, wardrobe check (16 items, bot buckle spread), fit tool coverage (8 of 8 at 100%),
+browser at 375 x 667 (preview with buckle, bot with buckle in a duel).
+
+Phone test:
+- [ ] Start screen shows v0.8.3. Outfitter > Wardrobe shows your gunslinger full length; wear the meteor buckle and it appears on the belt, with no old buckle peeking out.
+- [ ] Some opponents wear a buckle; it moves with them.
+- [ ] The ringed moon shows "Win on 5 different maps (x / 5)" until earned.
 
 ### v0.8.2 (2026-09-26): gun charms
 Two gun charms (saguaro, moon beetle) in the Wardrobe. Yours hangs from the frame in front of your trigger hand

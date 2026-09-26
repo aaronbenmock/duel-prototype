@@ -7,7 +7,7 @@ import { ALIENS } from '../game/creatures';
 import { WEAPONS } from '../game/weapons';
 import { addRound, emptyStats, type RoundInput } from '../stats/stats';
 import {
-  botSkinForSeed, CATALOGUE, cleanOutfit, emptyOutfit, isUnlocked, itemsFor, newlyUnlocked, ORIGINAL, progress, ruleText, skinOf,
+  botBuckleForSeed, botSkinForSeed, CATALOGUE, cleanOutfit, emptyOutfit, isUnlocked, itemsFor, newlyUnlocked, ORIGINAL, progress, ruleText, skinOf,
 } from '../wardrobe/wardrobe';
 
 function eq(label: string, got: unknown, want: unknown) {
@@ -81,6 +81,17 @@ export function check() {
     }
     eq(`bot skins all used (${a.id})`, seen.size, names.size);
   }
+
+  // Bot buckle: none about half the time, otherwise a real buckle, every buckle used.
+  const buckles = new Map<string, number>();
+  for (let seed = 1; seed < 2000; seed++) {
+    const b = botBuckleForSeed(seed * 104729) ?? 'none';
+    buckles.set(b, (buckles.get(b) ?? 0) + 1);
+    eq('bot buckle valid', b === 'none' || CATALOGUE.some((i) => i.id === b && i.slot === 'buckle'), true);
+  }
+  eq('bot buckles all used', buckles.size, CATALOGUE.filter((i) => i.slot === 'buckle').length + 1);
+  const none = (buckles.get('none') ?? 0) / 1999;
+  eq('bot buckle none about half', none > 0.4 && none < 0.6, true);
 
   // Unlocks announced once: nothing new when the stats didn't change.
   eq('no new unlocks without progress', newlyUnlocked(s, s).length, 0);

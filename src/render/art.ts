@@ -32,6 +32,8 @@ import scatterVioletUrl from '../../art/exports/weapons/weapon_wrapped-scattergu
 export { default as LOGO_URL } from '../../art/exports/ui/ui_high-moon_logo.webp';
 import charmBeetleUrl from '../../art/exports/accessories/acc_charm-moonbeetle.webp';
 import charmSaguaroUrl from '../../art/exports/accessories/acc_charm-saguaro.webp';
+import buckleMeteorUrl from '../../art/exports/accessories/acc_buckle-meteor.webp';
+import buckleMoonUrl from '../../art/exports/accessories/acc_buckle-ringed-moon.webp';
 
 export interface MapArt {
   url: string;
@@ -165,6 +167,20 @@ export const ITEM_ART: Record<string, string> = {
   // v0.8.2 (art/ready-for-production/high-moon-charms): 512 x 512, loop at the top centre (50%, 7%).
   'charm:saguaro': charmSaguaroUrl,
   'charm:moonbeetle': charmBeetleUrl,
+  // v0.8.3 (art/ready-for-production/high-moon-buckles)
+  'buckle:meteor': buckleMeteorUrl,
+  'buckle:ringed-moon': buckleMoonUrl,
+};
+
+/**
+ * Where each buckle goes on each alien's aiming sprite (1024 canvas px: top-left and square size of the
+ * buckle's 512 canvas). From art/tools/fit_buckles.py (fit.json): scaled to hide the painted buckle completely.
+ */
+export const BUCKLE_FIT: Record<string, Record<string, { x: number; y: number; size: number }>> = {
+  'desert-sage': { 'buckle:ringed-moon': { x: 427, y: 613, size: 142 }, 'buckle:meteor': { x: 420, y: 606, size: 156 } },
+  'desert-blue': { 'buckle:ringed-moon': { x: 432, y: 610, size: 146 }, 'buckle:meteor': { x: 427, y: 605, size: 156 } },
+  'desert-gold': { 'buckle:ringed-moon': { x: 435, y: 604, size: 141 }, 'buckle:meteor': { x: 435, y: 604, size: 139 } },
+  'desert-violet': { 'buckle:ringed-moon': { x: 444, y: 582, size: 135 }, 'buckle:meteor': { x: 437, y: 576, size: 148 } },
 };
 /** Charm size as a share of the first-person image width (its 512 canvas; the charm itself is about 60% of that). */
 export const CHARM_SIZE = 0.225;

@@ -58,6 +58,9 @@ export const CATALOGUE: Item[] = [
   // v0.8.2 gun charms (hang from your gun in first person).
   { id: 'charm:saguaro', slot: 'charm', name: 'Saguaro charm', unlock: null },
   { id: 'charm:moonbeetle', slot: 'charm', name: 'Moon beetle charm', unlock: { kind: 'faceHits', n: 25 } },
+  // v0.8.3 belt buckles (cover the painted buckle on the opponent sprite and the Outfitter preview).
+  { id: 'buckle:meteor', slot: 'buckle', name: 'Meteor buckle', unlock: null },
+  { id: 'buckle:ringed-moon', slot: 'buckle', name: 'Ringed moon buckle', unlock: { kind: 'maps', n: 5 } },
 ];
 
 export const itemById = (id: string | null | undefined) => CATALOGUE.find((i) => i.id === id);
@@ -142,6 +145,14 @@ export function skinOf(outfit: Outfit, alien: string): string {
 export function wornItem(outfit: Outfit, slot: Exclude<Slot, 'skin'>): Item | null {
   const it = itemById(outfit[slot]);
   return it && it.slot === slot ? it : null;
+}
+
+/** The bot's buckle for a round (from the seed): none half the time, otherwise one of the buckles. */
+export function botBuckleForSeed(seed: number): string | null {
+  const buckles = CATALOGUE.filter((i) => i.slot === 'buckle');
+  const h = Math.imul((seed ^ 0x1b873593) >>> 0, 0x85ebca6b) >>> 0;
+  const pick = (h >>> 11) % (buckles.length * 2);
+  return pick < buckles.length ? buckles[pick].id : null;
 }
 
 /**

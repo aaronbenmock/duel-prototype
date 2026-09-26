@@ -19,7 +19,7 @@ export interface RoundLog {
   seed: number;
   /** skin and outfit added in v0.8.0 (looks only). */
   loadout: { alien: string; gun: string; skin?: string; outfit?: Record<string, string | null> };
-  opponent: { creature: string; gun: string; bot: string; skin?: string };
+  opponent: { creature: string; gun: string; bot: string; skin?: string; buckle?: string | null };
   /** Background the round was played on (added in v0.6.10). */
   map?: string;
   /** Saved gunslinger who played it (added in v0.7.0). */
