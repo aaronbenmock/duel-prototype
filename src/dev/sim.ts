@@ -31,7 +31,16 @@ export interface PlayerModel {
   interruptReload?: boolean;
   /** Aim at the face instead of the middle of the body. */
   aimFace?: boolean;
+  /** Travelling bolts: how much of the needed lead the player aims ahead of a moving target (0 none, 1 exact). */
+  leadFactor?: number;
+  /** Timed vent: chance the player's tap lands in the window (unset = never tries). */
+  ventSkill?: number;
+  /** Heat guns: vent early once heat reaches this (unset = only when overheated). */
+  ventAtHeat?: number;
 }
+
+/** How far away the opponent stands (m), for bolt flight times. */
+const DEFAULT_DISTANCE = 12;
 
 /** Face center above the torso reference point, aim units (about the same for every alien). */
 const FACE_UP = 3.1;
@@ -42,8 +51,8 @@ const FACE_UP = 3.1;
  * The spammer fires as fast as the gun allows with beginner aim and no recoil control.
  */
 export const BEGINNER: PlayerModel = { sigma: 2.6, tapMs: 750, tapJitterMs: 250, drawMs: 450, reloadReactMs: 450, recenterMs: 300, trackLagMs: 250, compensation: 0, waitSettleMs: 150 };
-export const INTERMEDIATE: PlayerModel = { ...BEGINNER, sigma: 2.0, tapMs: 450, tapJitterMs: 120, compensation: 0.5, waitSettleMs: undefined, chokeWaitMs: 300 };
-export const EXPERT: PlayerModel = { ...BEGINNER, sigma: 1.5, tapMs: 300, tapJitterMs: 60, compensation: 0.85, waitSettleMs: undefined, chokeWaitMs: 450, interruptReload: true, aimFace: true, trackLagMs: 180 };
+export const INTERMEDIATE: PlayerModel = { ...BEGINNER, sigma: 2.0, tapMs: 450, tapJitterMs: 120, compensation: 0.5, waitSettleMs: undefined, chokeWaitMs: 300, leadFactor: 0.5, ventSkill: 0.5, ventAtHeat: 85 };
+export const EXPERT: PlayerModel = { ...BEGINNER, sigma: 1.5, tapMs: 300, tapJitterMs: 60, compensation: 0.85, waitSettleMs: undefined, chokeWaitMs: 450, interruptReload: true, aimFace: true, trackLagMs: 180, leadFactor: 0.9, ventSkill: 0.85, ventAtHeat: 85 };
 export const SPAMMER: PlayerModel = { ...BEGINNER, tapMs: 220, tapJitterMs: 30, compensation: 0, waitSettleMs: undefined };
 
 export const TYPICAL: PlayerModel = { sigma: 2.4, tapMs: 750, tapJitterMs: 250, drawMs: 450, reloadReactMs: 450, recenterMs: 300, trackLagMs: 250 };
@@ -73,9 +82,15 @@ export function playRound(weapon: string, model: PlayerModel, opponent?: string,
     const r = step(s, a);
     s = r.state;
     for (const e of r.effects) {
+      // Zones count where shots land: at firing for instant guns, on arrival for travelling bolts.
+      if (e.type === 'boltHit') {
+        zones[e.zone ?? 'miss'] = (zones[e.zone ?? 'miss'] ?? 0) + 1;
+        continue;
+      }
       if (e.type !== 'shot') continue;
-      zones[e.zone ?? 'miss'] = (zones[e.zone ?? 'miss'] ?? 0) + 1;
       kickSum += Math.hypot(e.recoil.x, e.recoil.y);
+      if (e.travelMs > 0) continue;
+      zones[e.zone ?? 'miss'] = (zones[e.zone ?? 'miss'] ?? 0) + 1;
     }
   };
   let now = 0;
@@ -89,11 +104,20 @@ export function playRound(weapon: string, model: PlayerModel, opponent?: string,
   const phase = (): string => s.phase;
   // Where the bot appeared recently, so the model's aim trails a moving target.
   const seen: { t: number; x: number }[] = [];
+  const travelS = gun.boltSpeed ? DEFAULT_DISTANCE / gun.boltSpeed : 0;
   const tracked = () => {
     const t = apparentTarget(s);
     const past = seen.find((p) => p.t >= now - model.trackLagMs) ?? seen[seen.length - 1];
-    return { x: past ? past.x : t.x, y: t.y };
+    // Leading a moving target (travelling bolts): aim ahead by its recent speed times the flight time.
+    let lead = 0;
+    if (travelS && model.leadFactor && seen.length > 4) {
+      const a = seen[seen.length - 4];
+      const b = seen[seen.length - 1];
+      lead = model.leadFactor * ((b.x - a.x) / ((b.t - a.t) / 1000)) * travelS;
+    }
+    return { x: (past ? past.x : t.x) + lead, y: t.y };
   };
+  let ventTapAt: number | null = null;
   while (phase() !== 'over' && now < drawAt + 120000) {
     now += 20;
     seen.push({ t: now, x: apparentTarget(s).x });
@@ -106,9 +130,23 @@ export function playRound(weapon: string, model: PlayerModel, opponent?: string,
     if (wasReloading && !reloading) nextShot = now + model.recenterMs;
     wasReloading = reloading;
     const interrupt = reloading && model.interruptReload && gun.reloadInterrupt && s.player.rounds > 0 && s.bot.mode === 'plant';
+    // Timed vent: tap in the window (or miss it) according to the player's skill.
+    const v = s.player.vent;
+    if (v && !v.tapped && model.ventSkill != null && gun.heat) {
+      if (ventTapAt == null) {
+        const [w0, w1] = gun.heat.ventWindow;
+        const f = Math.random() < model.ventSkill ? (w0 + w1) / 2 : Math.random() < 0.5 ? w0 * 0.5 : Math.min(0.97, w1 + 0.15);
+        ventTapAt = v.startAt + f * v.durationMs;
+      }
+      if (now >= ventTapAt) {
+        act({ type: 'ventTap', now });
+        ventTapAt = null;
+      }
+    }
+    if (!s.player.vent) ventTapAt = null;
     if (reloading && !interrupt) continue;
     // Out of rounds, or overheated: the model player dips to reload / vent.
-    if (gun.heat ? s.player.overheated : s.player.rounds === 0) {
+    if (gun.heat ? s.player.overheated || (model.ventAtHeat != null && s.player.heat >= model.ventAtHeat) : s.player.rounds === 0) {
       reloadAt ??= now + model.reloadReactMs;
       if (now >= reloadAt) {
         act({ type: 'reload', now });

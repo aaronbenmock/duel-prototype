@@ -40,8 +40,10 @@ export interface GunArt {
   muzzle: { x: number; y: number };
   /** CSS class for placement (two-handed guns sit wider). */
   cls: string;
-  /** Grip point (fraction of the image): if set, the picture is shifted so the grip-to-muzzle line points at the crosshair. */
+  /** Grip point (fraction of the image): if set, the picture is turned so the grip-to-muzzle line points at the crosshair. */
   grip?: { x: number; y: number };
+  /** CSS filter for this gun's paint (the raygun's bolts are green). */
+  tint?: string;
 }
 
 export const GUN_ART: Record<string, GunArt> = {
@@ -63,5 +65,6 @@ export const GUN_ART: Record<string, GunArt> = {
     side: raySideUrl,
     muzzle: { x: 0.497, y: 0.168 },
     cls: 'vm-onehand',
+    tint: 'hue-rotate(75deg) saturate(1.4)',
   },
 };

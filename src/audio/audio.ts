@@ -140,6 +140,17 @@ export class AudioEngine {
     this.noise(0.4, { filter: 'bandpass', freq: 3000, q: 1, gain: 0.4 });
   }
 
+  /** Timed vent hit: a bright rising chime. */
+  ventPerfect() {
+    [880, 1320, 1760].forEach((f, i) => this.tone(f, 0.12, { type: 'triangle', gain: 0.4, delay: i * 0.05 }));
+  }
+
+  /** Timed vent missed: a dull clunk. */
+  ventJam() {
+    this.noise(0.12, { filter: 'lowpass', freq: 600, gain: 0.8 });
+    this.tone(110, 0.2, { type: 'square', gain: 0.3 });
+  }
+
   /** Raygun venting: a steam hiss. */
   vent() {
     this.noise(0.6, { filter: 'highpass', freq: 2500, sweepTo: 6000, gain: 0.55 });

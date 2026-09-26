@@ -251,3 +251,14 @@ button.link {
 /* ---- Scattergun choke ring ---- */
 .spread-ring { fill: rgba(255, 255, 255, 0.1); stroke: rgba(255, 255, 255, 0.9); stroke-width: 0.16; stroke-dasharray: 0.4 0.25; pointer-events: none; }
 .spread-ring.tight { stroke: #7dff9a; stroke-dasharray: none; stroke-width: 0.2; fill: rgba(125, 255, 154, 0.12); }
+
+/* ---- Raygun timed vent: window and sweeping marker on the heat gauge ---- */
+.cyl.heat { position: relative; }
+.cyl.heat b, .cyl.heat u { display: none; position: absolute; top: 0; bottom: 0; }
+.cyl.heat.venting b { display: block; background: rgba(125, 255, 154, 0.55); border-left: 1px solid #7dff9a; border-right: 1px solid #7dff9a; }
+.cyl.heat.venting u { display: block; width: 3px; margin-left: -1px; background: #fff; box-shadow: 0 0 4px #fff; }
+.cyl.heat.charged { box-shadow: 0 0 8px 2px #6fe3ff; border-color: #6fe3ff; }
+.cyl.heat.perfect { animation: vent-perfect 0.5s ease-out; }
+.cyl.heat.jam { animation: vent-jam 0.35s ease-in-out; }
+@keyframes vent-perfect { 0% { box-shadow: 0 0 16px 6px #7dff9a; } 100% { box-shadow: none; } }
+@keyframes vent-jam { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }

@@ -57,6 +57,8 @@ function effectEvent(e: Effect): (string | number | null)[] {
       return ['reloadStart', e.missing];
     case 'empty':
       return ['empty', e.reason];
+    case 'boltHit':
+      return ['boltHit', e.zone, r2(e.aim.x), r2(e.aim.y), e.damage];
     default:
       return [e.type];
   }

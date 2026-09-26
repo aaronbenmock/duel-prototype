@@ -14,6 +14,9 @@ export const OPPONENT_Y = -1.6;
 /** The opponent starts this far (aim units) either side of center. */
 export const OPPONENT_SPAWN_X = 6;
 
+/** Player paint's flight time on screen (ms); splats appear after it (matches the renderer). */
+export const PAINT_FLIGHT_MS = 110;
+
 /** How the bot's hits spread over the body when they don't hit the face. */
 const BOT_BODY_SPLIT = { torso: 0.6, limb: 0.33, tail: 0.07 } as const;
 
@@ -163,7 +166,7 @@ export function createDuel(config: DuelConfig, seed: number, now: number, loadou
     lastTickAt: now,
     player: {
       hp: MAX_HP, rounds: WEAPONS[loadout.weapon].capacity, shots: 0, hits: 0, headshots: 0,
-      weapon: loadout.weapon, creature: loadout.creature, reloadNextAt: null, lastShotAt: null, recoil: { x: 0, y: 0, at: null, string: 0 }, steadyMs: 0, lastAim: null, heat: 0, overheated: false, venting: false, x: 0, lean: 0, vx: 0,
+      weapon: loadout.weapon, creature: loadout.creature, reloadNextAt: null, lastShotAt: null, recoil: { x: 0, y: 0, at: null, string: 0 }, steadyMs: 0, lastAim: null, heat: 0, overheated: false, venting: false, vent: null, charged: 0, bolts: [], x: 0, lean: 0, vx: 0,
     },
     bot: {
       hp: MAX_HP, rounds: WEAPONS[DEFAULT_WEAPON].capacity, shots: 0, hits: 0, headshots: 0,
@@ -256,6 +259,17 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
         const settled = Math.hypot(kick.x, kick.y) < (gun.recoil?.settledAt ?? Infinity);
         const shotAim = { x: action.aim.x + kick.x, y: action.aim.y + kick.y };
         if (gun.recoil) addKick(s, gun.recoil, kick, settled, now);
+        // Perfect-vent bonus (heat guns): this zap does extra damage.
+        const charged = s.player.charged > 0;
+        if (charged) s.player.charged--;
+        const mult = charged ? (gun.heat?.perfectDamage ?? 1) : 1;
+        if (gun.boltSpeed) {
+          // Travelling bolt: it lands later, where the target is by then (see tick).
+          const travelMs = (MOVE.opponentDistance / gun.boltSpeed) * 1000;
+          s.player.bolts.push({ ...shotAim, arriveAt: now + travelMs, mult });
+          fx.push({ type: 'shot', zone: null, aim: shotAim, damage: 0, pellets: [{ ...shotAim, zone: null }], last: false, recoil: kick, settled, spread, travelMs, charged });
+          break;
+        }
         const t = apparentTarget(s);
         // Spread guns: blobs in an even sunflower pattern over the spread circle, turned at random.
         const turn = gun.pellets > 1 ? between(s, 0, 2 * Math.PI) : 0;
@@ -268,7 +282,7 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
           const zone = hitTest(s.creature, t, p);
           pellets.push({ ...p, zone });
           s.holes.push({ x: p.x - t.x, y: p.y - t.y, zone, t: now, size: gun.pellets > 1 ? 0.45 : 1 });
-          if (zone) damage += gun.damage[zone];
+          if (zone) damage += Math.round(gun.damage[zone] * mult);
         }
         const zone = ZONE_RANK.find((z) => pellets.some((p) => p.zone === z)) ?? null;
         if (zone) {
@@ -276,7 +290,7 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
           if (pellets.some((p) => p.zone === 'face')) s.player.headshots++;
           s.bot.hp = Math.max(0, s.bot.hp - damage);
         }
-        fx.push({ type: 'shot', zone, aim: shotAim, damage, pellets, last: !gun.heat && s.player.rounds === 0, recoil: kick, settled, spread });
+        fx.push({ type: 'shot', zone, aim: shotAim, damage, pellets, last: !gun.heat && s.player.rounds === 0, recoil: kick, settled, spread, travelMs: 0, charged });
       }
       if (s.bot.hp <= 0) end(s, 'victory', now, fx);
       break;
@@ -286,6 +300,8 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
       if (gun.heat) {
         if ((s.phase === 'draw' || s.phase === 'aim') && s.player.heat > 0 && !s.player.venting) {
           s.player.venting = true;
+          const pace = s.player.overheated ? gun.heat.overheatVentMs : gun.heat.ventMs;
+          s.player.vent = { startAt: now, durationMs: (s.player.heat / 100) * pace, tapped: false, jammed: false };
           fx.push({ type: 'ventStart' });
         }
         break;
@@ -296,6 +312,26 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
         fx.push({ type: 'reloadStart', missing: gun.capacity - s.player.rounds });
       }
       break;
+
+    case 'ventTap': {
+      // Timed vent: one try per vent. Inside the window = perfect; outside = jammed (slower).
+      const v = s.player.vent;
+      if (!gun.heat || !s.player.venting || !v || v.tapped) break;
+      v.tapped = true;
+      const progress = (now - v.startAt) / v.durationMs;
+      if (progress >= gun.heat.ventWindow[0] && progress <= gun.heat.ventWindow[1]) {
+        s.player.heat = 0;
+        s.player.venting = false;
+        s.player.overheated = false;
+        s.player.vent = null;
+        s.player.charged = gun.heat.perfectZaps;
+        fx.push({ type: 'ventPerfect' });
+      } else {
+        v.jammed = true;
+        fx.push({ type: 'ventJam' });
+      }
+      break;
+    }
 
     case 'lean':
       s.player.lean = Math.max(-1, Math.min(1, action.value));
@@ -324,17 +360,43 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
         const onTarget = action.aim != null && hitTest(s.creature, apparentTarget(s), { x: action.aim.x + k.x, y: action.aim.y + k.y }) != null;
         moveBot(s, now, dt, onTarget, MOVE.opponentDistance);
       }
+      // Travelling bolts: each lands where the target is now.
+      if (s.player.bolts.length && (s.phase === 'aim' || s.phase === 'draw')) {
+        const landed = s.player.bolts.filter((b) => now >= b.arriveAt);
+        if (landed.length) {
+          s.player.bolts = s.player.bolts.filter((b) => now < b.arriveAt);
+          const t = apparentTarget(s);
+          for (const b of landed) {
+            const zone = hitTest(s.creature, t, b);
+            const damage = zone ? Math.round(gun.damage[zone] * b.mult) : 0;
+            // Splat shows at once (holes normally wait for the paint's short flight).
+            s.holes.push({ x: b.x - t.x, y: b.y - t.y, zone, t: now - PAINT_FLIGHT_MS, size: 1 });
+            if (zone) {
+              s.player.hits++;
+              if (zone === 'face') s.player.headshots++;
+              s.bot.hp = Math.max(0, s.bot.hp - damage);
+            }
+            fx.push({ type: 'boltHit', zone, aim: { x: b.x, y: b.y }, damage });
+          }
+          if (s.bot.hp <= 0) {
+            end(s, 'victory', now, fx);
+            break;
+          }
+        }
+      }
       // Heat guns: vent, overheat cool-down, or normal cooling after a pause in firing.
       if (gun.heat) {
         const h = gun.heat;
         const p = s.player;
         if (p.venting || p.overheated) {
-          p.heat -= (p.venting ? 100000 / h.ventMs : h.overheatCoolPerSec) * dt;
+          const ventRate = (100000 / (p.overheated ? h.overheatVentMs : h.ventMs)) * (p.vent?.jammed ? h.jamRate : 1);
+          p.heat -= (p.venting ? ventRate : h.overheatCoolPerSec) * dt;
           if (p.heat <= 0) {
             fx.push({ type: p.venting ? 'ventDone' : 'cooled' });
             p.heat = 0;
             p.venting = false;
             p.overheated = false;
+            p.vent = null;
           }
         } else if (p.lastShotAt == null || now - p.lastShotAt >= h.coolDelayMs) {
           p.heat = Math.max(0, p.heat - h.coolPerSec * dt);

@@ -163,11 +163,13 @@ function play(e: Effect) {
         audio.lastRound();
         game.lastRound();
       }
-      game.playerShot(e.zone, e.aim, e.damage, weapon, e.pellets);
+      game.playerShot(e.zone, e.aim, e.damage, weapon, e.pellets, e.travelMs, e.charged);
+      vibrate(30);
+      // Travelling bolts report their hit when they land (boltHit).
+      if (e.travelMs > 0) break;
       if (e.zone === 'face') audio.headshot();
       else if (e.zone) audio.hit();
       else audio.miss();
-      vibrate(30);
       break;
     }
     case 'empty':
@@ -185,6 +187,21 @@ function play(e: Effect) {
       break;
     case 'reloadDone':
       audio.reloadClose();
+      break;
+    case 'boltHit':
+      game.boltHit(e.zone, e.aim, e.damage, duel?.player.weapon ?? loadout.weapon);
+      if (e.zone === 'face') audio.headshot();
+      else if (e.zone) audio.hit();
+      else audio.miss();
+      break;
+    case 'ventPerfect':
+      audio.ventPerfect();
+      game.ventResult(true);
+      vibrate([30, 30, 30]);
+      break;
+    case 'ventJam':
+      audio.ventJam();
+      game.ventResult(false);
       break;
     case 'overheat':
       audio.overheat();
@@ -311,7 +328,10 @@ game.onFire = (t) => {
   // Use the aim from slightly before the tap (the look-back setting), so the
   // thumb press doesn't move the shot.
   // No shooting while the gun is lowered (aiming paused).
-  if (duel?.phase === 'aim' && !aim.suspended) {
+  // While venting a heat gun, a tap is the timed-vent attempt (even with the phone still lowered).
+  if (duel?.phase === 'aim' && duel.player.venting) {
+    dispatch({ type: 'ventTap', now: t });
+  } else if (duel?.phase === 'aim' && !aim.suspended) {
     const at = aim.at(t - settings.lookbackMs);
     recorder.aimRow(`${recorder.ms(t)},,,,,,${n1(at.x)},${n1(at.y)},F`);
     dispatch({ type: 'fire', now: t, aim: at });

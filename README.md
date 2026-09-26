@@ -45,13 +45,13 @@ If that doesn't work, go to Settings, then Apps, then Safari, then **Clear Histo
 
 ## Guns
 
-All guns are tuned (by simulating thousands of rounds) so a typical player wins in about the same time. They differ in feel:
+Each gun has its own learning curve (simulated against the Normal bot, time to win for a beginner / intermediate / expert): scattergun 13.9 / 10.2 / 7.7 s (forgiving), revolver 18.0 / 9.2 / 4.7 s (precision), raygun 18.9 / 9.1 / 4.3 s (rhythm and leading targets).
 
 | Gun | How it works |
 |---|---|
 | Star revolver | The precision gun (highest ceiling). 6 shots. Face 20, body 9, arms/ears/legs 5, tail 2. Reload: about 1 s for a full cylinder. Shots go exactly where the crosshair is, but each shot kicks it up about 3 degrees and to the right (a fixed pattern that climbs if you keep firing fast). The crosshair turns amber and grows while kicked, a white dot shows where it will settle, and it glides back in about 0.65 s with a soft click and a white pop when ready. Beginners can wait for the click; with practice, pull the phone down against the kick and fire sooner. At most one shot every 0.25 s. |
 | Scattergun | 2 blasts, each 7 paint blobs. Each blob: face 4, body 2, arms/ears/legs 2, tail 1. The dashed ring around the crosshair shows the pattern: it starts wide (about 2.6 degrees) and, if you hold the crosshair steady for about half a second, shrinks to 1.6 degrees and turns solid green. Each blast kicks hard (about a head's height), so a quick second blast goes high unless you pull down against it. Reload one shell at a time (about 0.8 s for both); once a shell is in you can fire and cut the reload short. The forgiving gun: easiest for beginners, and experts get a tight pattern on the face. |
-| Raygun | No ammo. Each zap adds heat (about 8 quick zaps in a row overheats it). Face 18, body 8, arms/ears/legs 4, tail 2. It cools by itself if you pause; once overheated it locks for about 2.5 s, or dip the phone to vent it in under a second. |
+| Raygun | The rhythm gun (hardest to start, strongest in expert hands). No ammo. Face 20, body 10, arms/ears/legs 6, tail 2. Bolts take 0.2 s to fly, so aim ahead of a moving bot. Each zap adds heat (about 6 quick zaps overheat it; one zap per 0.3 s at most). Dip the phone to vent: 0.7 s if you vent before it overheats, 2 s once it has. While venting, a white marker sweeps across the heat gauge: tap while it is in the green window for a perfect vent (instantly cool, and the next 3 zaps do 25% more damage, gauge glows blue); tap outside it and the vent jams (slower). |
 
 ## Settings
 

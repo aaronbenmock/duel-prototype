@@ -20,6 +20,8 @@ export interface WeaponDef {
   choke?: ChokeDef;
   /** Reloading one round at a time can be cut short by firing once at least one round is in. */
   reloadInterrupt?: boolean;
+  /** Shots that take time to fly (m/s, the opponent is 12 m away): hits are decided where the target is when they arrive. Unset = instant. */
+  boltSpeed?: number;
   /** Shortest time between shots (ms); a tap sooner just clicks. */
   cooldownMs: number;
   /** Reloading: nothing happens for this long (ms)... */
@@ -75,6 +77,17 @@ export interface HeatDef {
   overheatCoolPerSec: number;
   /** Dipping the phone vents: heat drains to 0 at this pace (ms for a full 100). You can't fire meanwhile. */
   ventMs: number;
+  /** Venting an overheated gun is slower (ms for a full 100), so it pays to vent before it overheats. */
+  overheatVentMs: number;
+  /**
+   * Timed vent: while venting, a marker sweeps across the gauge. Tap while it's inside the window
+   * (fractions of the vent) for a perfect vent: instantly cool, and the next perfectZaps zaps do
+   * perfectDamage times the damage. Tap outside it and the vent jams: it drains at jamRate of the pace.
+   */
+  ventWindow: [number, number];
+  perfectZaps: number;
+  perfectDamage: number;
+  jamRate: number;
 }
 
 export const WEAPONS: Record<string, WeaponDef> = {
@@ -143,17 +156,27 @@ export const WEAPONS: Record<string, WeaponDef> = {
   'desert-raygun': {
     id: 'desert-raygun',
     name: 'Raygun',
-    blurb: 'No ammo: fire until it overheats, dip to vent',
+    blurb: 'Lead your target; vent in rhythm',
     capacity: 0,
-    damage: { face: 18, torso: 8, limb: 4, tail: 2 },
+    damage: { face: 20, torso: 10, limb: 6, tail: 2 },
     pellets: 1,
     spread: 0,
-    // Fast zaps, but about 8 in a row overheats it (then 2.5 s locked, or vent in 0.7 s by dipping).
-    // Simulated time to win (sharp / typical / wild aim): 10.4 / 13.5 / 22.3 s, vs revolver 9.6 / 13.5 / 22.2 s.
-    cooldownMs: 250,
+    // Bolts fly at 60 m/s: 0.2 s to reach the opponent, so lead a moving target
+    // (about 1.5 degrees ahead of a walking bot, 3.5 ahead of a dashing one).
+    boltSpeed: 60,
+    // A zap every 0.3 s at most; about 6 in a row overheats it. Vent early (dip) for a quick 0.7 s vent;
+    // once overheated, the vent takes 2 s. Tap while the vent marker is in the green window for a
+    // perfect vent: instantly cool, and the next 3 zaps do 25% more damage. Tap outside it and the vent jams.
+    // Simulated time to win vs the Normal bot (v0.6.9 player models): beginner 19.0 s, intermediate 9.2 s,
+    // expert (leads targets, vents early, 85% perfect vents) 4.4 s, spammer 10.9 s.
+    // The hardest gun to start with and the highest ceiling against a moving target.
+    cooldownMs: 300,
     reloadStartMs: 0,
     reloadPerRoundMs: 0,
-    heat: { perShot: 14, coolPerSec: 15, coolDelayMs: 500, overheatCoolPerSec: 40, ventMs: 700 },
+    heat: {
+      perShot: 16, coolPerSec: 15, coolDelayMs: 500, overheatCoolPerSec: 40, ventMs: 700, overheatVentMs: 2000,
+      ventWindow: [0.5, 0.68], perfectZaps: 3, perfectDamage: 1.25, jamRate: 0.5,
+    },
   },
 };
 

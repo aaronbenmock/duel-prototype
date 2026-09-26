@@ -88,6 +88,12 @@ export interface PlayerState extends Shooter {
   heat: number;
   overheated: boolean;
   venting: boolean;
+  /** The current vent: when it started, how long it should take (ms), and the timed-tap result so far. */
+  vent: { startAt: number; durationMs: number; tapped: boolean; jammed: boolean } | null;
+  /** Zaps left with the perfect-vent damage bonus. */
+  charged: number;
+  /** Bolts still flying (aim units, where they were aimed), each landing at arriveAt. */
+  bolts: Bolt[];
   /** Sideways position in meters (right is positive), from tilt-to-move. */
   x: number;
   /** Current movement input, -1 (full left) to 1 (full right). */
@@ -151,9 +157,17 @@ export type Action =
   | { type: 'drawPose'; now: number }
   | { type: 'fire'; now: number; aim: Vec2 }
   | { type: 'reload'; now: number }
+  /** A tap while venting a heat gun (the timed-vent attempt). */
+  | { type: 'ventTap'; now: number }
   | { type: 'lean'; now: number; value: number }
   /** `aim`: where the crosshair is while aiming (the bot reacts to being aimed at). */
   | { type: 'tick'; now: number; aim?: Vec2 };
+
+export interface Bolt extends Vec2 {
+  arriveAt: number;
+  /** Damage multiplier (perfect-vent bonus). */
+  mult: number;
+}
 
 /** Where one paint blob of a shot landed (aim units) and what it hit. */
 export interface Pellet extends Vec2 {
@@ -170,7 +184,11 @@ export type Effect =
    * `aim`: where the shot went (crosshair, including recoil). `recoil`: how far recoil had moved the crosshair
    * from where the phone pointed. `settled`: fired from a settled gun. `last`: last round before a reload.
    */
-  | { type: 'shot'; zone: HitZone; aim: Vec2; damage: number; pellets: Pellet[]; last: boolean; recoil: Vec2; settled: boolean; spread: number }
+  | { type: 'shot'; zone: HitZone; aim: Vec2; damage: number; pellets: Pellet[]; last: boolean; recoil: Vec2; settled: boolean; spread: number; travelMs: number; charged: boolean }
+  /** A flying bolt arrived (travelling guns): what it hit. */
+  | { type: 'boltHit'; zone: HitZone; aim: Vec2; damage: number }
+  | { type: 'ventPerfect' }
+  | { type: 'ventJam' }
   /** The trigger clicked without firing, and why. */
   | { type: 'empty'; reason: EmptyReason }
   | { type: 'reloadStart'; missing: number }

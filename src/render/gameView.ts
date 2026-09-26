@@ -7,7 +7,7 @@ import fxProjectileUrl from '../../art/exports/effects/fx_paint-yellow_projectil
 import fxSplatAUrl from '../../art/exports/effects/fx_paint-yellow_splat-a.webp';
 import fxSplatBUrl from '../../art/exports/effects/fx_paint-yellow_splat-b.webp';
 import { alienName, CREATURES } from '../game/creatures';
-import { apparentTarget, currentSpread, drawTime, MAX_HP, OPPONENT_Y, parallax, recoilOffset } from '../game/duel';
+import { apparentTarget, currentSpread, drawTime, MAX_HP, OPPONENT_Y, PAINT_FLIGHT_MS, parallax, recoilOffset } from '../game/duel';
 import { CREATURE_ART, GUN_ART } from './art';
 import { WEAPONS } from '../game/weapons';
 import type { DuelState, HitZone, Pellet, Vec2 } from '../game/types';
@@ -18,7 +18,7 @@ const VIEW_WIDTH = 40;
 /** Background image size and where its street (the opponent's feet) sits, as a fraction of its height. */
 const BG = { w: 1290, h: 2796, streetFrac: 0.54, parallaxDist: 40 };
 /** Player paint flight time (ms); splats appear when it lands. */
-const FLIGHT_MS = 110;
+const FLIGHT_MS = PAINT_FLIGHT_MS;
 /** Bot paint flight time toward the camera (ms). */
 export const BOT_FLIGHT_MS = 170;
 /** The bot's paint is tinted so it's clearly different from yours (yellow shifted to teal). */
@@ -346,7 +346,11 @@ export class GameView {
   }
 
   /** Your shot: paint bursts from the muzzle, flies to the crosshair point and splats. */
-  playerShot(zone: HitZone, aim: Vec2, damage: number, weapon: string, pellets: Pellet[]) {
+  playerShot(zone: HitZone, aim: Vec2, damage: number, weapon: string, pellets: Pellet[], travelMs = 0, charged = false) {
+    // Travelling bolts (raygun): a slower, tinted bolt; the result shows when it lands (boltHit).
+    const bolt = travelMs > 0;
+    const flight = bolt ? travelMs : FLIGHT_MS;
+    const tint = GUN_ART[weapon].tint ?? '';
     const r = this.gun.getBoundingClientRect();
     const muzzle = GUN_ART[weapon].muzzle;
     const from = { x: r.left + muzzle.x * r.width, y: r.top + muzzle.y * r.height };
@@ -358,15 +362,16 @@ export class GameView {
     this.fx(this.fxScreen, fxMuzzleUrl, from, w * (spread ? 0.45 : 0.3), [
       { opacity: 1, transform: `rotate(${angle}deg) scale(0.5)` },
       { opacity: 0, transform: `rotate(${angle}deg) scale(1.1)` },
-    ], 180, { anchor: [0.14, 0.51] });
+    ], 180, { anchor: [0.14, 0.51], filter: tint });
     for (const p of pellets) {
       const at = this.aimToScreen(p);
       const a = (Math.atan2(at.y - from.y, at.x - from.x) * 180) / Math.PI;
       // Paint blob flying away from you (shrinks with distance).
-      this.fx(this.fxScene, fxProjectileUrl, from, w * (spread ? 0.12 : 0.22), [
+      this.fx(this.fxScene, fxProjectileUrl, from, w * (spread ? 0.12 : 0.22) * (charged ? 1.3 : 1), [
         { opacity: 1, transform: `translate(0, 0) rotate(${a}deg) scale(1)` },
         { opacity: 1, transform: `translate(${at.x - from.x}px, ${at.y - from.y}px) rotate(${a}deg) scale(0.25)` },
-      ], FLIGHT_MS);
+      ], flight, { filter: tint + (charged ? ' brightness(1.5)' : '') });
+      if (bolt) continue;
       // Impact burst where it lands.
       this.fx(this.fxScene, fxImpactUrl, at, w * (p.zone ? 0.16 : 0.1) * (spread ? 0.5 : 1), [
         { opacity: 1, transform: `rotate(${Math.random() * 360}deg) scale(0.3)` },
@@ -374,8 +379,27 @@ export class GameView {
         { opacity: 0, transform: 'scale(1.15)' },
       ], 380, { delay: FLIGHT_MS });
     }
+    if (bolt) return;
     if (zone) this.floatText(`${ZONE_LABEL[zone]} ${damage}`, to, zone === 'face' ? 'crit' : '', FLIGHT_MS);
     else this.floatText('MISS', to, 'miss', FLIGHT_MS);
+  }
+
+  /** A travelling bolt landed: impact and result where it was aimed. */
+  boltHit(zone: HitZone, aim: Vec2, damage: number, weapon: string) {
+    const at = this.aimToScreen(aim);
+    const w = window.innerWidth;
+    this.fx(this.fxScene, fxImpactUrl, at, w * (zone ? 0.16 : 0.1), [
+      { opacity: 1, transform: `rotate(${Math.random() * 360}deg) scale(0.3)` },
+      { opacity: 1, transform: 'scale(1)', offset: 0.35 },
+      { opacity: 0, transform: 'scale(1.15)' },
+    ], 380, { filter: GUN_ART[weapon].tint ?? '' });
+    if (zone) this.floatText(`${ZONE_LABEL[zone]} ${damage}`, at, zone === 'face' ? 'crit' : '', 0);
+    else this.floatText('MISS', at, 'miss', 0);
+  }
+
+  /** Timed vent result: a flash on the heat gauge. */
+  ventResult(perfect: boolean) {
+    this.restartClass(this.$('g-cyl'), perfect ? 'perfect' : 'jam');
   }
 
   /** The bot's shot: teal paint flies from its hand toward you; a hit splats the screen. */
@@ -473,12 +497,24 @@ export class GameView {
     if (this.cylSize !== slots) {
       this.cylSize = slots;
       cylEl.className = gun.heat ? 'cyl heat' : 'cyl';
-      cylEl.replaceChildren(...Array.from({ length: gun.heat ? 1 : gun.capacity }, () => document.createElement('i')));
+      if (gun.heat) {
+        // Heat gauge: fill, the timed-vent window, and the sweeping vent marker.
+        const win = document.createElement('b');
+        win.style.left = gun.heat.ventWindow[0] * 100 + '%';
+        win.style.width = (gun.heat.ventWindow[1] - gun.heat.ventWindow[0]) * 100 + '%';
+        cylEl.replaceChildren(document.createElement('i'), win, document.createElement('u'));
+      } else {
+        cylEl.replaceChildren(...Array.from({ length: gun.capacity }, () => document.createElement('i')));
+      }
     }
     const cyl = cylEl.children;
     if (gun.heat) {
       (cyl[0] as HTMLElement).style.width = s.player.heat + '%';
       cylEl.classList.toggle('hot', s.player.overheated);
+      const v = s.player.vent;
+      cylEl.classList.toggle('venting', !!v && !v.tapped);
+      cylEl.classList.toggle('charged', s.player.charged > 0);
+      if (v) (cyl[2] as HTMLElement).style.left = Math.min(100, ((performance.now() - v.startAt) / v.durationMs) * 100) + '%';
     } else {
       for (let i = 0; i < cyl.length; i++) cyl[i].classList.toggle('spent', i >= s.player.rounds);
     }
