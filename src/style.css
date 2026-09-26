@@ -378,3 +378,7 @@ button.danger { color: var(--bad); }
 .wear .thing i { display: flex; height: 100%; align-items: center; justify-content: center; font-style: normal; color: var(--muted); font-size: 1.4rem; }
 .wear.locked img { filter: grayscale(1) brightness(0.55); }
 .wear.locked::after { content: '\1F512'; position: absolute; top: 4px; right: 5px; font-size: 0.8rem; }
+
+/* ---- Gun charm (v0.8.2): hangs from its loop at the anchor, turned by the pendulum in gameView ---- */
+.vm-kick { position: relative; }
+.vm-charm { position: absolute; height: auto; transform-origin: 50% 7%; transform: translate(-50%, -7%); pointer-events: none; -webkit-user-drag: none; }

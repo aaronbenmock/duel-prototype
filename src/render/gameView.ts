@@ -8,7 +8,7 @@ import fxSplatBUrl from '../../art/exports/effects/fx_paint-yellow_splat-b.webp'
 import { alienName, CREATURES } from '../game/creatures';
 import { apparentTarget, currentSpread, drawTime, MAX_HP, OPPONENT_Y, PAINT_FLIGHT_MS, parallax, recoilOffset } from '../game/duel';
 import { MAPS } from '../game/maps';
-import { CREATURE_ART, creatureUrl, GUN_ART, MAP_ART, PAINT_ART, paintCss, povUrl } from './art';
+import { CHARM_SIZE, CREATURE_ART, creatureUrl, GUN_ART, MAP_ART, PAINT_ART, paintCss, povUrl } from './art';
 import { WEAPONS } from '../game/weapons';
 import type { DuelState, HitZone, Pellet, Vec2 } from '../game/types';
 
@@ -62,6 +62,15 @@ export class GameView {
   /** Skins (looks only): yours for the first-person hand, the bot's for this round. */
   playerSkin = 'original';
   botSkin = 'original';
+  /** Picture of your gun charm, or '' for none. */
+  charmUrl = '';
+  private charm!: HTMLImageElement;
+  /** Charm pendulum: swing angle (deg), its speed, and the gun's last rotation. */
+  private charmSwing = 0;
+  private charmVel = 0;
+  private gunRot = 0;
+  private swingAt = 0;
+  private swingAcc = 0;
   /** Show the on-screen Reload button (off by default; dip or flick the phone instead). */
   showReloadButton = false;
 
@@ -147,6 +156,7 @@ export class GameView {
     this.fxScene = this.$('g-fx-scene');
     this.fxScreen = this.$('g-fx-screen');
     this.gun = img('', 'vm', this.$('g-vmk'));
+    this.charm = img('', 'vm-charm hidden', this.$('g-vmk'));
 
     // ---- Scene (SVG in aim units: 1 unit = 1 degree, y up = negative SVG y) ----
     this.svgEl = svg('svg', { class: 'scene', preserveAspectRatio: 'xMidYMid slice' });
@@ -271,11 +281,16 @@ export class GameView {
 
   /** The player's hand-and-gun image, for their alien and gun. */
   private setGun(creature: string, weapon: string) {
-    const key = creature + '|' + weapon + '|' + this.playerSkin;
+    const key = creature + '|' + weapon + '|' + this.playerSkin + '|' + this.charmUrl;
     if (key === this.gunKey) return;
     this.gunKey = key;
     const art = GUN_ART[weapon];
     this.gun.src = povUrl(weapon, creature, this.playerSkin);
+    this.charm.classList.toggle('hidden', !this.charmUrl);
+    if (this.charmUrl) {
+      this.charm.src = this.charmUrl;
+      Object.assign(this.charm.style, { left: `${art.charm.x * 100}%`, top: `${art.charm.y * 100}%`, width: `${CHARM_SIZE * 100}%` });
+    }
     this.$('g-vm').className = 'vm-wrap ' + art.cls + (this.$('g-vm').classList.contains('hidden') ? ' hidden' : '');
   }
 
@@ -320,6 +335,7 @@ export class GameView {
   /** Gun kicks up on a shot. */
   kick() {
     this.restartAnim(this.$('g-vmk'), 'kick');
+    this.charmVel += 7;
   }
 
   /** Gun dips down and back up on a reload. */
@@ -660,9 +676,29 @@ export class GameView {
     wrap.style.transform = `translate(${this.sway.x.toFixed(1)}px, ${this.sway.y.toFixed(1)}px) rotate(${(s.player.lean * 5 + turn).toFixed(1)}deg)`;
     // Recoil guns: the gun rises with the kick and eases back with the crosshair.
     const vmk = this.$('g-vmk');
-    vmk.style.transform = WEAPONS[s.player.weapon].recoil
+    const recoil = !!WEAPONS[s.player.weapon].recoil;
+    vmk.style.transform = recoil
       ? `translate(${(kick.x * 1.5).toFixed(2)}%, ${(-kick.y * 1.8).toFixed(2)}%) rotate(${(-kick.y * 3.5).toFixed(2)}deg)`
       : '';
+    if (this.charmUrl) this.swingCharm(s.player.lean * 5 + turn + (recoil ? -kick.y * 3.5 : 0), d.x);
+  }
+
+  /**
+   * The charm hangs straight down whatever the gun's angle, and swings like a pendulum when the gun turns,
+   * moves or kicks (looks only).
+   */
+  private swingCharm(gunRot: number, aimDx: number) {
+    this.charmVel += -(gunRot - this.gunRot) * 0.6 - aimDx * 0.8;
+    this.gunRot = gunRot;
+    // Fixed 60 Hz steps, so it swings the same on 60 and 120 Hz screens.
+    const now = performance.now();
+    this.swingAcc = Math.min(70, this.swingAcc + (now - this.swingAt));
+    this.swingAt = now;
+    for (; this.swingAcc >= 16.7; this.swingAcc -= 16.7) {
+      this.charmVel = (this.charmVel - this.charmSwing * 0.06) * 0.93;
+      this.charmSwing = Math.max(-35, Math.min(35, this.charmSwing + this.charmVel));
+    }
+    this.charm.style.transform = `translate(-50%, -7%) rotate(${(this.charmSwing - gunRot).toFixed(1)}deg)`;
   }
 
   private renderResult(s: DuelState) {

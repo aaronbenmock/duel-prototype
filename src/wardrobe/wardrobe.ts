@@ -55,6 +55,9 @@ export const CATALOGUE: Item[] = [
       unlock: [null, { kind: 'wins', n: 5 } as Rule, { kind: 'streak', n: 3 } as Rule][i],
     })),
   ),
+  // v0.8.2 gun charms (hang from your gun in first person).
+  { id: 'charm:saguaro', slot: 'charm', name: 'Saguaro charm', unlock: null },
+  { id: 'charm:moonbeetle', slot: 'charm', name: 'Moon beetle charm', unlock: { kind: 'faceHits', n: 25 } },
 ];
 
 export const itemById = (id: string | null | undefined) => CATALOGUE.find((i) => i.id === id);

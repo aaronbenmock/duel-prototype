@@ -30,6 +30,8 @@ import scatterGoldUrl from '../../art/exports/weapons/weapon_wrapped-scattergun_
 import scatterSageUrl from '../../art/exports/weapons/weapon_wrapped-scattergun_sage_pov.webp';
 import scatterVioletUrl from '../../art/exports/weapons/weapon_wrapped-scattergun_violet_pov.webp';
 export { default as LOGO_URL } from '../../art/exports/ui/ui_high-moon_logo.webp';
+import charmBeetleUrl from '../../art/exports/accessories/acc_charm-moonbeetle.webp';
+import charmSaguaroUrl from '../../art/exports/accessories/acc_charm-saguaro.webp';
 
 export interface MapArt {
   url: string;
@@ -80,6 +82,8 @@ export interface GunArt {
   grip?: { x: number; y: number };
   /** CSS filter for this gun's paint (the raygun's bolts are green). */
   tint?: string;
+  /** Where a gun charm's loop hangs (fraction of the first-person image): the frame just in front of the hand. */
+  charm: { x: number; y: number };
 }
 
 /**
@@ -108,6 +112,7 @@ export const GUN_ART: Record<string, GunArt> = {
     side: revolverSideUrl,
     muzzle: { x: 0.47, y: 0.13 },
     cls: 'vm-onehand',
+    charm: { x: 0.53, y: 0.52 },
   },
   'wrapped-scattergun': {
     pov: { 'desert-sage': scatterSageUrl, 'desert-blue': scatterBlueUrl, 'desert-gold': scatterGoldUrl, 'desert-violet': scatterVioletUrl },
@@ -115,6 +120,7 @@ export const GUN_ART: Record<string, GunArt> = {
     muzzle: { x: 0.367, y: 0.207 },
     grip: { x: 0.7, y: 0.7 },
     cls: 'vm-twohand',
+    charm: { x: 0.53, y: 0.66 },
   },
   'desert-raygun': {
     pov: { 'desert-sage': raySageUrl, 'desert-blue': rayBlueUrl, 'desert-gold': rayGoldUrl, 'desert-violet': rayVioletUrl },
@@ -122,6 +128,7 @@ export const GUN_ART: Record<string, GunArt> = {
     muzzle: { x: 0.497, y: 0.168 },
     cls: 'vm-onehand',
     tint: 'hue-rotate(75deg) saturate(1.4)',
+    charm: { x: 0.5, y: 0.57 },
   },
 };
 
@@ -154,4 +161,10 @@ export function povUrl(gun: string, alien: string, skin = 'original'): string {
 }
 
 /** Pictures of wearable items other than skins (charms, buckles), by item id (src/wardrobe/wardrobe.ts). */
-export const ITEM_ART: Record<string, string> = {};
+export const ITEM_ART: Record<string, string> = {
+  // v0.8.2 (art/ready-for-production/high-moon-charms): 512 x 512, loop at the top centre (50%, 7%).
+  'charm:saguaro': charmSaguaroUrl,
+  'charm:moonbeetle': charmBeetleUrl,
+};
+/** Charm size as a share of the first-person image width (its 512 canvas; the charm itself is about 60% of that). */
+export const CHARM_SIZE = 0.225;

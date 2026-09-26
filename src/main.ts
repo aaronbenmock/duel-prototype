@@ -16,6 +16,7 @@ import { StartView } from './render/startView';
 import { mountLogsPanel } from './render/logsPanel';
 import { persistStorage, Profiles } from './settings/profiles';
 import { posterHtml } from './render/posterView';
+import { ITEM_ART } from './render/art';
 import { backfillStats } from './stats/backfill';
 import { addRound, cleanStats, type Records, type Stats } from './stats/stats';
 import { botSkinForSeed, newlyUnlocked, skinOf, wornItem, type Item } from './wardrobe/wardrobe';
@@ -69,6 +70,8 @@ function applyProfile() {
   settingsView.setProfileName(p.name);
   game.setPaint(p.paint);
   game.playerSkin = skinOf(p.outfit, p.alien);
+  const charm = wornItem(p.outfit, 'charm');
+  game.charmUrl = charm ? ITEM_ART[charm.id] ?? '' : '';
   start.setProfiles(profiles.list, p);
   start.setPoster(posterHtml(p));
 }

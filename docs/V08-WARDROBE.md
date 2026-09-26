@@ -11,8 +11,8 @@ CLAUDE.md Handoff, and continues from the first unfinished row.
 |---|---|---|
 | v0.8.0 | Wardrobe foundation: outfit in each gunslinger (store v3), catalogue + unlock rules from stats, Wardrobe section in the Outfitter, skin-aware pictures, bot skin per round, logs record looks, check script | done |
 | v0.8.1 | Skins: 12 recolours of the aiming sprites + 36 first-person hands, promoted from the wardrobe-worlds draft palettes | done |
-| v0.8.2 | Gun charms in first person | next |
-| v0.8.3 | Belt buckles on the opponent sprite and portraits (only if they pass the fit tests) | |
+| v0.8.2 | Gun charms in first person | done |
+| v0.8.3 | Belt buckles on the opponent sprite and portraits (only if they pass the fit tests) | next |
 | later | Hats, neckwear, vests, jackets: blocked on clean base bodies (see Art review) | blocked |
 
 ## Decisions for Aaron
@@ -25,6 +25,8 @@ CLAUDE.md Handoff, and continues from the first unfinished row.
   bot's behaviour for a seed doesn't change. Logged as `opponent.skin`.
 - **Skin unlocks:** for each alien, the first skin is free, the second after 5 wins, the third after 3 wins in a row
   (any alien counts). Only WebP copies are committed (PNG copies are rebuilt by the tool; 25 MB saved).
+- **Charm unlocks:** saguaro free, moon beetle after 25 face hits. Charms show in first person only (the
+  opponent's gun is too small on screen for one to read).
 - **Skins are per alien** in each gunslinger: switching alien keeps each one's chosen skin.
 
 ## Art review (2026-09-26): high-moon-wardrobe-worlds v01
@@ -40,6 +42,18 @@ CLAUDE.md Handoff, and continues from the first unfinished row.
   vest, same canvas and pose, so worn layers can replace them.
 
 ## Versions
+
+### v0.8.2 (2026-09-26): gun charms
+Two gun charms (saguaro, moon beetle) in the Wardrobe. Yours hangs from the frame in front of your trigger hand
+on all three guns, stays hanging straight down as the gun tilts, and swings when you turn, sidestep or fire.
+Promoted package: `art/ready-for-production/high-moon-charms/`.
+Checks: build, type-check, wardrobe check (14 items), browser at 375 x 667: placement on all three guns once the
+gun is fully raised (clear of the bottom HUD), counter-rotation on the turned scattergun, swing after a shot.
+
+Phone test:
+- [ ] Start screen shows v0.8.2. Wear the saguaro charm (Outfitter > Wardrobe > Gun charm).
+- [ ] In a duel it hangs by your trigger hand on each gun, doesn't hide the crosshair or the ammo, and swings on each shot and when you turn.
+- [ ] The moon beetle shows "Land 25 face hits (x / 25)" until earned.
 
 ### v0.8.1 (2026-09-26): skins
 Twelve skins (three per alien) in the Outfitter's Wardrobe, with matching first-person hands for all three guns;

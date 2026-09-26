@@ -5,7 +5,7 @@ import type { BotConfig, DuelConfig } from '../game/types';
 import type { AimConfig } from '../input/aim';
 import { DEFAULT_GESTURES, type GestureConfig } from '../input/gestures';
 
-export const APP_VERSION = '0.8.1';
+export const APP_VERSION = '0.8.2';
 const STORAGE_KEY = 'duel-settings-v1';
 
 export type BotDifficulty = 'easy' | 'normal' | 'hard';
