@@ -17,7 +17,7 @@ import { mountLogsPanel } from './render/logsPanel';
 import { persistStorage, Profiles } from './settings/profiles';
 import { posterHtml } from './render/posterView';
 import { backfillStats } from './stats/backfill';
-import { addRound } from './stats/stats';
+import { addRound, type Records, type Stats } from './stats/stats';
 import { logFileName, RoundRecorder, type RoundLog } from './telemetry/roundLog';
 import { shareJson } from './telemetry/share';
 import { deviceId, flush, getKey, getLabel, onStatus, randomId, saveRound, status } from './telemetry/upload';
@@ -128,11 +128,21 @@ function finishLog(s: DuelState) {
   if (!log) return;
   lastLog = log;
   // All-time stats for the gunslinger who played (a round closed mid-duel counts as "left").
-  addRound(profiles.active.stats, log);
+  const stats = profiles.active.stats;
+  game.setRecords(recordLines(addRound(stats, log), stats));
   profiles.save();
   start.setPoster(posterHtml(profiles.active));
   showLogStatus();
   void saveRound(log);
+}
+
+/** Results-screen lines for records the round broke. */
+function recordLines(r: Records, s: Stats): string[] {
+  const lines: string[] = [];
+  if (r.fastestDraw && s.fastestDrawMs != null) lines.push(`Fastest draw yet! ${(s.fastestDrawMs / 1000).toFixed(2)} s`);
+  if (r.fastestWin && s.fastestWinMs != null) lines.push(`Fastest win yet! ${(s.fastestWinMs / 1000).toFixed(1)} s`);
+  if (r.bestStreak) lines.push(`New best streak: ${s.bestStreak} wins in a row`);
+  return lines;
 }
 
 function showLogStatus() {
@@ -313,6 +323,7 @@ function newRound() {
   });
   recorder.event(now, 'target', n1(duel.target.x), n1(duel.target.y));
   game.setLogStatus('');
+  game.setRecords([]);
   show('game');
 }
 

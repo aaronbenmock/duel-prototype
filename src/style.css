@@ -357,3 +357,8 @@ button.danger { color: var(--bad); }
   bottom: calc(78px + env(safe-area-inset-bottom));
   padding: 12px; font-size: 0.95rem; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
 }
+
+/* ---- Records on the results screen (v0.7.4) ---- */
+.records { text-align: center; margin: -4px 0 10px; color: var(--accent); font-weight: 800; font-size: 1rem; }
+.records div { margin: 2px 0; }
+.records div::before { content: '\2605  '; }

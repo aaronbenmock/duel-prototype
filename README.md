@@ -62,7 +62,7 @@ Up to 8 gunslingers per phone, each with its own name, alien, gun, paint colour 
 
 ## Wanted Poster (your record)
 
-Each gunslinger's all-time record, updated when every round ends: wins, losses and fouls, win rate, current and best win streak, accuracy (hits per shot), share of hits on the face, average and fastest draw (DRAW sound to gun up; fouls have none), average and fastest win (DRAW sound to the opponent covered in paint), tables by gun, opponent, map and bot difficulty, and the last 10 rounds. Closing the game mid-duel counts as "left early", not a loss. The first time v0.7.2 opens, rounds from before it are added from the round logs still on the phone (its last 30 or so) and given to the gunslinger who played them ("Player 1" for anything before v0.7.0). The backup code in Settings includes the record.
+Each gunslinger's all-time record, updated when every round ends: wins, losses and fouls, win rate, current and best win streak, accuracy (hits per shot), share of hits on the face, average and fastest draw (DRAW sound to gun up; fouls have none), average and fastest win (DRAW sound to the opponent covered in paint), tables by gun, opponent, map and bot difficulty, and the last 10 rounds. Closing the game mid-duel counts as "left early", not a loss. The first time v0.7.2 opens, rounds from before it are added from the round logs still on the phone (its last 30 or so) and given to the gunslinger who played them ("Player 1" for anything before v0.7.0). The backup code in Settings includes the record. When a round sets a personal best, the results screen says so ("Fastest draw yet!", "Fastest win yet!", "New best streak").
 
 ## Settings
 

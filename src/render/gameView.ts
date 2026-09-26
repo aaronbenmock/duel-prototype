@@ -129,6 +129,7 @@ export class GameView {
           </div>
           <h1 id="r-title"></h1>
           <p class="sub" id="r-note"></p>
+          <div class="records hidden" id="r-records"></div>
           <div class="grid" id="r-stats"></div>
           <button id="r-again">Again</button>
           <div class="log-row">
@@ -281,6 +282,13 @@ export class GameView {
   }
 
   /** Line under the log buttons on the results screen (saved / uploaded / waiting). */
+  /** New personal records from the round just finished ("Fastest draw yet!"); empty hides the line. */
+  setRecords(lines: string[]) {
+    const el = this.$('r-records');
+    el.innerHTML = lines.map((l) => `<div>${l}</div>`).join('');
+    el.classList.toggle('hidden', lines.length === 0);
+  }
+
   setLogStatus(text: string) {
     this.$('r-logstatus').textContent = text;
   }

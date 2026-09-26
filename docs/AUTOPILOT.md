@@ -12,7 +12,7 @@ Handoff, and continues from the first unfinished step below.
 | 2 | v0.7.1 | Tabbed start screen (Main Street / Outfitter / Wanted Poster), paint colour | done, pushed |
 | 3 | v0.7.2 | Stats per profile, backfill from round logs, wanted poster | done, pushed |
 | 4 | v0.7.3 | Optional 1: "Update available" notice | done, pushed |
-| 5 | v0.7.4 | Optional 2: records on the results screen | next |
+| 5 | v0.7.4 | Optional 2: records on the results screen | done, pushed |
 | - | - | Any other art folder with `APPROVED.txt` (check between steps) | none found yet |
 
 ## Decisions for Aaron
@@ -54,8 +54,20 @@ Handoff, and continues from the first unfinished step below.
 - **Update check runs only on the start screen** (on load, every 3 minutes, and when the game comes back to the
   foreground), never mid-duel; the bar sits just above the tab bar. It reloads with `?v=<version>` in the address
   so GitHub's 10-minute page cache can't serve the old page again.
+- **Records need something to beat:** the first timed draw or win isn't announced as a record; a faster one later
+  is. A fastest draw counts on a lost round too (it's still your quickest draw).
 
 ## Versions
+
+### v0.7.4 (2026-09-26): personal records on the results screen
+Under the result, a gold line for each record the round broke: "Fastest draw yet! 0.22 s", "Fastest win yet! 4.2 s",
+"New best streak: 3 wins in a row".
+Checks: build, type-check, browser at 375 x 667: first round shows nothing, faster rounds show the right lines,
+a loss with a faster draw shows only the draw record, the results panel still fits with three lines.
+
+Phone test:
+- [ ] Start screen shows v0.7.4 (and, on v0.7.3, the "Update available" bar offered it).
+- [ ] Beat your fastest draw or win, or set a new best streak: the results screen says so; an ordinary round shows no extra line.
 
 ### v0.7.3 (2026-09-26): "Update available" notice
 The build now writes `version.json`. While the start screen is up, the game compares it with its own version and
