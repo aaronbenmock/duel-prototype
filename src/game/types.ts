@@ -24,8 +24,9 @@ export interface BotConfig {
   headshotShare: number;
   /** Seconds the bot needs to reload after six shots. */
   reloadTime: number;
-  /** Chance a shot hits is multiplied by this while the bot itself is moving. */
+  /** Chance a shot hits is multiplied by this while the bot itself is walking, and by dashHitFactor mid-dash. */
   movingHitFactor: number;
+  dashHitFactor: number;
   /** How far (m) the bot moves either side of its start spot. 0 = stands still. */
   moveRange: number;
   /** Walking speed, m/s. */

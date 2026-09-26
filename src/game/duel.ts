@@ -58,6 +58,7 @@ export const DEFAULT_CONFIG: DuelConfig = {
     headshotShare: 0.05,
     reloadTime: 1.5,
     movingHitFactor: 0.6,
+    dashHitFactor: 0.4,
     moveRange: 2.0,
     walkSpeed: 1.5,
     dashChance: 0.45,
@@ -317,15 +318,15 @@ export function step(prev: DuelState, action: Action): { state: DuelState; effec
           s.bot.reloadUntil = null;
           s.bot.nextFireAt = now + between(s, bot.intervalMin, bot.intervalMax) * 1000;
         }
-        // It doesn't fire mid-dash; the shot waits until the dash ends.
-        if (s.bot.nextFireAt != null && now >= s.bot.nextFireAt && s.bot.rounds > 0 && s.bot.mode !== 'dash') {
+        if (s.bot.nextFireAt != null && now >= s.bot.nextFireAt && s.bot.rounds > 0) {
           s.bot.rounds--;
           s.bot.shots++;
           let zone: HitZone = null;
           // A player who is sidestepping is harder to hit.
           const dodging = Math.abs(s.player.vx) >= MOVE.dodgeSpeed;
-          // ...and a bot on the move is less accurate than a planted one.
-          const chance = bot.hitChance * (dodging ? MOVE.dodgeFactor : 1) * (s.bot.mode === 'plant' ? 1 : bot.movingHitFactor);
+          // ...and a bot on the move is less accurate than a planted one (least of all mid-dash).
+          const moveFactor = s.bot.mode === 'plant' ? 1 : s.bot.mode === 'dash' ? bot.dashHitFactor : bot.movingHitFactor;
+          const chance = bot.hitChance * (dodging ? MOVE.dodgeFactor : 1) * moveFactor;
           if (between(s, 0, 1) < chance) {
             const r = between(s, 0, 1);
             if (r < bot.headshotShare) zone = 'face';

@@ -5,7 +5,7 @@ import type { BotConfig, DuelConfig } from '../game/types';
 import type { AimConfig } from '../input/aim';
 import { DEFAULT_GESTURES, type GestureConfig } from '../input/gestures';
 
-export const APP_VERSION = '0.6.6';
+export const APP_VERSION = '0.6.7';
 const STORAGE_KEY = 'duel-settings-v1';
 
 export type BotDifficulty = 'easy' | 'normal' | 'hard';
@@ -99,13 +99,13 @@ const BOTS: Record<BotDifficulty, BotConfig> = {
   // Movement: strafe, dash, juke, plant to shoot; 1 m is about 5 degrees of aim at 12 m.
   easy: {
     firstShotMin: 1.5, firstShotMax: 3, intervalMin: 0.9, intervalMax: 1.4, hitChance: 0.75, headshotShare: 0.03, reloadTime: 2.2,
-    movingHitFactor: 0.6, moveRange: 1.5, walkSpeed: 0.9, dashChance: 0.15, dashSpeed: 2.8, dashDistMin: 0.6, dashDistMax: 1.1,
+    movingHitFactor: 0.6, dashHitFactor: 0.4, moveRange: 1.5, walkSpeed: 0.9, dashChance: 0.15, dashSpeed: 2.8, dashDistMin: 0.6, dashDistMax: 1.1,
     jukeChance: 0.15, plantMin: 0.9, plantMax: 2.0, plantShotDelay: 0.45, reactMs: 1000, reactChance: 0,
   },
   normal: DEFAULT_CONFIG.bot,
   hard: {
     firstShotMin: 1, firstShotMax: 2, intervalMin: 0.45, intervalMax: 0.7, hitChance: 0.95, headshotShare: 0.03, reloadTime: 1.2,
-    movingHitFactor: 0.7, moveRange: 3.0, walkSpeed: 1.9, dashChance: 0.55, dashSpeed: 4.6, dashDistMin: 1.2, dashDistMax: 2.0,
+    movingHitFactor: 0.7, dashHitFactor: 0.45, moveRange: 3.0, walkSpeed: 1.9, dashChance: 0.55, dashSpeed: 4.6, dashDistMin: 1.2, dashDistMax: 2.0,
     jukeChance: 0.4, plantMin: 0.3, plantMax: 0.8, plantShotDelay: 0.2, reactMs: 450, reactChance: 0.7,
   },
 };
