@@ -70,6 +70,15 @@ steps: search `art/drafts/` and `art/ready-for-production/` for `APPROVED.txt` n
 - Backgrounds: add each to `MAPS` (src/game/maps.ts) and `MAP_ART` (src/render/art.ts). Measure the street line
   at the same depth below the horizon as the others (0.54 frontier, 0.53 canyon, 0.525 outpost; see
   PROTOTYPE-FROM-DRAFTS.md), and check crosshair, paint, HUD and RELOADING tag readability at phone size.
+- **Already reviewed (2026-09-26): `art/drafts/high-moon-wardrobe-worlds/v01/backgrounds/`**, four maps:
+  saltflat-oasis, lunar-mining-town, bioluminescent-canyon, comet-rail-station. All decode, 1290 x 2796 opaque,
+  PNG hashes match background-manifest.json, WebP 97-139 KB (copy as-is), upscaled from 852 x 1846 like the
+  others. Phone mockups with the real sprites: open centre street, no characters or text, feet sit correctly.
+  Measured street lines: saltflat-oasis 0.515, lunar-mining-town 0.52, bioluminescent-canyon 0.53,
+  comet-rail-station 0.515 (ground starts at about 0.405 / 0.412 / 0.420 / 0.405; same 0.11 depth as frontier).
+  In the browser, check the bottom HUD and yellow paint on the cream salt flat (the lowest-contrast map).
+  Aaron's approval can come from his session prompt instead of APPROVED.txt. The same package's accessory
+  originals (hats, neckwear, jackets) are NOT usable yet: unsized concepts with no fitting to the flattened sprites.
 - Anything else: follow the art rules; if it needs a decision, integrate what's clear and list the rest.
 - Record it in PROTOTYPE-FROM-DRAFTS.md as a new batch with Aaron's approval (the APPROVED.txt file).
 - Its own version (v0.7.x in sequence). If no approved art has appeared by the time steps 1 to 3 and the
