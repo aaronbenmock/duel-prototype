@@ -91,3 +91,22 @@ Removed from exports (replaced; history in git): `creatures/creature_desert-{sag
 - **Logo** replaces the text title on the start screen (320 px wide max).
 - Known limits: all drafts, flattened rasters (no layers); the backgrounds were upscaled from 852 x 1846, so
   they are a little soft.
+
+## Fourth batch (v0.6.11, 2026-09-26): high-moon-wardrobe-worlds backgrounds
+
+Aaron approved (2026-09-26, in the autopilot session request) using the four backgrounds in
+`drafts/high-moon-wardrobe-worlds/v01/backgrounds/` in the public game and repo. Draft files were not modified.
+
+| Export | Source draft | Processing |
+|---|---|---|
+| `backgrounds/bg_{saltflat-oasis,lunar-mining-town,bioluminescent-canyon,comet-rail-station}.webp` | `drafts/high-moon-wardrobe-worlds/v01/backgrounds/` | copied as-is (99-142 KB); PNG hashes checked against `background-manifest.json` |
+
+- **Maps:** now 7, one per round from the round seed (`MAPS` in `src/game/maps.ts`). Adding maps changes which
+  map a given seed lands on; logs record the map by name, so older logs are unaffected.
+- **Street lines** (same 0.11 depth below each horizon as frontier; ground starts at about 0.405 / 0.412 / 0.420 /
+  0.405): saltflat-oasis 0.515, lunar-mining-town 0.52, bioluminescent-canyon 0.53, comet-rail-station 0.515.
+- **Checked at 390 x 844 and 375 x 667:** feet on the street, crosshair, yellow paint on the cream salt flat
+  (the projectile's dark outline keeps it readable), teal bot paint, bottom HUD inside the screen.
+- Not used: the same package's accessory originals (hats, neckwear, jackets): unsized concepts with no fitting
+  to the flattened sprites.
+- Known limits: upscaled from 852 x 1846 like the others, so a little soft.

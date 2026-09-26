@@ -2,7 +2,10 @@
 // Each round's map comes from its seed (see mapForSeed), so a logged seed shows which map it was.
 
 /** Map ids, matching bg_<id>.webp in art/exports/backgrounds (placement data is in src/render/art.ts). */
-export const MAPS = ['alien-frontier', 'moonlit-canyon', 'desert-outpost'];
+export const MAPS = [
+  'alien-frontier', 'moonlit-canyon', 'desert-outpost',
+  'saltflat-oasis', 'lunar-mining-town', 'bioluminescent-canyon', 'comet-rail-station',
+];
 
 /**
  * The map for a round seed. Hashes the seed instead of drawing from the round's random stream,

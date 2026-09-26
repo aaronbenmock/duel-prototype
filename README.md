@@ -34,7 +34,7 @@ If that doesn't work, go to Settings, then Apps, then Safari, then **Clear Histo
 
 ## How to play
 
-1. On the start screen, pick your alien (Sage, Blue, Gold or Violet) and gun (the phone remembers your pick). Aliens are looks only: every alien is equally easy to hit. Your opponent is one of the other aliens, picked at random each round, and each round is played on one of three maps at random (desert town at night, moonlit canyon, desert outpost at sunset). Maps are looks only too.
+1. On the start screen, pick your alien (Sage, Blue, Gold or Violet) and gun (the phone remembers your pick). Aliens are looks only: every alien is equally easy to hit. Your opponent is one of the other aliens, picked at random each round, and each round is played on one of seven maps at random (desert town at night, moonlit canyon, desert outpost at sunset, salt-flat oasis, lunar mining town, bioluminescent canyon, comet rail station). Maps are looks only too.
 1. Tap **Start Duel**. Hang the phone at your hip, top pointing at the floor, and hold still until you hear the ready click.
 2. Wait for the loud **DRAW** sound. Moving before it is a foul.
 3. Raise the phone upright, screen facing you. The crosshair appears.

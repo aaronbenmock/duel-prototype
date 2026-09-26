@@ -2,6 +2,10 @@
 import frontierUrl from '../../art/exports/backgrounds/bg_alien-frontier.webp';
 import outpostUrl from '../../art/exports/backgrounds/bg_desert-outpost.webp';
 import canyonUrl from '../../art/exports/backgrounds/bg_moonlit-canyon.webp';
+import biolumUrl from '../../art/exports/backgrounds/bg_bioluminescent-canyon.webp';
+import cometUrl from '../../art/exports/backgrounds/bg_comet-rail-station.webp';
+import lunarUrl from '../../art/exports/backgrounds/bg_lunar-mining-town.webp';
+import saltflatUrl from '../../art/exports/backgrounds/bg_saltflat-oasis.webp';
 import blueUrl from '../../art/exports/creatures/creature_desert-blue_revolver_front.webp';
 import blueZonesUrl from '../../art/exports/creatures/creature_desert-blue_revolver_front_hitzones.webp';
 import goldUrl from '../../art/exports/creatures/creature_desert-gold_revolver_front.webp';
@@ -41,6 +45,11 @@ export const MAP_ART: Record<string, MapArt> = {
   'alien-frontier': { url: frontierUrl, w: 1290, h: 2796, streetFrac: 0.54 },
   'moonlit-canyon': { url: canyonUrl, w: 1290, h: 2796, streetFrac: 0.53 },
   'desert-outpost': { url: outpostUrl, w: 1290, h: 2796, streetFrac: 0.525 },
+  // v0.6.11 (wardrobe-worlds batch): street lines at the same 0.11 depth below each horizon as frontier.
+  'saltflat-oasis': { url: saltflatUrl, w: 1290, h: 2796, streetFrac: 0.515 },
+  'lunar-mining-town': { url: lunarUrl, w: 1290, h: 2796, streetFrac: 0.52 },
+  'bioluminescent-canyon': { url: biolumUrl, w: 1290, h: 2796, streetFrac: 0.53 },
+  'comet-rail-station': { url: cometUrl, w: 1290, h: 2796, streetFrac: 0.515 },
 };
 
 export interface CreatureArt {
