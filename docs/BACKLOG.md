@@ -19,7 +19,8 @@ Not scheduled. Add a date and who asked for each idea.
   check against a version file could show "Update available, tap to reload".
 
 ## Art and content
-- Violet alien (needs first-person hand art for all three guns) and more aliens. (Blue, gold, scattergun,
+- Violet alien: art arrived 2026-09-26 (first-person hands, aiming opponent pose); integration planned as v0.6.10,
+  see docs/NEXT-SESSION-ART.md. More aliens later. (Blue, gold, scattergun,
   raygun and the picker shipped in v0.6.2 to v0.6.4.)
 - Bot using the scattergun or raygun (needs the bot model and opponent gun art).
 - Opponent draw and fire pose, hit reactions, defeat pose (needs new art).
