@@ -2,8 +2,9 @@
 // rules with a model player, to compare guns and aliens by time to win.
 // Run in the browser console of the dev server:
 //   const sim = await import('/src/dev/sim.ts'); sim.table()
+import { ALIENS, CREATURES } from '../game/creatures';
 import { createDuel, DEFAULT_CONFIG, step, apparentTarget, recoilOffset } from '../game/duel';
-import type { Action, BotConfig, DuelState } from '../game/types';
+import type { Action, BotConfig, DuelState, Vec2 } from '../game/types';
 import { WEAPONS } from '../game/weapons';
 import { BOTS } from '../settings/settings';
 
@@ -29,7 +30,7 @@ export interface PlayerModel {
   chokeWaitMs?: number;
   /** Reload-interrupt guns: fire mid-reload once a round is in, when the bot is standing still. */
   interruptReload?: boolean;
-  /** Aim at the face instead of the middle of the body. */
+  /** Aim at the face instead of the middle of the body (both measured per alien; see aimPoint). */
   aimFace?: boolean;
   /** Travelling bolts: how much of the needed lead the player aims ahead of a moving target (0 none, 1 exact). */
   leadFactor?: number;
@@ -42,8 +43,29 @@ export interface PlayerModel {
 /** How far away the opponent stands (m), for bolt flight times. */
 const DEFAULT_DISTANCE = 12;
 
-/** Face center above the torso reference point, aim units (about the same for every alien). */
-const FACE_UP = 3.1;
+/**
+ * Where a player aims on an alien, as an offset from its torso reference point (aim units): the middle of
+ * its visible hittable body, or of its face. Measured from the alien's hit-zone map, because the aliens
+ * differ in shape (v0.6.10: Violet is taller, so her torso reference sits lower on her body than on the others;
+ * aiming at the reference point made her 8% slower to beat than aiming where players actually look).
+ */
+const aimPointCache: Record<string, Vec2> = {};
+function aimPoint(creature: string, face: boolean): Vec2 {
+  return (aimPointCache[creature + face] ??= measureCenter(creature, face ? '1' : '1234'));
+}
+function measureCenter(creature: string, codes: string): Vec2 {
+  const c = CREATURES[creature];
+  const cell = c.canvas / c.grid;
+  let sx = 0;
+  let sy = 0;
+  let n = 0;
+  c.rows.forEach((row, gy) => {
+    [...row].forEach((ch, gx) => {
+      if (codes.includes(ch)) { sx += (gx + 0.5) * cell; sy += (gy + 0.5) * cell; n++; }
+    });
+  });
+  return n ? { x: (sx / n - c.torsoPx[0]) / c.pxPerUnit, y: (c.torsoPx[1] - sy / n) / c.pxPerUnit } : { x: 0, y: 0 };
+}
 
 /**
  * Skill levels. Beginners aim at the body and wait for the gun; intermediates aim a bit better, fire sooner
@@ -170,8 +192,8 @@ export function playRound(weapon: string, model: PlayerModel, opponent?: string,
       const t = tracked();
       // Pulling against the kick cancels part of it (the rules then add the kick back).
       const c = model.compensation ?? 0;
-      const up = model.aimFace ? FACE_UP : 0;
-      act({ type: 'fire', now, aim: { x: t.x + gauss() * model.sigma - c * kick.x, y: t.y + up + gauss() * model.sigma - c * kick.y } });
+      const at = aimPoint(s.creature, !!model.aimFace);
+      act({ type: 'fire', now, aim: { x: t.x + at.x + gauss() * model.sigma - c * kick.x, y: t.y + at.y + gauss() * model.sigma - c * kick.y } });
       nextShot = now + Math.max(gun.cooldownMs, model.tapMs + (Math.random() * 2 - 1) * model.tapJitterMs);
     }
   }
@@ -225,8 +247,8 @@ export function table(rounds = 3000) {
 }
 
 /** Same gun and player against each alien: should match if aliens are really looks only. */
-export function aliens(weapon = 'star-revolver', rounds = 4000) {
-  const rows = ['desert-sage', 'desert-blue', 'desert-gold'].map((c) => ({ opponent: c, ...summarize(weapon, TYPICAL, rounds, c) }));
+export function aliens(weapon = 'star-revolver', rounds = 4000, model: PlayerModel = TYPICAL) {
+  const rows = ALIENS.map((a) => ({ opponent: a.id, ...summarize(weapon, model, rounds, a.id) }));
   console.table(rows);
   return rows;
 }

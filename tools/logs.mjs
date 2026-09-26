@@ -56,7 +56,7 @@ const logs = walk(join(REPO_DIR, 'logs'))
 
 const pad = (s, n) => String(s ?? '').padEnd(n);
 console.log(`${logs.length} round(s) since ${since}\n`);
-console.log([pad('started (UTC)', 20), pad('phone', 14), pad('app', 7), pad('alien/gun', 28), pad('vs', 22), pad('result', 10), pad('secs', 6), pad('shots/hits', 11), pad('reloads', 8), pad('you/bot hp', 11), pad('Hz', 4), 'notes'].join(''));
+console.log([pad('started (UTC)', 20), pad('phone', 14), pad('app', 7), pad('alien/gun', 28), pad('vs', 22), pad('map', 16), pad('result', 10), pad('secs', 6), pad('shots/hits', 11), pad('reloads', 8), pad('you/bot hp', 11), pad('Hz', 4), 'notes'].join(''));
 for (const { f, log } of logs) {
   const s = log.stats;
   const reloadSources = log.events.filter((e) => e[1] === 'reload').map((e) => e[2]).filter(Boolean);
@@ -68,7 +68,7 @@ for (const { f, log } of logs) {
   ].filter(Boolean).join('; ');
   console.log([
     pad(log.startedAt.slice(0, 19).replace('T', ' '), 20), pad(log.label || log.device, 14), pad(log.app, 7),
-    pad(`${log.loadout.alien}/${log.loadout.gun}`, 28), pad(`${log.opponent.creature} ${log.opponent.bot}`, 22),
+    pad(`${log.loadout.alien}/${log.loadout.gun}`, 28), pad(`${log.opponent.creature} ${log.opponent.bot}`, 22), pad(log.map ?? '-', 16),
     pad(log.result, 10), pad((log.durationMs / 1000).toFixed(1), 6), pad(`${s.shots}/${s.hits}`, 11), pad(s.reloads, 8),
     pad(`${s.playerHp}/${s.botHp}`, 11), pad(s.sensorHz, 4), notes,
   ].join(''));

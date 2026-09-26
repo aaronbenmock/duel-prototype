@@ -138,6 +138,8 @@ export interface DuelState {
   rng: number;
   /** Which creature sprite and hit-zone map the opponent uses. */
   creature: string;
+  /** Which background the round is played on (src/game/maps.ts). */
+  map: string;
   /** The opponent's torso reference point, in aim units (before any sidestep). */
   target: Vec2;
   startedAt: number;

@@ -1,5 +1,7 @@
 # Next session: integrate the high-moon-expansion art batch (planned v0.6.10)
 
+**DONE in v0.6.10 (2026-09-25).** Results and decisions: `art/exports/PROTOTYPE-FROM-DRAFTS.md` (third batch). Three maps, not four: the expansion folder's fourth background file is a copy of alien-frontier.
+
 Written 2026-09-26 at the end of the v0.6.9 session. Aaron will start a new session with a prompt that
 points here. Plan first, report findings, and wait for Aaron's go-ahead before building.
 

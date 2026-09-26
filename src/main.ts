@@ -265,6 +265,7 @@ function newRound() {
     seed,
     loadout: { alien: duel.player.creature, gun: duel.player.weapon },
     opponent: { creature: duel.creature, gun: duel.bot.weapon, bot: settings.bot },
+    map: duel.map,
   });
   recorder.event(now, 'target', n1(duel.target.x), n1(duel.target.y));
   game.setLogStatus('');

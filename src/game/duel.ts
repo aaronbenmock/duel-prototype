@@ -1,6 +1,7 @@
 // The duel rules as a pure function: (state, action) -> (new state, effects).
 import { moveBot } from './bot';
 import { ALIENS, CREATURES, DEFAULT_CREATURE } from './creatures';
+import { mapForSeed } from './maps';
 import { between } from './rng';
 import type { Action, DuelConfig, DuelState, EmptyReason, Effect, HitZone, Loadout, Pellet, Vec2 } from './types';
 import { DEFAULT_WEAPON, WEAPONS, type RecoilDef } from './weapons';
@@ -157,6 +158,7 @@ export function createDuel(config: DuelConfig, seed: number, now: number, loadou
     config,
     rng: seed >>> 0,
     creature: DEFAULT_CREATURE,
+    map: mapForSeed(seed),
     target: { x: 0, y: 0 },
     startedAt: now,
     holsteredAt: null,

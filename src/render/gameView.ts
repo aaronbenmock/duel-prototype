@@ -1,6 +1,5 @@
 // Draws the duel: background, opponent creature, crosshair, hand-and-gun view,
 // paint effects and HUD. Reads game state; never changes it.
-import bgUrl from '../../art/exports/backgrounds/bg_alien-frontier.webp';
 import fxImpactUrl from '../../art/exports/effects/fx_paint-yellow_impact.webp';
 import fxMuzzleUrl from '../../art/exports/effects/fx_paint-yellow_muzzle-burst.webp';
 import fxProjectileUrl from '../../art/exports/effects/fx_paint-yellow_projectile.webp';
@@ -8,15 +7,16 @@ import fxSplatAUrl from '../../art/exports/effects/fx_paint-yellow_splat-a.webp'
 import fxSplatBUrl from '../../art/exports/effects/fx_paint-yellow_splat-b.webp';
 import { alienName, CREATURES } from '../game/creatures';
 import { apparentTarget, currentSpread, drawTime, MAX_HP, OPPONENT_Y, PAINT_FLIGHT_MS, parallax, recoilOffset } from '../game/duel';
-import { CREATURE_ART, GUN_ART } from './art';
+import { MAPS } from '../game/maps';
+import { CREATURE_ART, GUN_ART, MAP_ART } from './art';
 import { WEAPONS } from '../game/weapons';
 import type { DuelState, HitZone, Pellet, Vec2 } from '../game/types';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 /** The screen is this many aim units wide (so 1 unit = 1 degree at sensitivity 1). */
 const VIEW_WIDTH = 40;
-/** Background image size and where its street (the opponent's feet) sits, as a fraction of its height. */
-const BG = { w: 1290, h: 2796, streetFrac: 0.54, parallaxDist: 40 };
+/** How far away the background is, for sidestep parallax. */
+const BG_PARALLAX_DIST = 40;
 /** Player paint flight time (ms); splats appear when it lands. */
 const FLIGHT_MS = PAINT_FLIGHT_MS;
 /** Bot paint flight time toward the camera (ms). */
@@ -65,6 +65,8 @@ export class GameView {
   private svgEl: SVGSVGElement;
   private bgLayer: SVGGElement;
   private bgImage: SVGImageElement;
+  /** Map (background) currently shown. */
+  private map = MAPS[0];
   private opponent: SVGGElement;
   private sprite: SVGImageElement;
   private zones: SVGImageElement;
@@ -149,7 +151,9 @@ export class GameView {
     this.maskImage = svg('image', { filter: 'url(#to-white)' }, mask);
 
     this.bgLayer = svg('g', {}, this.svgEl);
-    this.bgImage = svg('image', { href: bgUrl, preserveAspectRatio: 'none' }, this.bgLayer);
+    this.bgImage = svg('image', { href: MAP_ART[this.map].url, preserveAspectRatio: 'none' }, this.bgLayer);
+    // Load every map up front so a new round never flashes an empty background.
+    for (const m of Object.values(MAP_ART)) new Image().src = m.url;
 
     this.opponent = svg('g', {}, this.svgEl);
     this.shadow = svg('ellipse', { fill: 'rgba(40, 10, 50, 0.35)' }, this.opponent);
@@ -207,14 +211,23 @@ export class GameView {
     const viewH = (VIEW_WIDTH * window.innerHeight) / Math.max(1, window.innerWidth);
     this.svgEl.setAttribute('viewBox', `${-VIEW_WIDTH / 2} ${-viewH / 2} ${VIEW_WIDTH} ${viewH}`);
     // Cover the screen with the background, and pin its street to the opponent's feet.
-    const w = Math.max(VIEW_WIDTH + 6, (viewH * BG.w) / BG.h);
-    const h = (w * BG.h) / BG.w;
+    const bg = MAP_ART[this.map];
+    const w = Math.max(VIEW_WIDTH + 6, (viewH * bg.w) / bg.h);
+    const h = (w * bg.h) / bg.w;
     const c = Object.values(CREATURES)[0];
     const feetSvgY = GameView.sy(OPPONENT_Y) + (c.baselineY - c.torsoPx[1]) / c.pxPerUnit;
-    let top = feetSvgY - BG.streetFrac * h;
+    let top = feetSvgY - bg.streetFrac * h;
     // Never leave a gap at the top or bottom of the screen.
     top = Math.min(-viewH / 2, Math.max(viewH / 2 - h, top));
     for (const [k, v] of Object.entries({ x: -w / 2, y: top, width: w, height: h })) this.bgImage.setAttribute(k, String(v));
+  }
+
+  /** Shows the round's background, placed so its street is under the opponent's feet. */
+  private setMap(id: string) {
+    if (id === this.map || !MAP_ART[id]) return;
+    this.map = id;
+    this.bgImage.setAttribute('href', MAP_ART[id].url);
+    this.resize();
   }
 
   /** Places the creature sprite (and its mask and zone overlay) in the opponent group. */
@@ -230,7 +243,7 @@ export class GameView {
       for (const [k, v] of Object.entries(box)) el.setAttribute(k, String(v));
     }
     this.sprite.setAttribute('href', art.url);
-    this.botReloadTag.setAttribute('y', String((75 - c.torsoPx[1]) / k));
+    this.botReloadTag.setAttribute('y', String((50 - c.torsoPx[1]) / k)); // just above the tallest hat (y 63)
     this.maskImage.setAttribute('href', art.url);
     this.zones.setAttribute('href', art.zonesUrl);
     this.shadow.setAttribute('cy', String((c.baselineY - c.torsoPx[1]) / k - 0.1));
@@ -436,6 +449,7 @@ export class GameView {
   // ---- Per-frame drawing ----
 
   render(s: DuelState, aim: Vec2, aimVisible: boolean) {
+    this.setMap(s.map);
     this.setCreature(s.creature);
     this.setGun(s.player.creature, s.player.weapon);
     const t = apparentTarget(s);
@@ -446,7 +460,7 @@ export class GameView {
     const lean = Math.max(-9, Math.min(9, s.bot.vx * 2.5));
     const feetY = (c.baselineY - c.torsoPx[1]) / c.pxPerUnit;
     this.opponent.setAttribute('transform', `translate(${t.x} ${GameView.sy(t.y + bob)}) rotate(${lean.toFixed(1)} 0 ${feetY.toFixed(2)})`);
-    this.bgLayer.setAttribute('transform', `translate(${parallax(s, BG.parallaxDist)} 0)`);
+    this.bgLayer.setAttribute('transform', `translate(${parallax(s, BG_PARALLAX_DIST)} 0)`);
     this.zones.style.display = this.showZones ? '' : 'none';
     // Recoil: the crosshair sits where the gun points (phone aim plus the kick still recovering).
     const def = WEAPONS[s.player.weapon].recoil;

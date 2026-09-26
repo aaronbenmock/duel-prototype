@@ -1,9 +1,9 @@
-// Start screen: title, alien and gun picker, Enable Motion, Start Duel.
+// Start screen: logo, alien and gun picker, Enable Motion, Start Duel.
 import { ALIENS } from '../game/creatures';
 import type { Loadout } from '../game/types';
 import { WEAPONS } from '../game/weapons';
 import { APP_VERSION } from '../settings/settings';
-import { CREATURE_ART, GUN_ART } from './art';
+import { CREATURE_ART, GUN_ART, LOGO_URL } from './art';
 
 export class StartView {
   readonly el: HTMLElement;
@@ -22,7 +22,7 @@ export class StartView {
     this.el.className = 'screen';
     this.el.innerHTML = `
       <button class="secondary gear" id="s-settings" aria-label="Settings">&#9881; Settings</button>
-      <h1 class="title">HIGH MOON</h1>
+      <h1 class="title"><img class="logo" src="${LOGO_URL}" alt="High Moon"></h1>
       <p class="sub">Beta &middot; v${APP_VERSION}</p>
       <div class="panel picker">
         <h2>Your alien</h2>
@@ -33,7 +33,7 @@ export class StartView {
         <div class="picks" id="s-guns">${Object.values(WEAPONS).filter((w) => GUN_ART[w.id]).map((w) => `
           <button class="pick" data-gun="${w.id}"><span class="gun"><img src="${GUN_ART[w.id].side}" alt=""></span>${w.name}<span class="note">${w.blurb}</span></button>`).join('')}
         </div>
-        <p class="help">Aliens are looks only: every alien is just as easy to hit. Your opponent is a different alien each round.</p>
+        <p class="help">Aliens are looks only: every alien is just as easy to hit. Your opponent is a different alien each round, on a random map.</p>
       </div>
       <button id="s-enable">Enable Motion</button>
       <button id="s-start">Start Duel</button>
@@ -44,7 +44,7 @@ export class StartView {
           <li>Tap <b>Start Duel</b>, then hang the phone at your hip, top pointing at the floor. Hold still until you hear the ready click.</li>
           <li>Don't move until the loud <b>DRAW</b> sound. Moving early is a foul.</li>
           <li>Raise the phone upright, screen facing you, like aiming a revolver.</li>
-          <li>Turn the phone to move the crosshair. Tap anywhere to fire paint. Face = 20, body = 9, arms and legs = 5, tail = 2 (everyone has 100). The hat doesn't count.</li>
+          <li>Turn the phone to move the crosshair. Tap anywhere to fire paint. Face = 20, body = 9, arms and legs = 5, tail = 2 (everyone has 100). The hat, hair and the opponent's gun don't count.</li>
           <li>Tip the phone sideways to sidestep left or right. A moving target is harder for the bot to hit.</li>
           <li>To reload, dip the phone to point at the floor, then raise it again. Rounds go in one at a time (a full cylinder takes about a second) and you can't fire until it's done. Watch for the opponent's RELOADING tag: that's your moment.</li>
           <li>The revolver kicks up and right after each shot, then settles (white pop and a click). Wait for it, or learn to pull down against the kick and fire faster.</li>

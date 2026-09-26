@@ -5,8 +5,8 @@ zone by simple region rules measured on the 1024 x 1024 sprite canvas, then the
 canvas is reduced to a GRID x GRID map that the game rules use for hit tests.
 
 Aliens are looks only, so they must be equally easy to hit. Every creature is
-drawn at a scale (pixels per aim unit) that gives it the same hittable area as
-the reference creature (sage), with its feet on the same street line.
+drawn at a scale (pixels per aim unit) that gives it the same hittable area
+(TARGET_AREA), with its feet on the same street line.
 
 Outputs:
   src/game/creatures/<slug>.ts            zone map + placement constants
@@ -28,79 +28,148 @@ CELL = 1024 // GRID
 NONE, FACE, TORSO, LIMB, TAIL, HAT = 0, 1, 2, 3, 4, 5
 COLORS = {FACE: (255, 60, 60), TORSO: (255, 170, 0), LIMB: (60, 140, 255), TAIL: (40, 220, 120), HAT: (160, 160, 160)}
 
-# Reference size: sage at 78 sprite px per aim unit, torso reference at (512, 600), soles at y = 944.
+# Sizing: every creature is scaled so its hittable area (face + torso + limbs + tail, measured on
+# the sprite's own pixels) is TARGET_AREA square aim units. 45.69 is what the v0.6.2 neutral-front sage
+# had at 78 px per unit, so swapping in the aiming poses (v0.6.10) keeps the game exactly as hard.
+# Feet stay on the same street line: soles at y = 944, torso reference FEET_BELOW_TORSO units above them.
+TARGET_AREA = 45.69
 REF_PX_PER_UNIT = 78
 BASELINE_Y = 944
 FEET_BELOW_TORSO = (BASELINE_Y - 600) / REF_PX_PER_UNIT  # aim units
+
+# Zone rules below are measured on each 1024 sprite (art/exports/creatures/*_revolver_front.png).
+# In the aiming poses the revolver is raised on the creature's right (left of the picture): the gun
+# sticking out beyond the fist is a miss (code 5, like the hat); the fist holding the grip and the raised
+# arm are limbs. The hat's lower edge is found from colour: in each pixel column, everything above the
+# first skin pixel (face, ears, gills) is hat or hair, which never counts.
 
 
 def in_ellipse(x, y, cx, cy, rx, ry):
     return ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1
 
 
-def sage_zone(x: int, y: int) -> int:
-    """Region rules for creature_desert-sage_front (measured on the 1024 canvas)."""
-    # Face: ellipse from under the hat brim to the chin.
-    if in_ellipse(x, y, 512, 352, 168, 125):
+def is_hair(rgb) -> bool:
+    """Violet's dark plum hair (about 82, 43, 57); her vest and boots are brown with less blue than green."""
+    r, g, b = rgb
+    return r < 130 and g < 85 and b >= g + 5 and r > b
+
+
+def sage_skin(rgb) -> bool:
+    r, g, b = rgb
+    return g > 120 and g > r + 15 and g > b + 20
+
+
+def blue_skin(rgb) -> bool:
+    r, g, b = rgb
+    return b > 150 and b > r + 50  # light blue skin and the darker floppy ears
+
+
+def gold_skin(rgb) -> bool:
+    r, g, b = rgb
+    return r > 220 and b < 140  # yellow skin and the coral gills
+
+
+def violet_skin(rgb) -> bool:
+    r, g, b = rgb
+    return (r > 170 and b > 140 and g < 160 and b > g) or is_hair(rgb)  # purple skin and ears; hair under the brim is her head
+
+
+def sage_zone(x: int, y: int, rgb, brim) -> int:
+    """creature_desert-sage_revolver_front: one eye, ear on the left, tail behind on the right."""
+    if x < 300 and y < 345:
+        return HAT  # raised revolver: miss
+    if y < brim[x]:
+        return HAT  # hat and brim
+    if in_ellipse(x, y, 512, 345, 168, 128):
         return FACE
-    if y < 305:
-        return HAT  # hat and brim; cosmetic, never hittable
-    if y < 440:
-        return LIMB  # ears
-    if 345 <= x <= 690 and y <= 790:
+    if x >= 790 or (x >= 725 and 420 <= y < 590) or (x >= 740 and y >= 715):
+        return TAIL
+    if 350 <= x <= 695 and 420 <= y <= 760:
         return TORSO  # bandanna, vest, belt, belly
-    if y >= 790:
-        return LIMB  # legs and boots
-    if x >= 770 or (x >= 690 and y > 770):
-        return TAIL
-    return LIMB  # arms, hands, holster
+    return LIMB  # ear, raised arm and fist, other arm, holster, legs, boots
 
 
-def blue_zone(x: int, y: int) -> int:
-    """creature_desert-blue_front: three eyes, floppy ears, no tail (the lasso counts as body/leg)."""
-    if in_ellipse(x, y, 512, 352, 172, 114):
+def blue_zone(x: int, y: int, rgb, brim) -> int:
+    """creature_desert-blue_revolver_front: three eyes, floppy ears, no tail (the lasso counts as body)."""
+    if x < 262 and y < 335:
+        return HAT  # raised revolver: miss
+    if y < brim[x]:
+        return HAT  # hat, brim, feather
+    if in_ellipse(x, y, 510, 335, 172, 125):
         return FACE
-    if y < 300:
-        return HAT
-    if y < 445:
-        return LIMB  # ears
-    if 335 <= x <= 690 and y <= 775:
+    if 318 <= x <= 690 and 420 <= y <= 770:
         return TORSO
-    return LIMB  # arms, hands, legs, boots
+    return LIMB  # ears, raised arm and fist, other arm, legs, boots
 
 
-def gold_zone(x: int, y: int) -> int:
-    """creature_desert-gold_front: frilly gills, fringed chaps, tail on the right."""
-    if in_ellipse(x, y, 510, 342, 178, 118):
+def gold_zone(x: int, y: int, rgb, brim) -> int:
+    """creature_desert-gold_revolver_front: frilly gills, fringed chaps, tail on the right."""
+    if x < 265 and y < 335:
+        return HAT  # raised revolver: miss
+    if y < brim[x]:
+        return HAT
+    if in_ellipse(x, y, 510, 335, 172, 122):
         return FACE
-    if y < 290:
-        return HAT
-    if y < 445:
-        return LIMB  # gills
-    if x >= 780 or (x >= 700 and y >= 760):
+    if x >= 805 or (x >= 725 and y >= 715):
         return TAIL
-    if 330 <= x <= 700 and y <= 790:
-        return TORSO
-    return LIMB  # arms, hands, legs, boots
+    if 315 <= x <= 700 and 420 <= y <= 775:
+        return TORSO  # vest, bolo, belt, chaps
+    return LIMB  # gills, raised arm and fist, other arm, legs, boots
 
 
+def violet_zone(x: int, y: int, rgb, brim) -> int:
+    """creature_desert-violet_revolver_front: one eye, pointed ears, two braids. The hair framing her face
+    under the brim is part of her head (face); the braids hanging below it are a miss, like the hat."""
+    if x < 258 and y < 335:
+        return HAT  # raised revolver: miss
+    if y < brim[x]:
+        return HAT
+    if in_ellipse(x, y, 510, 318, 172, 118):
+        return FACE
+    # Braids: the hanging ends (with their ties and outlines) and any hair-coloured pixel outside the head.
+    if (x < 312 and y >= 468) or (x >= 712 and 380 <= y <= 560) or is_hair(rgb):
+        return HAT
+    if 318 <= x <= 685 and 405 <= y <= 765:
+        return TORSO  # bandanna, vest, belt, belly
+    return LIMB  # ears, raised arm and fist, other arm, holster, legs, boots
+
+
+# brim_scan: (first row to scan, last row) for the hat edge; the scan starts below blue's and gold's
+# hat bands, whose colours are close to their skin.
 CREATURES = [
-    {"slug": "desert-sage", "sprite": "art/exports/creatures/creature_desert-sage_front.png", "zone": sage_zone},
-    {"slug": "desert-blue", "sprite": "art/exports/creatures/creature_desert-blue_front.png", "zone": blue_zone},
-    {"slug": "desert-gold", "sprite": "art/exports/creatures/creature_desert-gold_front.png", "zone": gold_zone},
+    {"slug": "desert-sage", "sprite": "art/exports/creatures/creature_desert-sage_revolver_front.png", "zone": sage_zone, "skin": sage_skin, "brim_scan": (150, 345)},
+    {"slug": "desert-blue", "sprite": "art/exports/creatures/creature_desert-blue_revolver_front.png", "zone": blue_zone, "skin": blue_skin, "brim_scan": (228, 335)},
+    {"slug": "desert-gold", "sprite": "art/exports/creatures/creature_desert-gold_revolver_front.png", "zone": gold_zone, "skin": gold_skin, "brim_scan": (218, 335)},
+    {"slug": "desert-violet", "sprite": "art/exports/creatures/creature_desert-violet_revolver_front.png", "zone": violet_zone, "skin": violet_skin, "brim_scan": (150, 320)},
 ]
+
+
+def brim_line(px, c: dict) -> list:
+    """Per column, the first row of skin (two skin pixels in a row) below the hat; the scan's last row if none."""
+    y0, y1 = c["brim_scan"]
+    out = []
+    for x in range(1024):
+        edge = y1
+        for y in range(y0, y1):
+            if c["skin"](px[x, y][:3]) and c["skin"](px[x, y + 1][:3]):
+                edge = y
+                break
+        out.append(edge)
+    return out
 
 
 def label(c: dict):
     """Zone per opaque pixel, plus pixel counts per zone."""
     im = Image.open(ROOT / c["sprite"]).convert("RGBA")
-    a = im.getchannel("A").load()
+    px = im.load()
+    brim = brim_line(px, c)
     zones = {}
     counts = {z: 0 for z in COLORS}
     for y in range(1024):
         for x in range(1024):
-            if a[x, y] >= 128:
-                z = c["zone"](x, y)
+            r, g, b, al = px[x, y]
+            if al >= 128:
+                z = c["zone"](x, y, (r, g, b), brim)
                 zones[(x, y)] = z
                 counts[z] += 1
     return zones, counts
@@ -148,11 +217,10 @@ def write(c: dict, zones: dict, ppu: float) -> None:
 
 if __name__ == "__main__":
     labelled = [(c, *label(c)) for c in CREATURES]
-    ref = labelled[0][2]
     hittable = lambda n: n[FACE] + n[TORSO] + n[LIMB] + n[TAIL]
     print(f"{'creature':14} {'px/unit':>8} {'hittable':>9} {'face':>6} {'torso':>6} {'limb':>6} {'tail':>6}   (areas in square aim units)")
     for c, zones, n in labelled:
-        ppu = REF_PX_PER_UNIT * sqrt(hittable(n) / hittable(ref))
+        ppu = sqrt(hittable(n) / TARGET_AREA)
         u = lambda z: n[z] / ppu ** 2
-        print(f"{c['slug']:14} {ppu:8.2f} {hittable(n) / ppu ** 2:9.1f} {u(FACE):6.1f} {u(TORSO):6.1f} {u(LIMB):6.1f} {u(TAIL):6.1f}")
+        print(f"{c['slug']:14} {ppu:8.2f} {hittable(n) / ppu ** 2:9.1f} {u(FACE):6.1f} {u(TORSO):6.1f} {u(LIMB):6.1f} {u(TAIL):6.1f}   miss {u(HAT):5.1f}")
         write(c, zones, ppu)

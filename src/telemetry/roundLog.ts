@@ -19,6 +19,8 @@ export interface RoundLog {
   seed: number;
   loadout: { alien: string; gun: string };
   opponent: { creature: string; gun: string; bot: string };
+  /** Background the round was played on (added in v0.6.10). */
+  map?: string;
   /** 'abandoned' if the page was closed mid-round. */
   result: string | null;
   durationMs: number;
