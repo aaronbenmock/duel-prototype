@@ -6,6 +6,9 @@ import biolumUrl from '../../art/exports/backgrounds/bg_bioluminescent-canyon.we
 import cometUrl from '../../art/exports/backgrounds/bg_comet-rail-station.webp';
 import lunarUrl from '../../art/exports/backgrounds/bg_lunar-mining-town.webp';
 import saltflatUrl from '../../art/exports/backgrounds/bg_saltflat-oasis.webp';
+import spaceportUrl from '../../art/exports/backgrounds/bg_frontier-spaceport.webp';
+import trainDeckUrl from '../../art/exports/backgrounds/bg_starlight-train-deck.webp';
+import fossilUrl from '../../art/exports/backgrounds/bg_titan-fossil-arch.webp';
 import blueUrl from '../../art/exports/creatures/creature_desert-blue_revolver_front.webp';
 import blueZonesUrl from '../../art/exports/creatures/creature_desert-blue_revolver_front_hitzones.webp';
 import goldUrl from '../../art/exports/creatures/creature_desert-gold_revolver_front.webp';
@@ -54,6 +57,10 @@ export const MAP_ART: Record<string, MapArt> = {
   'lunar-mining-town': { url: lunarUrl, w: 1290, h: 2796, streetFrac: 0.52 },
   'bioluminescent-canyon': { url: biolumUrl, w: 1290, h: 2796, streetFrac: 0.53 },
   'comet-rail-station': { url: cometUrl, w: 1290, h: 2796, streetFrac: 0.515 },
+  // v0.8.4 (arena-trio batch): ground starts at about 0.44 (train flatbed), 0.40 (hangar floor), 0.405 (fossil sand).
+  'starlight-train-deck': { url: trainDeckUrl, w: 1290, h: 2796, streetFrac: 0.545 },
+  'frontier-spaceport': { url: spaceportUrl, w: 1290, h: 2796, streetFrac: 0.51 },
+  'titan-fossil-arch': { url: fossilUrl, w: 1290, h: 2796, streetFrac: 0.515 },
 };
 
 export interface CreatureArt {

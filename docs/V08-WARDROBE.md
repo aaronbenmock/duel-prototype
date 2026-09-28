@@ -13,6 +13,7 @@ CLAUDE.md Handoff, and continues from the first unfinished row.
 | v0.8.1 | Skins: 12 recolours of the aiming sprites + 36 first-person hands, promoted from the wardrobe-worlds draft palettes | done |
 | v0.8.2 | Gun charms in first person | done |
 | v0.8.3 | Belt buckles on the opponent sprite and a full-length Outfitter preview (passed the fit tests) | done |
+| v0.8.4 | Three new maps (train deck, spaceport hangar, fossil arch): 10 in rotation | done |
 | later | Hats, neckwear, vests, jackets: blocked on clean base bodies (see Art review) | blocked, needs art |
 
 ## Decisions for Aaron
@@ -57,6 +58,14 @@ reviews and tests them). Then the hats and clothing can be fitted per alien and 
 base body.
 
 ## Versions
+
+### v0.8.4 (2026-09-28): three new maps
+Train deck (the corrected connected train), frontier spaceport hangar and titan fossil arch, from Aaron's approved
+`art/ready-for-production/high-moon-arena-trio/` package: 10 maps in rotation (looks only). Street lines 0.545 /
+0.51 / 0.515. Checks: build, type-check, browser at 390 x 844 and 375 x 667 on each new map.
+
+Phone test:
+- [ ] Start screen shows v0.8.4. Play until you've seen the train deck, the hangar and the fossil arch: the opponent's feet are on the deck / floor / sand, and everything is easy to see.
 
 ### v0.8.3 (2026-09-26): belt buckles and full-length preview
 Two belt buckles (meteor, ringed moon) in the Wardrobe, each fitted to hide the painted buckle on every alien.

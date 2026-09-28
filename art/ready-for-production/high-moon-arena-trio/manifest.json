@@ -1,0 +1,70 @@
+{
+  "status": "READY",
+  "source": "art\\drafts\\high-moon-arena-trio\\v01",
+  "assets": [
+    {
+      "file": "bg_frontier-spaceport.png",
+      "dimensions": [
+        1290,
+        2796
+      ],
+      "bytes": 2791957,
+      "sha256": "82bc1c7c4df9c15bc4b4769b4d8e8a93b3674e002d722fd95350a9c8bf578b04",
+      "destination": "art/exports/backgrounds/bg_frontier-spaceport.png"
+    },
+    {
+      "file": "bg_frontier-spaceport.webp",
+      "dimensions": [
+        1290,
+        2796
+      ],
+      "bytes": 145164,
+      "sha256": "d69df30df5d0e8036048985f858625b3a21433f67565b63a1427316a2ea58213",
+      "destination": "art/exports/backgrounds/bg_frontier-spaceport.webp"
+    },
+    {
+      "file": "bg_starlight-train-deck.png",
+      "dimensions": [
+        1290,
+        2796
+      ],
+      "bytes": 2431181,
+      "sha256": "25273e9f7f684e19fa3caa03ceb6952e325d89bfd229794b8db73860aea54e71",
+      "destination": "art/exports/backgrounds/bg_starlight-train-deck.png"
+    },
+    {
+      "file": "bg_starlight-train-deck.webp",
+      "dimensions": [
+        1290,
+        2796
+      ],
+      "bytes": 129788,
+      "sha256": "a3a9c69945e0f2f3839bd651437e54d07eb19703b593d694c145875aa7d8f88c",
+      "destination": "art/exports/backgrounds/bg_starlight-train-deck.webp"
+    },
+    {
+      "file": "bg_titan-fossil-arch.png",
+      "dimensions": [
+        1290,
+        2796
+      ],
+      "bytes": 2534073,
+      "sha256": "81dbc4af850ca3b70849cda75b53361060db9e15426dc4f6f3be7a0062ae263b",
+      "destination": "art/exports/backgrounds/bg_titan-fossil-arch.png"
+    },
+    {
+      "file": "bg_titan-fossil-arch.webp",
+      "dimensions": [
+        1290,
+        2796
+      ],
+      "bytes": 136324,
+      "sha256": "4e375c6340b772caadee01016c53625f3df1f774d34eae2795aa464fd12d38c2",
+      "destination": "art/exports/backgrounds/bg_titan-fossil-arch.webp"
+    }
+  ],
+  "limitations": [
+    "Flattened raster drafts approved for handoff; no layered SVG masters.",
+    "Upsampled original generations; phone crop and in-game checks remain for Claude."
+  ]
+}

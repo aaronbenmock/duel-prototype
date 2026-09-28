@@ -5,6 +5,7 @@
 export const MAPS = [
   'alien-frontier', 'moonlit-canyon', 'desert-outpost',
   'saltflat-oasis', 'lunar-mining-town', 'bioluminescent-canyon', 'comet-rail-station',
+  'starlight-train-deck', 'frontier-spaceport', 'titan-fossil-arch',
 ];
 
 /** Names for the Wanted Poster. */
@@ -16,6 +17,9 @@ export const MAP_NAMES: Record<string, string> = {
   'lunar-mining-town': 'Lunar mining town',
   'bioluminescent-canyon': 'Glowing canyon',
   'comet-rail-station': 'Comet rail station',
+  'starlight-train-deck': 'Train deck',
+  'frontier-spaceport': 'Spaceport hangar',
+  'titan-fossil-arch': 'Fossil arch',
 };
 
 /**
