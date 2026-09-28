@@ -2,8 +2,8 @@
 
 Started 2026-09-26 after the v0.7 autopilot. Aaron asked for the wardrobe builds and said Claude should review
 drafted art, test it and promote what works (he won't mark art ready): see
-`art/ready-for-production/CLAUDE-HANDOFF.md` (top section). A restarted session reads this file, then the
-CLAUDE.md Handoff, and continues from the first unfinished row.
+`art/ready-for-production/CLAUDE-HANDOFF.md` (top section). Next builds continue in `docs/NEXT-SESSION-V09.md` (read that first); this file keeps the wardrobe decisions,
+art review and v0.8 phone checklists.
 
 ## Plan and status
 
